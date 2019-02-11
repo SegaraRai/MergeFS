@@ -51,8 +51,8 @@ class RenameStore {
     PathTrieTree(PathTrieTree&&) = default;
     PathTrieTree& operator=(PathTrieTree&&) = default;
 
-    PathTrieTree(bool caseSensiyive);
-    PathTrieTree(bool caseSensiyive, std::wstring_view filepath);
+    PathTrieTree(bool caseSensitive);
+    PathTrieTree(bool caseSensitive, std::wstring_view filepath);
 
   private:
     void Traverse(const std::wstring& prefix, std::function<void(const std::wstring&, const std::wstring&, bool)>& callback) const;
