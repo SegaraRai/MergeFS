@@ -47,12 +47,30 @@ namespace {
 
   PLUGIN_INITIALIZE_INFO gPluginInitializeInfo{};
 
+  std::wstring gDllPrefix;
+
   std::unique_ptr<NanaZ> gPtrNanaZ{};
 }
 
 
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
+  if (fdwReason == DLL_PROCESS_ATTACH) {
+    // load 7z.dll from this DLL's directory
+    constexpr std::size_t BufferSize = 65600;
+    auto buffer = std::make_unique<wchar_t[]>(BufferSize);
+    GetModuleFileNameW(hinstDLL, buffer.get(), BufferSize);
+    if (GetLastError() == ERROR_SUCCESS) {
+      gDllPrefix = std::wstring(buffer.get());
+      const auto lastSlashPos = gDllPrefix.find_last_of(L'\\');
+      if (lastSlashPos != std::wstring::npos) {
+        gDllPrefix = gDllPrefix.substr(0, lastSlashPos + 1);
+      } else {
+        // error
+        gDllPrefix = L""s;
+      }
+    }
+  }
   return TRUE;
 }
 
@@ -67,7 +85,7 @@ PLUGIN_INITCODE SInitializeImpl(const PLUGIN_INITIALIZE_INFO* InitializeInfo) no
   gPluginInitializeInfo = *InitializeInfo;
   _SetPluginInitializeInfo(*InitializeInfo);
   try {
-    gPtrNanaZ = std::make_unique<NanaZ>(SevenZDllFilepath);
+    gPtrNanaZ = std::make_unique<NanaZ>((gDllPrefix + std::wstring(SevenZDllFilepath)).c_str());
   } catch (...) {
     return PLUGIN_INITCODE::Other;
   }
