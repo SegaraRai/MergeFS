@@ -395,14 +395,12 @@
     <ClCompile Include="7z\C\7zBuf2.c" />
     <ClCompile Include="7z\C\7zCrc.c" />
     <ClCompile Include="7z\C\7zCrcOpt.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Platform)'=='Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="7z\C\7zStream.c" />
     <ClCompile Include="7z\C\Aes.c" />
     <ClCompile Include="7z\C\AesOpt.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Platform)'=='Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="7z\C\Alloc.c" />
     <ClCompile Include="7z\C\Bcj2.c" />
@@ -437,8 +435,7 @@
     <ClCompile Include="7z\C\Xz.c" />
     <ClCompile Include="7z\C\XzCrc64.c" />
     <ClCompile Include="7z\C\XzCrc64Opt.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Platform)'=='Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="7z\C\XzDec.c" />
     <ClCompile Include="7z\C\XzEnc.c" />
@@ -448,23 +445,26 @@
     <CustomBuild Include="7z\Asm\x86\7zCrcOpt.asm">
       <FileType>Document</FileType>
       <Command>ml.exe /WX /c /Fo$(IntDir) %(Identity)</Command>
-      <Outputs>$(IntDir)7zCrcOpt.obj;%(Outputs)</Outputs>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <Message>ML %(Identity)</Message>
+      <Outputs>$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
+      <BuildInParallel>true</BuildInParallel>
+      <ExcludedFromBuild Condition="'$(Platform)'!='Win32'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="7z\Asm\x86\AesOpt.asm">
       <FileType>Document</FileType>
       <Command>ml.exe /WX /c /Fo$(IntDir) %(Identity)</Command>
-      <Outputs>$(IntDir)AesOpt.obj;%(Outputs)</Outputs>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <Message>ML %(Identity)</Message>
+      <Outputs>$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
+      <BuildInParallel>true</BuildInParallel>
+      <ExcludedFromBuild Condition="'$(Platform)'!='Win32'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="7z\Asm\x86\XzCrc64Opt.asm">
       <FileType>Document</FileType>
       <Command>ml.exe /WX /c /Fo$(IntDir) %(Identity)</Command>
-      <Outputs>$(IntDir)XzCrc64Opt.obj;%(Outputs)</Outputs>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <Message>ML %(Identity)</Message>
+      <Outputs>$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
+      <BuildInParallel>true</BuildInParallel>
+      <ExcludedFromBuild Condition="'$(Platform)'!='Win32'">true</ExcludedFromBuild>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
