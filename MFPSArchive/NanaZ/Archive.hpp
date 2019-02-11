@@ -18,6 +18,12 @@
 
 
 struct DirectoryTree {
+  enum class OnExistingMode : unsigned char {
+    Skip,
+    Replace,
+    RenameNewOne,
+  };
+
   enum class UseOnMemoryExtractionMode : unsigned char {
     Never,
     Auto,
@@ -37,6 +43,7 @@ struct DirectoryTree {
   std::shared_ptr<std::mutex> streamMutex;
   UseOnMemoryExtractionMode useOnMemoryExtraction;
   bool valid;
+  bool contentAvailable;
   bool onMemory;
   Type type;
   DWORD fileAttributes;
@@ -71,7 +78,7 @@ public:
   using ArchiveNameCallback = std::function<std::optional<std::pair<std::wstring, bool>>(const std::wstring&, std::size_t)>;
   using PasswordWithFilepathCallback = std::function<std::optional<std::wstring>(const std::wstring&)>;
 
-  Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HANDLE_FILE_INFORMATION& byHandleFileInformation, const std::wstring& defaultFilepath, UInt64 maxCheckStartPosition, UseOnMemoryExtractionMode useOnMemoryExtraction, ArchiveNameCallback archiveNameCallback = nullptr, PasswordWithFilepathCallback passwordCallback = nullptr);
+  Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HANDLE_FILE_INFORMATION& byHandleFileInformation, const std::wstring& defaultFilepath, UInt64 maxCheckStartPosition, OnExistingMode onExistingMode, UseOnMemoryExtractionMode useOnMemoryExtraction, ArchiveNameCallback archiveNameCallback = nullptr, PasswordWithFilepathCallback passwordCallback = nullptr);
 
   const DirectoryTree* Get(std::wstring_view filepath) const;
   bool Exists(std::wstring_view filepath) const;
