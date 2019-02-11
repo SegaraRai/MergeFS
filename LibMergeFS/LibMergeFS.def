@@ -1,0 +1,17 @@
+LIBRARY LibMergeFS
+EXPORTS
+  GetError
+  Init
+  Uninit
+  AddSourcePlugin
+  RemoveSourcePlugin
+  GetSourcePlugins
+  SetSourcePluginOrder
+  GetSourcePluginInfo
+  Mount
+  GetMounts
+  GetMountInfo
+  SafeUnmount
+  Unmount
+  SafeUnmountAll
+  UnmountAll

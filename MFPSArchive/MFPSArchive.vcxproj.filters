@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\../SDK">
+      <UniqueIdentifier>{cfca955c-77dc-4e60-9d80-2ca02a3d9fa8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\../SDK\Plugin">
+      <UniqueIdentifier>{a26bebd8-763f-498e-9bbb-9324604ac428}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\../SDK/Plugin">
+      <UniqueIdentifier>{4d73a249-9e99-4451-b6be-b3b9a2507725}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\NanaZ">
+      <UniqueIdentifier>{9d567f75-467b-4be2-94de-c2945171f031}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\NanaZ">
+      <UniqueIdentifier>{6773b509-028e-4381-a32e-2d4358fe48ca}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\SDK\LibMergeFS.h">
+      <Filter>Header Files\../SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\SDK\Plugin\Common.h">
+      <Filter>Header Files\../SDK\Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\SDK\Plugin\Source.h">
+      <Filter>Header Files\../SDK\Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\SDK\Plugin\SourceCpp.hpp">
+      <Filter>Header Files\../SDK\Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="Util.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiveSourceMount.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiveSourceMountFile.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\SDK\Plugin\SourceCppReadonly.hpp">
+      <Filter>Header Files\../SDK\Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="NanaZ\MemoryStream.hpp">
+      <Filter>Header Files\NanaZ</Filter>
+    </ClInclude>
+    <ClInclude Include="NanaZ\NanaZ.hpp">
+      <Filter>Header Files\NanaZ</Filter>
+    </ClInclude>
+    <ClInclude Include="NanaZ\PropVariantUtil.hpp">
+      <Filter>Header Files\NanaZ</Filter>
+    </ClInclude>
+    <ClInclude Include="NanaZ\PropVariantWrapper.hpp">
+      <Filter>Header Files\NanaZ</Filter>
+    </ClInclude>
+    <ClInclude Include="NanaZ\COMError.hpp">
+      <Filter>Header Files\NanaZ</Filter>
+    </ClInclude>
+    <ClInclude Include="NanaZ\DLL.hpp">
+      <Filter>Header Files\NanaZ</Filter>
+    </ClInclude>
+    <ClInclude Include="NanaZ\FileStream.hpp">
+      <Filter>Header Files\NanaZ</Filter>
+    </ClInclude>
+    <ClInclude Include="NanaZ\Archive.hpp">
+      <Filter>Header Files\NanaZ</Filter>
+    </ClInclude>
+    <ClInclude Include="NanaZ\MemoryArchiveExtractCallback.hpp">
+      <Filter>Header Files\NanaZ</Filter>
+    </ClInclude>
+    <ClInclude Include="NanaZ\ArchiveOpenCallback.hpp">
+      <Filter>Header Files\NanaZ</Filter>
+    </ClInclude>
+    <ClInclude Include="NanaZ\7zGUID.hpp">
+      <Filter>Header Files\NanaZ</Filter>
+    </ClInclude>
+    <ClInclude Include="NanaZ\SeekFilterStream.hpp">
+      <Filter>Header Files\NanaZ</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\SDK\Plugin\SourceCpp.cpp">
+      <Filter>Source Files\../SDK/Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="Util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ArchiveSourceMount.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ArchiveSourceMountFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\SDK\Plugin\SourceCppReadonly.cpp">
+      <Filter>Source Files\../SDK/Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="NanaZ\FileStream.cpp">
+      <Filter>Source Files\NanaZ</Filter>
+    </ClCompile>
+    <ClCompile Include="NanaZ\MemoryStream.cpp">
+      <Filter>Source Files\NanaZ</Filter>
+    </ClCompile>
+    <ClCompile Include="NanaZ\NanaZ.cpp">
+      <Filter>Source Files\NanaZ</Filter>
+    </ClCompile>
+    <ClCompile Include="NanaZ\PropVariantWrapper.cpp">
+      <Filter>Source Files\NanaZ</Filter>
+    </ClCompile>
+    <ClCompile Include="NanaZ\COMError.cpp">
+      <Filter>Source Files\NanaZ</Filter>
+    </ClCompile>
+    <ClCompile Include="NanaZ\DLL.cpp">
+      <Filter>Source Files\NanaZ</Filter>
+    </ClCompile>
+    <ClCompile Include="NanaZ\Archive.cpp">
+      <Filter>Source Files\NanaZ</Filter>
+    </ClCompile>
+    <ClCompile Include="NanaZ\MemoryArchiveExtractCallback.cpp">
+      <Filter>Source Files\NanaZ</Filter>
+    </ClCompile>
+    <ClCompile Include="NanaZ\ArchiveOpenCallback.cpp">
+      <Filter>Source Files\NanaZ</Filter>
+    </ClCompile>
+    <ClCompile Include="NanaZ\SeekFilterStream.cpp">
+      <Filter>Source Files\NanaZ</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\SDK\Plugin\Source.def">
+      <Filter>Source Files\../SDK/Plugin</Filter>
+    </None>
+  </ItemGroup>
+</Project>

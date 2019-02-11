@@ -1,0 +1,46 @@
+LIBRARY
+EXPORTS
+  SGetPluginInfo
+  SInitialize
+
+  SIsSupportedFile
+
+  Mount
+  Unmount
+
+  GetSourceInfo
+  GetFileInfo
+  GetDirectoryInfo
+  RemoveFile
+  ExportStart
+  ExportData
+  ExportFinish
+  ImportStart
+  ImportData
+  ImportFinish
+  SwitchSourceClose
+  SwitchDestinationPrepare
+  SwitchDestinationOpen
+  SwitchDestinationCleanup
+  SwitchDestinationClose
+  ListFiles
+  ListStreams
+
+  DZwCreateFile
+  DCleanup
+  DCloseFile
+  DReadFile
+  DWriteFile
+  DFlushFileBuffers
+  DGetFileInformation
+  DSetFileAttributes
+  DSetFileTime
+  DDeleteFile
+  DDeleteDirectory
+  DMoveFile
+  DSetEndOfFile
+  DSetAllocationSize
+  DGetDiskFreeSpace
+  DGetVolumeInformation
+  DGetFileSecurity
+  DSetFileSecurity
