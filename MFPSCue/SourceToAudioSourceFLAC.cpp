@@ -262,6 +262,11 @@ SourceToAudioSourceFLAC::SourceToAudioSourceFLAC(std::shared_ptr<Source> source)
 }
 
 
+bool SourceToAudioSourceFLAC::IsCompressed() const {
+  return true;
+}
+
+
 std::size_t SourceToAudioSourceFLAC::GetChannels() const {
   return mChannelInfo.size();
 }

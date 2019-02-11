@@ -123,6 +123,11 @@ SourceToAudioSourceWAV::SourceToAudioSourceWAV(std::shared_ptr<Source> source) {
 }
 
 
+bool SourceToAudioSourceWAV::IsCompressed() const {
+  return false;
+}
+
+
 std::size_t SourceToAudioSourceWAV::GetChannels() const {
   return mChannelInfo.size();
 }

@@ -23,6 +23,10 @@ using namespace std::literals;
 
 
 namespace {
+  constexpr CueAudioLoader::UseOnMemoryMode DUseOnMemoryMode = CueAudioLoader::UseOnMemoryMode::Never;
+
+
+
   std::wstring GetTwoDigit(unsigned int number) {
     if (number < 10) {
       return L"0"s + std::to_wstring(number);
@@ -133,7 +137,7 @@ CueSourceMount::CueSourceMount(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContext
   ReadonlySourceMountBase(FileName, sourceContextId),
   subMutex(),
   portationMap(),
-  cueAudioLoader(FileName),
+  cueAudioLoader(FileName, DUseOnMemoryMode),
   directoryTree{
     true,
     1,

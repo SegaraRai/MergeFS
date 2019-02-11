@@ -19,6 +19,7 @@
 #include "EncodingConverter.hpp"
 #include "FileSource.hpp"
 #include "MergedSource.hpp"
+#include "OnMemorySourceWrapper.hpp"
 #include "PartialSource.hpp"
 #include "Source.hpp"
 #include "TransformToAudioSource.hpp"
@@ -39,7 +40,7 @@ namespace {
 
 
 
-CueAudioLoader::CueAudioLoader(LPCWSTR filepath) {
+CueAudioLoader::CueAudioLoader(LPCWSTR filepath, UseOnMemoryMode useOnMemoryMode) {
   const auto fullCueFilepath = ToAbsoluteFilepath(filepath);
   const auto baseDirectoryPath = GetParentPath(fullCueFilepath);
 
@@ -63,7 +64,9 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath) {
     auto audioFilepath = PathIsRelativeW(file.filename.c_str()) ? directoryPrefix + file.filename : file.filename;
     
     auto audioFileSource = std::make_shared<FileSource>(audioFilepath.c_str());
-    auto audioSource = TransformToAudioSource(audioFileSource);
+
+    // TODO: check extension for bin file
+    auto audioSource = TransformToAudioSource(audioFileSource, file.type == L"BINARY"sv);
     
     if (!audioSource) {
       throw std::runtime_error(u8"cannot load audio");
@@ -76,6 +79,10 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath) {
     }
     if (audioSource->GetDataType() != AudioSource::DataType::Int16) {
       throw std::runtime_error(u8"unsupported data type");
+    }
+
+    if (useOnMemoryMode == UseOnMemoryMode::Always || (useOnMemoryMode == UseOnMemoryMode::Compressed && audioSource->IsCompressed())) {
+      audioSource = std::make_shared<AudioSourceWrapper>(std::make_shared<OnMemorySourceWrapper>(audioSource), audioSource, false);
     }
 
     mAudioFileSources.emplace_back(audioFileSource);
@@ -97,12 +104,17 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath) {
   }
 
   {
+    bool hasCompressedAudio = false;
+
     std::vector<std::shared_ptr<Source>> sources(mAudioSources.size());
     for (std::size_t sourceIndex = 0; sourceIndex < mAudioSources.size(); sourceIndex++) {
+      if (mAudioSources[sourceIndex]->IsCompressed()) {
+        hasCompressedAudio = true;
+      }
       sources[sourceIndex] = mAudioSources[sourceIndex];
     }
 
-    mFullAudioSource = std::make_shared<AudioSourceWrapper>(std::make_shared<MergedSource>(sources), CDSamplingRate, gCDChannelInfo, CDDataType);
+    mFullAudioSource = std::make_shared<AudioSourceWrapper>(std::make_shared<MergedSource>(sources), hasCompressedAudio, CDSamplingRate, gCDChannelInfo, CDDataType);
   }
 
   if (mTrackNumberToAdditionalTrackInfoMap.empty()) {

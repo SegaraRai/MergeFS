@@ -21,6 +21,7 @@ public:
 
   virtual ~AudioSource() = default;
 
+  virtual bool IsCompressed() const = 0;
   virtual std::size_t GetChannels() const = 0;
   virtual ChannelInfo GetChannelInfo(std::size_t channelIndex) const = 0;
   virtual DataType GetDataType() const = 0;

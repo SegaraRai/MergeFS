@@ -6,4 +6,4 @@
 #include "Source.hpp"
 
 
-std::shared_ptr<AudioSource> TransformToAudioSource(std::shared_ptr<Source> source);
+std::shared_ptr<AudioSource> TransformToAudioSource(std::shared_ptr<Source> source, bool enableBin);

@@ -10,9 +10,10 @@
 
 
 
-AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, unsigned long samplingRate, const std::vector<ChannelInfo>& channelInfo, DataType dataType) :
+AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, bool compressed, unsigned long samplingRate, const std::vector<ChannelInfo>& channelInfo, DataType dataType) :
   mSource(source),
   mSize(source->GetSize()),
+  mCompressed(compressed),
   mSamplingRate(samplingRate),
   mChannelInfo(channelInfo),
   mDataType(dataType)
@@ -23,19 +24,29 @@ AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, unsigned 
 }
 
 
-AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, std::shared_ptr<AudioSource> audioSource) :
+AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, std::shared_ptr<AudioSource> audioSource, bool compressed) :
   mSource(source),
   mSize(source->GetSize()),
+  mCompressed(compressed),
   mSamplingRate(audioSource->GetSamplingRate()),
   mChannelInfo(audioSource->GetChannels()),
-  mDataType(audioSource->GetDataType())
-{
+  mDataType(audioSource->GetDataType()) {
   for (std::size_t channelIndex = 0; channelIndex < mChannelInfo.size(); channelIndex++) {
     mChannelInfo[channelIndex] = audioSource->GetChannelInfo(channelIndex);
   }
   if (mSize % mChannelInfo.size()) {
     throw std::runtime_error(u8"invalid source size");
   }
+}
+
+
+AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, std::shared_ptr<AudioSource> audioSource) :
+  AudioSourceWrapper(source, audioSource, audioSource->IsCompressed())
+{}
+
+
+bool AudioSourceWrapper::IsCompressed() const {
+  return mCompressed;
 }
 
 

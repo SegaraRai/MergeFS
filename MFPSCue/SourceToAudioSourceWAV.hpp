@@ -16,6 +16,7 @@ class SourceToAudioSourceWAV : public AudioSource {
 public:
   SourceToAudioSourceWAV(std::shared_ptr<Source> source);
 
+  bool IsCompressed() const override;
   std::size_t GetChannels() const override;
   ChannelInfo GetChannelInfo(std::size_t channelIndex) const override;
   DataType GetDataType() const override;

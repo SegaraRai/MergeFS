@@ -23,6 +23,12 @@ namespace {
 }
 
 
-std::shared_ptr<AudioSource> TransformToAudioSource(std::shared_ptr<Source> source) {
-  return GetAudioSource<SourceToAudioSourceFLAC, SourceToAudioSourceWAV, SourceToAudioSourceBin>(source);
+std::shared_ptr<AudioSource> TransformToAudioSource(std::shared_ptr<Source> source, bool enableBin) {
+  if (enableBin) {
+    auto audioSource = GetAudioSource<SourceToAudioSourceBin>(source);
+    if (audioSource) {
+      return audioSource;
+    }
+  }
+  return GetAudioSource<SourceToAudioSourceFLAC, SourceToAudioSourceWAV>(source);
 }

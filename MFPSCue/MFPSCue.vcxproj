@@ -193,6 +193,7 @@
     <ClInclude Include="GenerateTagID3.hpp" />
     <ClInclude Include="GenerateTagRIFF.hpp" />
     <ClInclude Include="AudioSource.hpp" />
+    <ClInclude Include="OnMemorySourceWrapper.hpp" />
     <ClInclude Include="SourceToAudioSourceBin.hpp" />
     <ClInclude Include="SourceToAudioSourceFLAC.hpp" />
     <ClInclude Include="SourceToAudioSourceWAV.hpp" />
@@ -221,6 +222,7 @@
     <ClCompile Include="GeneratePlaylistM3U8.cpp" />
     <ClCompile Include="GenerateTagID3.cpp" />
     <ClCompile Include="GenerateTagRIFF.cpp" />
+    <ClCompile Include="OnMemorySourceWrapper.cpp" />
     <ClCompile Include="SourceToAudioSourceBin.cpp" />
     <ClCompile Include="SourceToAudioSourceFLAC.cpp" />
     <ClCompile Include="SourceToAudioSourceWAV.cpp" />

@@ -9,6 +9,7 @@
 
 
 class SourceToAudioSourceBin : public AudioSourceWrapper {
+  static constexpr bool DCompressed = false;
   static constexpr unsigned int DNumChannels = 2;
   static constexpr std::array<ChannelInfo, 2> DChannelInfo{
     ChannelInfo::Left,
