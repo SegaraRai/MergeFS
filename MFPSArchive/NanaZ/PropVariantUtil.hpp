@@ -34,8 +34,8 @@ inline std::optional<std::uint32_t> FromPropVariantN(const PROPVARIANT& propVari
   if (propVariant.vt == VT_EMPTY) {
     return std::nullopt;
   }
-  if (propVariant.vt == VT_UI4) {
-    return std::make_optional(propVariant.uintVal);
+  if (propVariant.vt == VT_UI1 || propVariant.vt == VT_UI2 || propVariant.vt == VT_UI4) {
+    return std::make_optional(propVariant.ulVal);
   }
   throw std::invalid_argument(u8"property does not have a uint32_t value");
 }
@@ -46,8 +46,8 @@ inline std::optional<std::uint64_t> FromPropVariantN(const PROPVARIANT& propVari
   if (propVariant.vt == VT_EMPTY) {
     return std::nullopt;
   }
-  if (propVariant.vt == VT_UI8) {
-    return std::make_optional(propVariant.ulVal);
+  if (propVariant.vt == VT_UI1 || propVariant.vt == VT_UI2 || propVariant.vt == VT_UI4 || propVariant.vt == VT_UI8) {
+    return std::make_optional(propVariant.uhVal.QuadPart);
   }
   throw std::invalid_argument(u8"property does not have a uint64_t value");
 }
