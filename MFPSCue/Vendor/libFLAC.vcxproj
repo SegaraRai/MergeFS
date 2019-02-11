@@ -163,10 +163,7 @@
     <ClCompile Include="flac\src\libFLAC\format.c" />
     <ClCompile Include="flac\src\libFLAC\lpc.c" />
     <ClCompile Include="flac\src\libFLAC\lpc_intrin_avx2.c">
-      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <ClCompile Include="flac\src\libFLAC\lpc_intrin_sse.c" />
     <ClCompile Include="flac\src\libFLAC\lpc_intrin_sse2.c" />
@@ -176,37 +173,22 @@
     <ClCompile Include="flac\src\libFLAC\metadata_iterators.c" />
     <ClCompile Include="flac\src\libFLAC\metadata_object.c" />
     <ClCompile Include="flac\src\libFLAC\ogg_decoder_aspect.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="flac\src\libFLAC\ogg_encoder_aspect.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="flac\src\libFLAC\ogg_helper.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="flac\src\libFLAC\ogg_mapping.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="flac\src\libFLAC\stream_decoder.c" />
     <ClCompile Include="flac\src\libFLAC\stream_encoder.c" />
     <ClCompile Include="flac\src\libFLAC\stream_encoder_framing.c" />
     <ClCompile Include="flac\src\libFLAC\stream_encoder_intrin_avx2.c">
-      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <ClCompile Include="flac\src\libFLAC\stream_encoder_intrin_sse2.c" />
     <ClCompile Include="flac\src\libFLAC\stream_encoder_intrin_ssse3.c" />
@@ -248,78 +230,30 @@
     <None Include="flac\README" />
     <CustomBuild Include="flac\src\libFLAC\ia32\cpu_asm.nasm">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">nasm.exe -f win32 -d OBJ_FORMAT_win32 -i flac\src\libFLAC\ia32\ flac\src\libFLAC\ia32\cpu_asm.nasm -o flac\src\libFLAC\ia32\cpu_asm.obj</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NASM cpu_asm.nasm</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">flac\src\libFLAC\ia32\cpu_asm.obj;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">flac\src\libFLAC\ia32\cpu_asm.nasm;flac\src\libFLAC\ia32\nasm.h;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">nasm.exe -f win32 -d OBJ_FORMAT_win32 -i flac\src\libFLAC\ia32\ flac\src\libFLAC\ia32\cpu_asm.nasm -o flac\src\libFLAC\ia32\cpu_asm.obj</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NASM cpu_asm.nasm</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">flac\src\libFLAC\ia32\cpu_asm.obj;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">flac\src\libFLAC\ia32\cpu_asm.nasm;flac\src\libFLAC\ia32\nasm.h;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nasm.exe -f win32 -d OBJ_FORMAT_win32 -i flac\src\libFLAC\ia32\ flac\src\libFLAC\ia32\cpu_asm.nasm -o flac\src\libFLAC\ia32\cpu_asm.obj</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NASM cpu_asm.nasm</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">flac\src\libFLAC\ia32\cpu_asm.obj;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">flac\src\libFLAC\ia32\cpu_asm.nasm;flac\src\libFLAC\ia32\nasm.h;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">nasm.exe -f win32 -d OBJ_FORMAT_win32 -i flac\src\libFLAC\ia32\ flac\src\libFLAC\ia32\cpu_asm.nasm -o flac\src\libFLAC\ia32\cpu_asm.obj</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NASM cpu_asm.nasm</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">flac\src\libFLAC\ia32\cpu_asm.obj;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">flac\src\libFLAC\ia32\cpu_asm.nasm;flac\src\libFLAC\ia32\nasm.h;%(AdditionalInputs)</AdditionalInputs>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BuildInParallel>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</BuildInParallel>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <Command>nasm.exe -f win32 -d OBJ_FORMAT_win32 -i %(RelativeDir) %(Identity) -o $(IntDir)%(Filename).obj</Command>
+      <Message>NASM %(Identity)</Message>
+      <Outputs>$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
+      <AdditionalInputs>%(RelativeDir)nasm.h;%(AdditionalInputs)</AdditionalInputs>
+      <BuildInParallel>true</BuildInParallel>
+      <ExcludedFromBuild Condition="'$(Platform)'!='Win32'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="flac\src\libFLAC\ia32\fixed_asm.nasm">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">nasm.exe -f win32 -d OBJ_FORMAT_win32 -i flac\src\libFLAC\ia32\ flac\src\libFLAC\ia32\fixed_asm.nasm -o flac\src\libFLAC\ia32\fixed_asm.obj</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NASM fixed_asm.nasm</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">flac\src\libFLAC\ia32\fixed_asm.obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">nasm.exe -f win32 -d OBJ_FORMAT_win32 -i flac\src\libFLAC\ia32\ flac\src\libFLAC\ia32\fixed_asm.nasm -o flac\src\libFLAC\ia32\fixed_asm.obj</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NASM fixed_asm.nasm</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">flac\src\libFLAC\ia32\fixed_asm.obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nasm.exe -f win32 -d OBJ_FORMAT_win32 -i flac\src\libFLAC\ia32\ flac\src\libFLAC\ia32\fixed_asm.nasm -o flac\src\libFLAC\ia32\fixed_asm.obj</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NASM fixed_asm.nasm</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">flac\src\libFLAC\ia32\fixed_asm.obj;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">nasm.exe -f win32 -d OBJ_FORMAT_win32 -i flac\src\libFLAC\ia32\ flac\src\libFLAC\ia32\fixed_asm.nasm -o flac\src\libFLAC\ia32\fixed_asm.obj</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NASM fixed_asm.nasm</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">flac\src\libFLAC\ia32\fixed_asm.obj;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">flac\src\libFLAC\ia32\fixed_asm.nasm;flac\src\libFLAC\ia32\nasm.h;%(AdditionalInputs)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">flac\src\libFLAC\ia32\fixed_asm.nasm;flac\src\libFLAC\ia32\nasm.h;%(AdditionalInputs)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">flac\src\libFLAC\ia32\fixed_asm.nasm;flac\src\libFLAC\ia32\nasm.h;%(AdditionalInputs)</AdditionalInputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">flac\src\libFLAC\ia32\fixed_asm.nasm;flac\src\libFLAC\ia32\nasm.h;%(AdditionalInputs)</AdditionalInputs>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BuildInParallel>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</BuildInParallel>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <Command>nasm.exe -f win32 -d OBJ_FORMAT_win32 -i %(RelativeDir) %(Identity) -o $(IntDir)%(Filename).obj</Command>
+      <Message>NASM %(Identity)</Message>
+      <Outputs>$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
+      <AdditionalInputs>%(RelativeDir)nasm.h;%(AdditionalInputs)</AdditionalInputs>
+      <BuildInParallel>true</BuildInParallel>
+      <ExcludedFromBuild Condition="'$(Platform)'!='Win32'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="flac\src\libFLAC\ia32\lpc_asm.nasm">
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">nasm.exe -f win32 -d OBJ_FORMAT_win32 -i flac\src\libFLAC\ia32\ flac\src\libFLAC\ia32\lpc_asm.nasm -o flac\src\libFLAC\ia32\lpc_asm.obj</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NASM lpc_asm.nasm</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">flac\src\libFLAC\ia32\lpc_asm.obj;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">flac\src\libFLAC\ia32\lpc_asm.nasm;flac\src\libFLAC\ia32\nasm.h;%(AdditionalInputs)</AdditionalInputs>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</BuildInParallel>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">nasm.exe -f win32 -d OBJ_FORMAT_win32 -i flac\src\libFLAC\ia32\ flac\src\libFLAC\ia32\lpc_asm.nasm -o flac\src\libFLAC\ia32\lpc_asm.obj</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NASM lpc_asm.nasm</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">flac\src\libFLAC\ia32\lpc_asm.obj;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">flac\src\libFLAC\ia32\lpc_asm.nasm;flac\src\libFLAC\ia32\nasm.h;%(AdditionalInputs)</AdditionalInputs>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</BuildInParallel>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nasm.exe -f win32 -d OBJ_FORMAT_win32 -i flac\src\libFLAC\ia32\ flac\src\libFLAC\ia32\lpc_asm.nasm -o flac\src\libFLAC\ia32\lpc_asm.obj</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NASM lpc_asm.nasm</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">flac\src\libFLAC\ia32\lpc_asm.obj;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">flac\src\libFLAC\ia32\lpc_asm.nasm;flac\src\libFLAC\ia32\nasm.h;%(AdditionalInputs)</AdditionalInputs>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</BuildInParallel>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">nasm.exe -f win32 -d OBJ_FORMAT_win32 -i flac\src\libFLAC\ia32\ flac\src\libFLAC\ia32\lpc_asm.nasm -o flac\src\libFLAC\ia32\lpc_asm.obj</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NASM lpc_asm.nasm</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">flac\src\libFLAC\ia32\lpc_asm.obj;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">flac\src\libFLAC\ia32\lpc_asm.nasm;flac\src\libFLAC\ia32\nasm.h;%(AdditionalInputs)</AdditionalInputs>
-      <BuildInParallel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</BuildInParallel>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <Command>nasm.exe -f win32 -d OBJ_FORMAT_win32 -i %(RelativeDir) %(Identity) -o $(IntDir)%(Filename).obj</Command>
+      <Message>NASM %(Identity)</Message>
+      <Outputs>$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
+      <AdditionalInputs>%(RelativeDir)nasm.h;%(AdditionalInputs)</AdditionalInputs>
+      <BuildInParallel>true</BuildInParallel>
+      <ExcludedFromBuild Condition="'$(Platform)'!='Win32'">true</ExcludedFromBuild>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
