@@ -8,9 +8,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <numeric>
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <Windows.h>
@@ -25,6 +27,14 @@ using namespace std::literals;
 
 
 namespace {
+  constexpr int DefaultFormatPriority = 0;
+  const std::unordered_map<std::wstring, int> gFormatPriorityMap{
+    // Prioritize Udf over Iso
+    {L"Udf"s, 100},
+    {L"Iso"s, 0},
+  };
+
+
   template<typename T>
   std::optional<T> GetPropertyN(Func_GetHandlerProperty2 GetHandlerProperty2, UInt32 index, PROPID propId) {
     PropVariantWrapper propVariant;
@@ -132,6 +142,19 @@ NanaZ::FormatStore::FormatStore(Func_GetIsArc GetIsArc, Func_GetNumberOfFormats 
       maxSignatureSize = currentMaxSignatureSize;
     }
   }
+
+
+  std::vector<int> formatPriorities(formats.size());
+  for (std::size_t formatIndex = 0; formatIndex < formats.size(); formatIndex++) {
+    const auto& format = formats[formatIndex];
+    formatPriorities[formatIndex] = gFormatPriorityMap.count(format.name) ? gFormatPriorityMap.at(format.name) : DefaultFormatPriority;
+  }
+
+  orderedFormatIndices.resize(formats.size());
+  std::iota(orderedFormatIndices.begin(), orderedFormatIndices.end(), 0);
+  std::sort(orderedFormatIndices.begin(), orderedFormatIndices.end(), [&formatPriorities](const auto& a, const auto& b) {
+    return formatPriorities[a] > formatPriorities[b];
+  });
 }
 
 
@@ -165,7 +188,7 @@ std::vector<std::size_t> NanaZ::FormatStore::FindFormatByStream(winrt::com_ptr<I
   COMError::CheckHRESULT(inStream->Seek(0, STREAM_SEEK_SET, nullptr));
 
   std::vector<std::size_t> formatIndices;
-  for (std::size_t formatIndex = 0; formatIndex < formats.size(); formatIndex++) {
+  for (const auto& formatIndex : orderedFormatIndices) {
     const auto& format = formats[formatIndex];
 
     // check format by IsArc if provided

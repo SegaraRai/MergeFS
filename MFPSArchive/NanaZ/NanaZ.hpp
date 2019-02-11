@@ -28,6 +28,7 @@ public:
 
   class FormatStore {
     std::vector<Format> formats;
+    std::vector<std::size_t> orderedFormatIndices;
     std::size_t maxSignatureSize;
 
   public:
