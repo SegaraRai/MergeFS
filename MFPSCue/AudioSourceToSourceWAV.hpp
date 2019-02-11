@@ -12,8 +12,8 @@ class AudioSourceToSourceWAV : public Source {
   std::shared_ptr<Source> mSource;
 
 public:
-  AudioSourceToSourceWAV(std::shared_ptr<AudioSource> inAudioSource, const CueSheet* cueSheet, CueSheet::File::Track::TrackNumber trackNumber);
-  AudioSourceToSourceWAV(std::shared_ptr<AudioSource> inAudioSource);
+  AudioSourceToSourceWAV(std::shared_ptr<AudioSource> audioSource, const CueSheet* cueSheet, CueSheet::File::Track::TrackNumber trackNumber);
+  AudioSourceToSourceWAV(std::shared_ptr<AudioSource> audioSource);
 
   SourceSize GetSize() override;
   NTSTATUS Read(SourceOffset offset, std::byte* buffer, std::size_t size, std::size_t* readSize) override;

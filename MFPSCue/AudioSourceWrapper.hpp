@@ -20,7 +20,7 @@ class AudioSourceWrapper : public AudioSource {
 
 public:
   AudioSourceWrapper(std::shared_ptr<Source> source, unsigned long samplingRate, const std::vector<ChannelInfo>& channelInfo, DataType dataType);
-  AudioSourceWrapper(std::shared_ptr<Source> source, std::shared_ptr<AudioSource> inAudioSource);
+  AudioSourceWrapper(std::shared_ptr<Source> source, std::shared_ptr<AudioSource> audioSource);
   virtual ~AudioSourceWrapper() = default;
 
   std::size_t GetChannels() const override;

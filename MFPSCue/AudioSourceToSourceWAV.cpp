@@ -8,7 +8,7 @@
 
 
 
-AudioSourceToSourceWAV::AudioSourceToSourceWAV(std::shared_ptr<AudioSource> inAudioSource, const CueSheet* ptrCueSheet, CueSheet::File::Track::TrackNumber trackNumber) {
+AudioSourceToSourceWAV::AudioSourceToSourceWAV(std::shared_ptr<AudioSource> audioSource, const CueSheet* ptrCueSheet, CueSheet::File::Track::TrackNumber trackNumber) {
   /*
   preamble1:
   00: RIFF [SIZE]
@@ -51,20 +51,20 @@ AudioSourceToSourceWAV::AudioSourceToSourceWAV(std::shared_ptr<AudioSource> inAu
 
   const std::size_t mergedPreambleDataSize = sizeof(preambleData1) + preambleData2.size() + sizeof(preambleData3);
 
-  const SourceSize audioDataSize = inAudioSource->GetSize();
+  const SourceSize audioDataSize = audioSource->GetSize();
   const SourceSize totalSourceSize = mergedPreambleDataSize + audioDataSize;
 
   const auto bits = 16;
-  if (inAudioSource->GetDataType() != AudioSource::DataType::Int16) {
+  if (audioSource->GetDataType() != AudioSource::DataType::Int16) {
     throw std::runtime_error(u8"unsupported DataType");
   }
 
   *reinterpret_cast<std::uint32_t*>(preambleData1 + 0x04) = static_cast<std::uint32_t>(totalSourceSize - 8);
 
-  *reinterpret_cast<std::uint16_t*>(preambleData3 + 0x0A) = static_cast<std::uint16_t>(inAudioSource->GetChannels());
-  *reinterpret_cast<std::uint32_t*>(preambleData3 + 0x0C) = static_cast<std::uint32_t>(inAudioSource->GetSamplingRate());
-  *reinterpret_cast<std::uint32_t*>(preambleData3 + 0x10) = static_cast<std::uint32_t>(inAudioSource->GetSamplingRate() * bits * inAudioSource->GetChannels() / 8);
-  *reinterpret_cast<std::uint16_t*>(preambleData3 + 0x14) = static_cast<std::uint16_t>(inAudioSource->GetChannels() * bits / 8);
+  *reinterpret_cast<std::uint16_t*>(preambleData3 + 0x0A) = static_cast<std::uint16_t>(audioSource->GetChannels());
+  *reinterpret_cast<std::uint32_t*>(preambleData3 + 0x0C) = static_cast<std::uint32_t>(audioSource->GetSamplingRate());
+  *reinterpret_cast<std::uint32_t*>(preambleData3 + 0x10) = static_cast<std::uint32_t>(audioSource->GetSamplingRate() * bits * audioSource->GetChannels() / 8);
+  *reinterpret_cast<std::uint16_t*>(preambleData3 + 0x14) = static_cast<std::uint16_t>(audioSource->GetChannels() * bits / 8);
   *reinterpret_cast<std::uint16_t*>(preambleData3 + 0x16) = static_cast<std::uint16_t>(bits);
   *reinterpret_cast<std::uint32_t*>(preambleData3 + 0x1C) = static_cast<std::uint32_t>(audioDataSize);
 
@@ -80,14 +80,14 @@ AudioSourceToSourceWAV::AudioSourceToSourceWAV(std::shared_ptr<AudioSource> inAu
 
   std::vector<std::shared_ptr<Source>> sources{
     preambleSource,
-    inAudioSource,
+    audioSource,
   };
   mSource = std::make_shared<MergedSource>(sources);
 }
 
 
-AudioSourceToSourceWAV::AudioSourceToSourceWAV(std::shared_ptr<AudioSource> inAudioSource) :
-  AudioSourceToSourceWAV(inAudioSource, nullptr, 0)
+AudioSourceToSourceWAV::AudioSourceToSourceWAV(std::shared_ptr<AudioSource> audioSource) :
+  AudioSourceToSourceWAV(audioSource, nullptr, 0)
 {}
 
 

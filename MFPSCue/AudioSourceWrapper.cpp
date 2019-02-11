@@ -23,15 +23,15 @@ AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, unsigned 
 }
 
 
-AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, std::shared_ptr<AudioSource> inAudioSource) :
+AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, std::shared_ptr<AudioSource> audioSource) :
   mSource(source),
   mSize(source->GetSize()),
-  mSamplingRate(inAudioSource->GetSamplingRate()),
-  mChannelInfo(inAudioSource->GetChannels()),
-  mDataType(inAudioSource->GetDataType())
+  mSamplingRate(audioSource->GetSamplingRate()),
+  mChannelInfo(audioSource->GetChannels()),
+  mDataType(audioSource->GetDataType())
 {
   for (std::size_t channelIndex = 0; channelIndex < mChannelInfo.size(); channelIndex++) {
-    mChannelInfo[channelIndex] = inAudioSource->GetChannelInfo(channelIndex);
+    mChannelInfo[channelIndex] = audioSource->GetChannelInfo(channelIndex);
   }
   if (mSize % mChannelInfo.size()) {
     throw std::runtime_error(u8"invalid source size");
