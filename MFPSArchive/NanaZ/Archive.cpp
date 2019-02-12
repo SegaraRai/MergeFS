@@ -147,9 +147,21 @@ namespace {
       winrt::com_ptr<IArchiveOpenCallback> archiveOpenCallback;
       archiveOpenCallback.attach(new ArchiveOpenCallback(passwordCallback));
 
-      if (SUCCEEDED(inArchive->Open(inStream.get(), &maxCheckStartPosition, archiveOpenCallback.get()))) {
-        return inArchive;
+      if (FAILED(inArchive->Open(inStream.get(), &maxCheckStartPosition, archiveOpenCallback.get()))) {
+        continue;
       }
+
+      // check kpidErrorFlags
+      {
+        PropVariantWrapper propVariant;
+        inArchive->GetArchiveProperty(kpidErrorFlags, &propVariant);
+        const auto errorFlags = FromPropVariantN<UInt32>(propVariant).value_or(0);
+        if (errorFlags) {
+          continue;
+        }
+      }
+      
+      return inArchive;
     }
 
     return nullptr;
