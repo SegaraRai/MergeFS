@@ -219,7 +219,7 @@ namespace {
           directoryTree.inArchive->GetProperty(index, kpidSize, &propVariant);
           const auto fileSizeN = FromPropVariantN<UInt64>(propVariant);
           contentDirectoryTree.fileSize = fileSizeN.value_or(0);
-          contentDirectoryTree.contentAvailable = !fileSizeN;
+          contentDirectoryTree.contentAvailable = !!fileSizeN;
         } else {
           contentDirectoryTree.fileSize = 0;
         }
