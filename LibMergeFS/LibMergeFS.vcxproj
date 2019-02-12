@@ -186,6 +186,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\SDK\CaseSensitivity.cpp" />
     <ClCompile Include="DokanOperations.cpp" />
     <ClCompile Include="GUIDUtil.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -201,6 +202,7 @@
     <ClCompile Include="Util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\SDK\CaseSensitivity.hpp" />
     <ClInclude Include="..\SDK\LibMergeFS.h" />
     <ClInclude Include="..\SDK\Plugin\Common.h" />
     <ClInclude Include="..\SDK\Plugin\Source.h" />

@@ -25,6 +25,9 @@
     <Filter Include="Source Files\SQLite3">
       <UniqueIdentifier>{66563ffe-5486-4209-9b16-ad84ed652778}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\../SDK">
+      <UniqueIdentifier>{e5cf9fdf-e40b-4da3-9e20-fa12738d995d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SourcePlugin.hpp">
@@ -78,6 +81,9 @@
     <ClInclude Include="GUIDUtil.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\SDK\CaseSensitivity.hpp">
+      <Filter>Header Files\../SDK</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -118,6 +124,9 @@
     </ClCompile>
     <ClCompile Include="GUIDUtil.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\SDK\CaseSensitivity.cpp">
+      <Filter>Source Files\../SDK</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,10 +1,11 @@
 #include "RenameStore.hpp"
 #include "Util.hpp"
 
+#include "../SDK/CaseSensitivity.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 #include <deque>
 #include <functional>
@@ -25,59 +26,9 @@ namespace {
 
 
 
-RenameStore::CiEqualTo::CiEqualTo(bool caseSensitive) :
-  mCaseSensitive(caseSensitive),
-  mCompareFunc(caseSensitive ? wcscmp : _wcsicmp)
-{}
-
-
-bool RenameStore::CiEqualTo::operator()(const std::wstring& a, const std::wstring& b) const {
-  return a.size() == b.size() && mCompareFunc(a.c_str(), b.c_str()) == 0;
-}
-
-
-
-std::size_t RenameStore::CiHash::CaseSensitiveHash(const std::wstring& x) {
-  static const std::hash<std::wstring> hashFunctor;
-  return hashFunctor(x);
-}
-
-
-std::size_t RenameStore::CiHash::CaseInsensitiveHash(const std::wstring& x) {
-  // FNV-1a
-  static_assert(sizeof(wchar_t) == 2);
-  static_assert(sizeof(std::size_t) == 4 || sizeof(std::size_t) == 8);
-  constexpr std::size_t Prime = sizeof(std::size_t) == 4 ? 16777619 : 1099511628211;
-  constexpr std::size_t Basis = sizeof(std::size_t) == 4 ? 2166136261 : 14695981039346656037;
-  std::size_t hash = Basis;
-  for (const auto& c : x) {
-    const auto uc = static_cast<std::uint_fast16_t>(c);
-    const auto uc1b = static_cast<std::uint_fast8_t>(uc & 0xFF) | 0x20;   // convert to lowercase
-    const auto uc2b = static_cast<std::uint_fast8_t>(uc >> 8);
-    hash ^= uc1b;
-    hash *= Prime;
-    hash ^= uc2b;
-    hash *= Prime;
-  }
-  return hash;
-}
-
-
-RenameStore::CiHash::CiHash(bool caseSensitive) :
-  mCaseSensitive(caseSensitive),
-  mHashFunc(caseSensitive ? CaseSensitiveHash : CaseInsensitiveHash)
-{}
-
-
-std::size_t RenameStore::CiHash::operator()(const std::wstring& x) const {
-  return mHashFunc(x);
-}
-
-
-
 RenameStore::PathTrieTree::PathTrieTree(bool caseSensitive) :
   mCaseSensitive(caseSensitive),
-  mChildren(0, RenameStore::CiHash(caseSensitive), RenameStore::CiEqualTo(caseSensitive)),
+  mChildren(0, CaseSensitivity::CiHash(caseSensitive), CaseSensitivity::CiEqualTo(caseSensitive)),
   mValid(false),
   mFilepath()
 {}
@@ -85,14 +36,14 @@ RenameStore::PathTrieTree::PathTrieTree(bool caseSensitive) :
 
 RenameStore::PathTrieTree::PathTrieTree(bool caseSensitive, std::wstring_view filepath) :
   mCaseSensitive(caseSensitive),
-  mChildren(0, RenameStore::CiHash(caseSensitive), RenameStore::CiEqualTo(caseSensitive)),
+  mChildren(0, CaseSensitivity::CiHash(caseSensitive), CaseSensitivity::CiEqualTo(caseSensitive)),
   mValid(true),
   mFilepath(filepath)
 {}
 
 
 void RenameStore::PathTrieTree::Traverse(const std::wstring& prefix, std::function<void(const std::wstring&, const std::wstring&, bool)>& callback) const {
-  for (const auto&[key, value] : mChildren) {
+  for (const auto& [key, value] : mChildren) {
     const std::wstring filepath = prefix + key;
     callback(filepath, value.mFilepath, value.mValid);
     value.Traverse(filepath + StrDelimiter, callback);

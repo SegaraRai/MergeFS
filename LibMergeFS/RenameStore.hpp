@@ -9,36 +9,17 @@
 #include <utility>
 #include <vector>
 
+#include "../SDK/CaseSensitivity.hpp"
+
 
 class RenameStore {
-  class CiEqualTo {
-    bool mCaseSensitive;
-    int(*mCompareFunc)(const wchar_t*, const wchar_t*);   // wcscmp or wcsicmp
-
-  public:
-    CiEqualTo(bool caseSensitive);
-    bool operator() (const std::wstring& a, const std::wstring& b) const;
-  };
-
-  class CiHash {
-    static std::size_t CaseSensitiveHash(const std::wstring& x);
-    static std::size_t CaseInsensitiveHash(const std::wstring& x);
-
-    bool mCaseSensitive;
-    std::size_t(*mHashFunc)(const std::wstring&);   // CaseSensitiveHash or CaseInsensitiveHash
-
-  public:
-    CiHash(bool caseSensitive);
-    std::size_t operator() (const std::wstring& x) const;
-  };
-
   class PathTrieTree {
   public:
     static constexpr wchar_t Delimiter = L'\\';
 
   private:
     bool mCaseSensitive;      // not const because of move assignment operator
-    std::unordered_map<std::wstring, PathTrieTree, CiHash, CiEqualTo> mChildren;
+    std::unordered_map<std::wstring, PathTrieTree, CaseSensitivity::CiHash, CaseSensitivity::CiEqualTo> mChildren;
     bool mValid;
     std::wstring mFilepath;
 
