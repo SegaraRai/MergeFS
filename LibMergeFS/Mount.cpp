@@ -532,7 +532,7 @@ bool Mount::ReleaseFileContextId(FILE_CONTEXT_ID FileContextId) noexcept {
     assert(m_fileContextMap.count(FileContextId));
     // use_count will be usually 2 ( +1 for m_fileContextMap and +1 for ptrFileContext in DCloseFile)
     const std::size_t useCount = m_fileContextMap.at(FileContextId).use_count();
-    assert(useCount == 2);
+    //assert(useCount == 2);
     if (useCount != 2) {
       OutputDebugStringW((L"### FileContext "s + std::to_wstring(FileContextId) + L" released with use count "s + std::to_wstring(useCount) + L"\n"s).c_str());
     }
