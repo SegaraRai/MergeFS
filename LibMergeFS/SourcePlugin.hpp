@@ -56,7 +56,7 @@ private:
   using PListStreams = decltype(&External::Plugin::Source::ListStreams);
 
 public:
-  using PSIsSupportedFile = decltype(&External::Plugin::Source::SIsSupportedFile);
+  using PSIsSupported = decltype(&External::Plugin::Source::SIsSupported);
 
   using PMount = decltype(&External::Plugin::Source::Mount);
   using PUnmount = decltype(&External::Plugin::Source::Unmount);
@@ -111,7 +111,7 @@ private:
   bool ReleaseSourceContextId(SOURCE_CONTEXT_ID sourceContextId);
 
 public:
-  const PSIsSupportedFile SIsSupportedFile;
+  const PSIsSupported SIsSupported;
 
   const PGetSourceInfo GetSourceInfo;
   const PGetFileInfo GetFileInfo;

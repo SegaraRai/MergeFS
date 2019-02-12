@@ -3,7 +3,7 @@ EXPORTS
   SGetPluginInfo
   SInitialize
 
-  SIsSupportedFile
+  SIsSupported
 
   Mount
   Unmount

@@ -99,7 +99,7 @@ std::optional<SourcePluginStore::PLUGIN_ID> SourcePluginStore::SearchSourcePlugi
   const auto csSourceFilename = sSourceFilename.c_str();
   for (const auto& id : m_sourcePluginOrder) {
     auto& sourcePlugin = *m_sourcePluginMap.at(id);
-    if (sourcePlugin.SIsSupportedFile(csSourceFilename)) {
+    if (sourcePlugin.SIsSupported(csSourceFilename)) {
       return id;
     }
   }

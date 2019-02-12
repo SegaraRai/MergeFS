@@ -490,8 +490,8 @@ PLUGIN_INITCODE WINAPI SInitialize(const PLUGIN_INITIALIZE_INFO* InitializeInfo)
 }
 
 
-BOOL WINAPI SIsSupportedFile(LPCWSTR FileName) MFNOEXCEPT {
-  return SIsSupportedFileImpl(FileName);
+BOOL WINAPI SIsSupported(LPCWSTR FileName) MFNOEXCEPT {
+  return SIsSupportedImpl(FileName);
 }
 
 

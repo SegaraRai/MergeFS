@@ -27,7 +27,7 @@ SourcePlugin::SourcePlugin(std::wstring_view pluginFilePath) :
   _Unmount(dll.GetProc<PUnmount>(u8"Unmount")),
   _ListFiles(dll.GetProc<PListFiles>(u8"ListFiles")),
   _ListStreams(dll.GetProc<PListStreams>(u8"ListStreams")),
-  SIsSupportedFile(dll.GetProc<PSIsSupportedFile>(u8"SIsSupportedFile")),
+  SIsSupported(dll.GetProc<PSIsSupported>(u8"SIsSupported")),
   GetSourceInfo(dll.GetProc<PGetSourceInfo>(u8"GetSourceInfo")),
   GetFileInfo(dll.GetProc<PGetFileInfo>(u8"GetFileInfo")),
   GetDirectoryInfo(dll.GetProc<PGetDirectoryInfo>(u8"GetDirectoryInfo")),

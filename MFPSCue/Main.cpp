@@ -57,7 +57,7 @@ PLUGIN_INITCODE SInitializeImpl(const PLUGIN_INITIALIZE_INFO* InitializeInfo) no
 }
 
 
-BOOL SIsSupportedFileImpl(LPCWSTR FileName) noexcept {
+BOOL SIsSupportedImpl(LPCWSTR FileName) noexcept {
   try {
     const std::wstring_view filepath(FileName);
     if (filepath.size() < 4) {

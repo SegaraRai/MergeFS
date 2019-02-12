@@ -7,7 +7,7 @@
 // - implement `DllMain` function
 // - implement `const PLUGIN_INFO* SGetPluginInfo()` function
 // - implement `PLUGIN_INITCODE SInitializeImpl()` function
-// - implement `BOOL SIsSupportedFileImpl(LPCWSTR FileName)` function
+// - implement `BOOL SIsSupportedImpl(LPCWSTR FileName)` function
 // - implement `std::unique_ptr<SourceMountBase> MountImpl(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId)` function
 //   - the body of MountImpl function will be like `return std::make_unique<SourceMount>(FileName, sourceContextId);`
 // - functions which is not noexcept can throw NtstatusError exception and Win33Error exception
@@ -31,7 +31,7 @@ class SourceMountBase;
 
 const PLUGIN_INFO* SGetPluginInfoImpl() noexcept;
 PLUGIN_INITCODE SInitializeImpl(const PLUGIN_INITIALIZE_INFO* InitializeInfo) noexcept;
-BOOL SIsSupportedFileImpl(LPCWSTR FileName) noexcept;
+BOOL SIsSupportedImpl(LPCWSTR FileName) noexcept;
 std::unique_ptr<SourceMountBase> MountImpl(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId);
 
 
