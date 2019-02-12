@@ -22,6 +22,8 @@ class InSeekFilterStream : public winrt::implements<InSeekFilterStream, IInStrea
 
 public:
   InSeekFilterStream(winrt::com_ptr<IInStream> inStream, winrt::com_ptr<IInStream> baseInStream);
+  InSeekFilterStream(winrt::com_ptr<IInStream> inStream);
+
   virtual ~InSeekFilterStream() = default;
 
   // IInStream

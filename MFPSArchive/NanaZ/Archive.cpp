@@ -376,7 +376,13 @@ namespace {
         return passwordCallback(passwordFilepath);
       };
 
-      auto contentInArchive = CreateInArchiveFromInStream(nanaZ, contentDirectoryTree.inStream, maxCheckStartPosition, contentPasswordCallback);
+
+      auto originalContentInStream = contentDirectoryTree.inStream;
+
+      winrt::com_ptr<InSeekFilterStream> cloneContentInStream;
+      cloneContentInStream.attach(new InSeekFilterStream(originalContentInStream));
+
+      auto contentInArchive = CreateInArchiveFromInStream(nanaZ, cloneContentInStream, maxCheckStartPosition, contentPasswordCallback);
       if (!contentInArchive) {
         continue;
       }
@@ -397,13 +403,16 @@ namespace {
         contentDirectoryTree.fileSize,
         1,    // TODO: numberOfLinks
         fileIndexCount++,
-        contentDirectoryTree.inStream,
+        cloneContentInStream,
         contentInArchive,
         contentDirectoryTree.creationTime,
         contentDirectoryTree.lastAccessTime,
         contentDirectoryTree.lastWriteTime,
         nullptr,
       };
+
+      // modify source inStream in order to completely separate seek positions
+      contentDirectoryTree.inStream.attach(new InSeekFilterStream(originalContentInStream));
 
       // filename collision will not occur
       auto ptrInsertedCloneContentDirectoryTree = Insert(directoryTree, asArchiveFilepath, std::move(cloneContentDirectoryTree), fileIndexCount, DirectoryTree::OnExistingMode::Replace, fallbackCreationTime, fallbackLastAccessTime, fallbackLastWriteTime);

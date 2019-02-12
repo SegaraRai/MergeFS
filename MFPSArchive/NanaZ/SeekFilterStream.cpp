@@ -21,6 +21,11 @@ InSeekFilterStream::InSeekFilterStream(winrt::com_ptr<IInStream> inStream, winrt
 }
 
 
+InSeekFilterStream::InSeekFilterStream(winrt::com_ptr<IInStream> inStream) :
+  InSeekFilterStream(inStream, inStream)
+{}
+
+
 STDMETHODIMP InSeekFilterStream::Read(void* data, UInt32 size, UInt32* processedSize) {
   std::lock_guard lock(mutex);
   UInt64 newSeekOffset = -1;
