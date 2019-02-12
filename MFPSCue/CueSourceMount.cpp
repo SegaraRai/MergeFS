@@ -8,6 +8,8 @@
 #include "MemorySource.hpp"
 #include "Util.hpp"
 
+#include "../SDK/CaseSensitivity.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <memory>
@@ -47,17 +49,22 @@ namespace {
       // leaf
       assert(!directoryTree.children.count(rootDirectoryName));
       directoryTree.children.emplace(rootDirectoryName, DirectoryTree{
+        directoryTree.caseSensitive,
         false,
         fileIndexCount++,
         source,
+        decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)),
       });
       return;
     }
 
     if (!directoryTree.children.count(rootDirectoryName)) {
       directoryTree.children.emplace(rootDirectoryName, DirectoryTree{
+        directoryTree.caseSensitive,
         true,
         fileIndexCount++,
+        nullptr,
+        decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)),
       });
     }
 
@@ -139,8 +146,11 @@ CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMou
   portationMap(),
   cueAudioLoader(InitializeMountInfo->FileName, DUseOnMemoryMode),
   directoryTree{
+    caseSensitive,
     true,
     1,
+    nullptr,
+    decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(caseSensitive), CaseSensitivity::CiEqualTo(caseSensitive)),
   }
 {
   constexpr std::size_t BufferSize = MAX_PATH + 1;
