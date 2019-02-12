@@ -46,7 +46,7 @@ namespace {
 
 
 
-  bool IsSupportedFile(wstring_view wstr) noexcept {
+  bool IsSupported(wstring_view wstr) noexcept {
     return wstr == L"NULLFS";
   }
 
@@ -81,7 +81,7 @@ PLUGIN_INITCODE WINAPI SInitialize(const PLUGIN_INITIALIZE_INFO* InitializeInfo)
 
 
 BOOL WINAPI SIsSupported(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo) MFNOEXCEPT {
-  return IsSupportedFile(InitializeMountInfo->FileName);
+  return IsSupported(InitializeMountInfo->FileName);
 }
 
 
