@@ -505,8 +505,8 @@ Mount::FILE_CONTEXT_ID Mount::AssignFileContextId(std::wstring_view FileName, st
     DesiredAccess,
     FileAttributes,
     ShareAccess,
-    CreateOptions,
     CreateDisposition,
+    CreateOptions,
   };
 #ifdef USE_SHARED_PTR_FOR_FILE_CONTEXT
   m_fileContextMap.emplace(id, std::move(std::shared_ptr<FileContext>(ptrFileContext)));
