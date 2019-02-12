@@ -186,6 +186,10 @@ std::wstring ArchiveSourceMount::GetRealPath(LPCWSTR filepath) const {
 
 
 NTSTATUS ArchiveSourceMount::ReturnPathOrNameNotFoundErrorR(std::wstring_view realPath) const {
+  assert(!realPath.empty());
+  if (realPath.find_first_of(L'\\') == std::wstring_view::npos) {
+    return STATUS_OBJECT_NAME_NOT_FOUND;
+  }
   auto& archive = this->archiveN.value();
   return archive.Exists(GetParentPath(realPath)) ? STATUS_OBJECT_NAME_NOT_FOUND : STATUS_OBJECT_PATH_NOT_FOUND;
 }
