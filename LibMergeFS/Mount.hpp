@@ -31,6 +31,7 @@ class Mount {
   static constexpr FILE_CONTEXT_ID FileContextIdStart = FILE_CONTEXT_ID_NULL + 1;
 
   struct FileContext {
+    std::mutex mutex;
     FILE_CONTEXT_ID id;
     Mount& mount;
     std::reference_wrapper<MountSource> mountSource;
@@ -39,13 +40,13 @@ class Mount {
     bool directory;
     std::atomic<bool> writable;
     std::atomic<bool> copyDeferred;
+    ULONGLONG fileIndexBase;
     DOKAN_IO_SECURITY_CONTEXT SecurityContext;
     ACCESS_MASK DesiredAccess;
     ULONG FileAttributes;
     ULONG ShareAccess;
     ULONG CreateDisposition;
     ULONG CreateOptions;
-    std::mutex mutex;
 
     FileContext(const FileContext&) = delete;
   };
@@ -66,6 +67,7 @@ class Mount {
   std::unordered_map<FILE_CONTEXT_ID, std::unique_ptr<FileContext>> m_fileContextMap;
 #endif
   FILE_CONTEXT_ID m_minimumUnusedFileContextId;
+  std::vector<ULONGLONG> m_fileIndexBases;
   std::thread m_thread;
 
   static bool HasFileContext(PDOKAN_FILE_INFO DokanFileInfo) noexcept;

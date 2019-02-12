@@ -62,6 +62,7 @@ namespace {
     }
   }
 
+
   template<typename T>
   NTSTATUS WrapExceptionV(const T& func) noexcept {
 	  static_assert(std::is_same_v<decltype(func()), void>);
@@ -70,6 +71,21 @@ namespace {
       func();
       return STATUS_SUCCESS;
     });
+  }
+
+
+  std::vector<std::size_t> CalcFileIndexBases(std::size_t numMounts) {
+    const ULONGLONG diff = std::numeric_limits<ULONGLONG>::max() / numMounts;
+
+    std::vector<std::size_t> fileIndexBases(numMounts);
+
+    ULONGLONG base = 0;
+    for (auto& fileIndexBase : fileIndexBases) {
+      fileIndexBase = base;
+      base += diff;
+    }
+
+    return fileIndexBases;
   }
 }
 
@@ -183,6 +199,7 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
   m_mounted(false),
   m_fileContextMap(),
   m_minimumUnusedFileContextId(FileContextIdStart),
+  m_fileIndexBases(CalcFileIndexBases(m_mountSources.size())),
   m_thread([this, callback]() {
     ULONG options = DokanConfig::Options;
     if (!m_writable) {
@@ -474,6 +491,7 @@ Mount::FILE_CONTEXT_ID Mount::AssignFileContextId(std::wstring_view FileName, st
 
   const bool writable = m_writable && mountSourceIndex == TopSourceIndex;
   auto ptrFileContext = new FileContext{
+    std::mutex(),
     id,
     *this,
     *m_mountSources[mountSourceIndex].get(),
@@ -482,6 +500,7 @@ Mount::FILE_CONTEXT_ID Mount::AssignFileContextId(std::wstring_view FileName, st
     isDirectory,
     writable,
     deferCopy,
+    m_fileIndexBases.at(mountSourceIndex),
     *SecurityContext,
     DesiredAccess,
     FileAttributes,
@@ -947,8 +966,16 @@ NTSTATUS Mount::DGetFileInformation(LPCWSTR FileName, LPBY_HANDLE_FILE_INFORMATI
       return status;
     }
   
+    // modify fileIndex to avoid collision
+    if (Buffer) {
+      auto fileIndex = (static_cast<ULONGLONG>(Buffer->nFileIndexHigh) << 32) | Buffer->nFileIndexLow;
+      fileIndex += fileContext.fileIndexBase;
+      Buffer->nFileIndexHigh = (fileIndex >> 32) & 0xFFFFFFFF;
+      Buffer->nFileIndexLow = fileIndex & 0xFFFFFFFF;
+    }
+
     // read metadata if available
-    if (m_metadataStore.HasMetadataR(resolvedFilename)) {
+    if (Buffer && m_metadataStore.HasMetadataR(resolvedFilename)) {
       const auto& metadata = m_metadataStore.GetMetadataR(resolvedFilename);
       if (metadata.fileAttributes) {
         Buffer->dwFileAttributes = metadata.fileAttributes.value();
