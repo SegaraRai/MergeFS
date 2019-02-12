@@ -28,16 +28,11 @@ ArchiveSourceMountFile::ArchiveSourceMountFile(ArchiveSourceMount& sourceMount, 
   ptrDirectoryTree(sourceMount.GetDirectoryTreeR(realPath))
 {
   if (!ptrDirectoryTree) {
-    std::wstring debugStr = L"ArchiveSourceMountFile::ArchiveSourceMountFile ["s + realPath + L"] not found\n"s;
-    OutputDebugStringW(debugStr.c_str());
     throw NtstatusError(sourceMount.ReturnPathOrNameNotFoundErrorR(realPath));
   }
 
   fileAttributes = DirectoryTree::FilterArchiveFileAttributes(*ptrDirectoryTree);
   volumeSerialNumber = sourceMount.GetVolumeSerialNumber();
-
-  std::wstring debugStr = L"ArchiveSourceMountFile::ArchiveSourceMountFile ["s + realPath + L"] opened, fileAttributes = "s + std::to_wstring(fileAttributes) + L"\n"s;
-  OutputDebugStringW(debugStr.c_str());
 }
 
 
@@ -65,10 +60,12 @@ NTSTATUS ArchiveSourceMountFile::DReadFile(LPVOID Buffer, DWORD BufferLength, LP
   if (ReadLength) {
     *ReadLength = readSize;
   }
+#ifdef _DEBUG
   if (readSize != BufferLength) {
     std::wstring debugStr = L"ArchiveSourceMountFile::DReadFile ["s + realPath + L"] BufferLength ("s + std::to_wstring(BufferLength) + L") != readSize("s + std::to_wstring(readSize) + L"), Offset = "s + std::to_wstring(Offset) + L"\n"s;
     OutputDebugStringW(debugStr.c_str());
   }
+#endif
   return STATUS_SUCCESS;
 }
 

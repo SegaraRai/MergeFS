@@ -230,8 +230,6 @@ NTSTATUS ArchiveSourceMount::GetFileInfo(LPCWSTR FileName, WIN32_FILE_ATTRIBUTE_
   const auto realPath = GetRealPath(FileName);
   const auto ptrDirectoryTree = archive.Get(realPath);
   if (!ptrDirectoryTree) {
-    const std::wstring debugStr = L"ArchiveSourceMount::GetFileInfo ["s + realPath + L"] not found\n"s;
-    OutputDebugStringW(debugStr.c_str());
     return ReturnPathOrNameNotFoundErrorR(realPath);
   }
   Win32FileAttributeData->dwFileAttributes = DirectoryTree::FilterArchiveFileAttributes(*ptrDirectoryTree);
