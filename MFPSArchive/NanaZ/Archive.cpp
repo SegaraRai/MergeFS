@@ -191,7 +191,7 @@ namespace {
     for (UInt32 index = 0; index < numItems; index++) {
       try {
         DirectoryTree contentDirectoryTree{
-          std::make_shared<std::mutex>(),
+          directoryTree.streamMutex,
           directoryTree.caseSensitive,
           decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)),
           directoryTree.useOnMemoryExtraction,
@@ -353,6 +353,8 @@ namespace {
         contentInStream.attach(new InMemoryStream(memoryArchiveExtractCallback->GetData(index), fileSize));
 
         contentDirectoryTree.inStream = contentInStream;
+
+        contentDirectoryTree.streamMutex = std::make_shared<std::mutex>();
       }
     }
 
