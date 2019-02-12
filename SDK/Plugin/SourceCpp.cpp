@@ -264,9 +264,10 @@ NTSTATUS SourceMountFileBase::SwitchSourceClose(PDOKAN_FILE_INFO DokanFileInfo) 
 // SourceMountBase
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SourceMountBase::SourceMountBase(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId) :
+SourceMountBase::SourceMountBase(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) :
   sourceContextId(sourceContextId),
-  filename(FileName)
+  filename(InitializeMountInfo->FileName),
+  caseSensitive(InitializeMountInfo->CaseSensitive)
 {}
 
 
@@ -490,19 +491,19 @@ PLUGIN_INITCODE WINAPI SInitialize(const PLUGIN_INITIALIZE_INFO* InitializeInfo)
 }
 
 
-BOOL WINAPI SIsSupported(LPCWSTR FileName) MFNOEXCEPT {
-  return SIsSupportedImpl(FileName);
+BOOL WINAPI SIsSupported(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo) MFNOEXCEPT {
+  return SIsSupportedImpl(InitializeMountInfo);
 }
 
 
-NTSTATUS WINAPI Mount(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId) MFNOEXCEPT {
+NTSTATUS WINAPI Mount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) MFNOEXCEPT {
   return WrapException([=]() -> NTSTATUS {
     std::unique_lock lock(gMutex);
     if (gSourceMountBaseMap.count(sourceContextId)) {
       return STATUS_INVALID_HANDLE;
     }
     lock.unlock();
-    auto sourceMount = MountImpl(FileName, sourceContextId);
+    auto sourceMount = MountImpl(InitializeMountInfo, sourceContextId);
     lock.lock();
     gSourceMountBaseMap.emplace(sourceContextId, std::move(sourceMount));
     return STATUS_SUCCESS;

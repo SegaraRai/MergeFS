@@ -80,13 +80,13 @@ PLUGIN_INITCODE WINAPI SInitialize(const PLUGIN_INITIALIZE_INFO* InitializeInfo)
 }
 
 
-BOOL WINAPI SIsSupported(LPCWSTR FileName) MFNOEXCEPT {
-  return IsSupportedFile(FileName);
+BOOL WINAPI SIsSupported(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo) MFNOEXCEPT {
+  return IsSupportedFile(InitializeMountInfo->FileName);
 }
 
 
 
-NTSTATUS WINAPI Mount(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId) MFNOEXCEPT {
+NTSTATUS WINAPI Mount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) MFNOEXCEPT {
   return STATUS_SUCCESS;
 }
 

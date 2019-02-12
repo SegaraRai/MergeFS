@@ -94,12 +94,10 @@ std::optional<SourcePluginStore::PLUGIN_ID> SourcePluginStore::GetSourcePluginId
 }
 
 
-std::optional<SourcePluginStore::PLUGIN_ID> SourcePluginStore::SearchSourcePluginForSource(std::wstring_view sourceFilename) const {
-  const std::wstring sSourceFilename(sourceFilename);
-  const auto csSourceFilename = sSourceFilename.c_str();
+std::optional<SourcePluginStore::PLUGIN_ID> SourcePluginStore::SearchSourcePluginForSource(const PLUGIN_INITIALIZE_MOUNT_INFO& initializeMountInfo) const {
   for (const auto& id : m_sourcePluginOrder) {
     auto& sourcePlugin = *m_sourcePluginMap.at(id);
-    if (sourcePlugin.SIsSupported(csSourceFilename)) {
+    if (sourcePlugin.SIsSupported(&initializeMountInfo)) {
       return id;
     }
   }

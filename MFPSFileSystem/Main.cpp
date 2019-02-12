@@ -56,12 +56,12 @@ PLUGIN_INITCODE SInitializeImpl(const PLUGIN_INITIALIZE_INFO* InitializeInfo) no
 }
 
 
-BOOL SIsSupportedImpl(LPCWSTR FileName) noexcept {
-  return PathIsDirectoryW(FileName);
+BOOL SIsSupportedImpl(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo) noexcept {
+  return PathIsDirectoryW(InitializeMountInfo->FileName);
 }
 
 
 
-std::unique_ptr<SourceMountBase> MountImpl(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId) {
-  return std::make_unique<FilesystemSourceMount>(FileName, sourceContextId);
+std::unique_ptr<SourceMountBase> MountImpl(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) {
+  return std::make_unique<FilesystemSourceMount>(InitializeMountInfo, sourceContextId);
 }

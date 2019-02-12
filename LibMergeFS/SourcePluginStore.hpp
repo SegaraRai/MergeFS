@@ -44,7 +44,7 @@ public:
   const SourcePlugin& GetSourcePlugin(PLUGIN_ID pluginId) const;
   std::optional<PLUGIN_ID> GetSourcePluginIdFromGUID(const GUID& guid) const;
   std::optional<PLUGIN_ID> GetSourcePluginIdFromFilename(std::wstring_view name) const;
-  std::optional<PLUGIN_ID> SearchSourcePluginForSource(std::wstring_view sourceFilename) const;
+  std::optional<PLUGIN_ID> SearchSourcePluginForSource(const PLUGIN_INITIALIZE_MOUNT_INFO& initializeMountInfo) const;
   bool RemoveSourcePlugin(PLUGIN_ID pluginId);
   bool SetSourcePluginOrder(const PLUGIN_ID* pluginIds, std::size_t numPluginIds);
 };

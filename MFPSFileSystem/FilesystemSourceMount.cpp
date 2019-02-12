@@ -268,8 +268,8 @@ std::wstring FilesystemSourceMount::GetRootPath(const std::wstring& realPathPref
 }
 
 
-FilesystemSourceMount::FilesystemSourceMount(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId) :
-  SourceMountBase(FileName, sourceContextId),
+FilesystemSourceMount::FilesystemSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) :
+  SourceMountBase(InitializeMountInfo, sourceContextId),
   subMutex(),
   switchPrepareHandleMap(),
   portationMap(),

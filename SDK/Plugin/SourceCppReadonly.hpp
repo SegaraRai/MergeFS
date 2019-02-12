@@ -48,7 +48,7 @@ public:
 
 class ReadonlySourceMountBase : public SourceMountBase {
 protected:
-  ReadonlySourceMountBase(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId);
+  ReadonlySourceMountBase(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId);
 
 public:
   virtual ~ReadonlySourceMountBase() = default;

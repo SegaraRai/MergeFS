@@ -7,9 +7,9 @@
 // - implement `DllMain` function
 // - implement `const PLUGIN_INFO* SGetPluginInfo()` function
 // - implement `PLUGIN_INITCODE SInitializeImpl()` function
-// - implement `BOOL SIsSupportedImpl(LPCWSTR FileName)` function
-// - implement `std::unique_ptr<SourceMountBase> MountImpl(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId)` function
-//   - the body of MountImpl function will be like `return std::make_unique<SourceMount>(FileName, sourceContextId);`
+// - implement `BOOL SIsSupportedImpl(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo)` function
+// - implement `std::unique_ptr<SourceMountBase> MountImpl(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId)` function
+//   - the body of MountImpl function will be like `return std::make_unique<SourceMount>(InitializeMountInfo, sourceContextId);`
 // - functions which is not noexcept can throw NtstatusError exception and Win33Error exception
 
 #pragma once
@@ -31,8 +31,8 @@ class SourceMountBase;
 
 const PLUGIN_INFO* SGetPluginInfoImpl() noexcept;
 PLUGIN_INITCODE SInitializeImpl(const PLUGIN_INITIALIZE_INFO* InitializeInfo) noexcept;
-BOOL SIsSupportedImpl(LPCWSTR FileName) noexcept;
-std::unique_ptr<SourceMountBase> MountImpl(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId);
+BOOL SIsSupportedImpl(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo) noexcept;
+std::unique_ptr<SourceMountBase> MountImpl(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId);
 
 
 class NtstatusError : public std::runtime_error {
@@ -118,9 +118,10 @@ class SourceMountBase {
 protected:
   const SOURCE_CONTEXT_ID sourceContextId;
   const std::wstring filename;
+  const bool caseSensitive;
   std::mutex mutex;
 
-  SourceMountBase(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId);
+  SourceMountBase(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId);
 
   bool SourceMountFileBaseExistsL(FILE_CONTEXT_ID fileContextId) const;
   bool SourceMountFileBaseExists(FILE_CONTEXT_ID fileContextId);

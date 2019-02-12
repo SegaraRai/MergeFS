@@ -66,7 +66,7 @@ class ArchiveSourceMount : public ReadonlySourceMountBase {
   std::optional<Archive> archiveN;
 
 public:
-  ArchiveSourceMount(NanaZ& nanaZ, LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId);
+  ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId);
   ~ArchiveSourceMount();
 
   std::wstring GetRealPath(LPCWSTR filepath) const;

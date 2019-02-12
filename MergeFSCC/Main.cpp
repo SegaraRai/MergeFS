@@ -198,6 +198,7 @@ int CommandMount(const std::deque<std::wstring>& args) {
     TRUE,
     L"metadata",
     TRUE,
+    FALSE,
     static_cast<DWORD>(mountSources.size()),
     mountSources.data(),
   };

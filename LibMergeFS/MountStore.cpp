@@ -15,7 +15,7 @@ using namespace std::literals;
 
 
 
-MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, const std::vector<std::pair<PLUGIN_ID, std::wstring>>& sources, std::function<void(int)> callback) {
+MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(int)> callback) {
   if (sources.empty()) {
     throw NoSourceError();
   }
@@ -23,15 +23,15 @@ MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writab
   std::vector<std::unique_ptr<MountSource>> mountSources(sourceCount);
   for (std::size_t i = 0; i < sourceCount; i++) {
     PLUGIN_ID sourcePluginId = sources[i].first;
-    const auto& sourceFilename = sources[i].second;
+    const auto& initializeMountInfo = sources[i].second;
     if (sourcePluginId == PLUGIN_ID_NULL) {
-      sourcePluginId = SearchSourcePluginForSource(sourceFilename).value_or(PLUGIN_ID_NULL);
+      sourcePluginId = SearchSourcePluginForSource(initializeMountInfo).value_or(PLUGIN_ID_NULL);
     }
     if (sourcePluginId == PLUGIN_ID_NULL || !HasSourcePlugin(sourcePluginId)) {
       throw NoSourcePluginError();
     }
     auto& sourcePlugin = GetSourcePlugin(sourcePluginId);
-    mountSources[i] = std::make_unique<MountSource>(sourceFilename, sourcePlugin);
+    mountSources[i] = std::make_unique<MountSource>(initializeMountInfo, sourcePlugin);
   }
   const MOUNT_ID mountId = m_minimumUnusedMountId;
   do {

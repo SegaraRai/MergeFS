@@ -35,7 +35,7 @@ private:
   MOUNT_ID m_minimumUnusedMountId = MountIdStart;
 
 public:
-  MOUNT_ID Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, const std::vector<std::pair<PLUGIN_ID, std::wstring>>& sources, std::function<void(int)> callback);
+  MOUNT_ID Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(int)> callback);
   bool HasMount(MOUNT_ID mountId) const;
   std::size_t CountMounts() const;
   std::vector<MOUNT_ID> ListMounts() const;

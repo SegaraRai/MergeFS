@@ -132,6 +132,7 @@ typedef struct {
   BOOL writable;
   LPCWSTR metadataFileName;
   BOOL deferCopyEnabled;
+  BOOL caseSensitive;
   DWORD numSources;
   MOUNT_SOURCE_INITIALIZE_INFO* sources;
 } MOUNT_INITIALIZE_INFO;
@@ -142,7 +143,7 @@ static_assert(sizeof(PLUGIN_INFO) == 3 * 4 + 1 * 16 + 3 * sizeof(void*));
 static_assert(sizeof(PLUGIN_INFO_EX) == sizeof(PLUGIN_INFO) + 1 * sizeof(void*));
 // TODO: static_assert(sizeof(MOUNT_INFO) == ...);
 static_assert(sizeof(MOUNT_SOURCE_INITIALIZE_INFO) == 1 * 16 + 2 * sizeof(void*));
-static_assert(sizeof(MOUNT_INITIALIZE_INFO) == 3 * 4 + 3 * sizeof(void*));
+static_assert(sizeof(MOUNT_INITIALIZE_INFO) == 4 * 4 + 3 * sizeof(void*));
 #endif
 
 

@@ -150,7 +150,7 @@ public:
 
   SourcePlugin(std::wstring_view pluginFilePath);
 
-  NTSTATUS Mount(LPCWSTR FileName, SOURCE_CONTEXT_ID& sourceContextId) noexcept;
+  NTSTATUS Mount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID& sourceContextId) noexcept;
   BOOL Unmount(SOURCE_CONTEXT_ID sourceContextId) noexcept;
   NTSTATUS ListFiles(LPCWSTR FileName, ListFilesUserCallback Callback, SOURCE_CONTEXT_ID SourceContextId) noexcept;
   NTSTATUS ListStreams(LPCWSTR FileName, ListStreamsUserCallback Callback, SOURCE_CONTEXT_ID SourceContextId) noexcept;

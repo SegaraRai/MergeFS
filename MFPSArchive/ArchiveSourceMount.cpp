@@ -101,9 +101,9 @@ NTSTATUS ArchiveSourceMount::ExportPortation::Finish(PORTATION_INFO* portationIn
 
 
 
-ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId) :
+ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) :
+  ReadonlySourceMountBase(InitializeMountInfo, sourceContextId),
   nanaZ(nanaZ),
-  ReadonlySourceMountBase(FileName, sourceContextId),
   subMutex(),
   portationMap(),
   archiveFileHandle(NULL)
@@ -111,7 +111,7 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, LPCWSTR FileName, SOURCE_CO
   constexpr std::size_t BufferSize = MAX_PATH + 1;
 
   try {
-    absolutePath = ToAbsoluteFilepath(FileName);
+    absolutePath = ToAbsoluteFilepath(InitializeMountInfo->FileName);
     const auto archiveFilepathN = FindRootFilepath(absolutePath);
     if (!archiveFilepathN) {
       throw std::runtime_error(u8"archive file not found");

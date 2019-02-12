@@ -60,7 +60,7 @@ class CueSourceMount : public ReadonlySourceMountBase {
   std::wstring fileSystemName;
 
 public:
-  CueSourceMount(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId);
+  CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId);
   ~CueSourceMount();
 
   NTSTATUS ReturnPathOrNameNotFoundError(LPCWSTR filepath) const;

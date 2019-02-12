@@ -85,10 +85,10 @@ bool SourcePlugin::ReleaseSourceContextId(SOURCE_CONTEXT_ID sourceContextId) {
 }
 
 
-NTSTATUS SourcePlugin::Mount(LPCWSTR FileName, SOURCE_CONTEXT_ID& sourceContextId) noexcept {
+NTSTATUS SourcePlugin::Mount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID& sourceContextId) noexcept {
   try {
     const auto allocatedSourceContextId = AllocateSourceContextId();
-    const auto status = _Mount(FileName, allocatedSourceContextId);
+    const auto status = _Mount(InitializeMountInfo, allocatedSourceContextId);
     if (status == STATUS_SUCCESS) {
       sourceContextId = allocatedSourceContextId;
     } else {

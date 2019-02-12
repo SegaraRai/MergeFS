@@ -22,11 +22,10 @@ MountSource::FileType MountSource::FileAttributesToFileType(DWORD fileAttributes
 }
 
 
-MountSource::MountSource(std::wstring_view sourceFileName, SourcePlugin& sourcePlugin) :
+MountSource::MountSource(const PLUGIN_INITIALIZE_MOUNT_INFO& initializeMountInfo, SourcePlugin& sourcePlugin) :
   m_sourcePlugin(sourcePlugin)
 {
-  const std::wstring sSourceFileName(sourceFileName);
-  if (const auto status = m_sourcePlugin.Mount(sSourceFileName.c_str(), m_sourceContextId); status != STATUS_SUCCESS) {
+  if (const auto status = m_sourcePlugin.Mount(&initializeMountInfo, m_sourceContextId); status != STATUS_SUCCESS) {
     throw NsError(status);
   }
   m_sourcePlugin.GetSourceInfo(&m_sourceInfo, m_sourceContextId);

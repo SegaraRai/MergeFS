@@ -115,8 +115,8 @@ NTSTATUS ReadonlySourceMountFileBase::DSetFileSecurity(PSECURITY_INFORMATION Sec
 // ReadonlySourceMountBase
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ReadonlySourceMountBase::ReadonlySourceMountBase(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId) :
-  SourceMountBase(FileName, sourceContextId)
+ReadonlySourceMountBase::ReadonlySourceMountBase(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) :
+  SourceMountBase(InitializeMountInfo, sourceContextId)
 {}
 
 

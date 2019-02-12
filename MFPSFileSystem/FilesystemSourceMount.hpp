@@ -93,7 +93,7 @@ class FilesystemSourceMount : public SourceMountBase {
   std::wstring fileSystemName;
 
 public:
-  FilesystemSourceMount(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId);
+  FilesystemSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId);
   ~FilesystemSourceMount();
   std::wstring GetRealPath(LPCWSTR filepath);
   BOOL GetSourceInfo(SOURCE_INFO* sourceInfo) override;

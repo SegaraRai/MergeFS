@@ -93,13 +93,13 @@ PLUGIN_INITCODE SInitializeImpl(const PLUGIN_INITIALIZE_INFO* InitializeInfo) no
 }
 
 
-BOOL SIsSupportedImpl(LPCWSTR FileName) noexcept {
+BOOL SIsSupportedImpl(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo) noexcept {
   try {
     if (!gPtrNanaZ) {
       return FALSE;
     }
     auto& NanaZ = *gPtrNanaZ;
-    const auto archiveFilepathN = FindRootFilepath(ToAbsoluteFilepath(FileName));
+    const auto archiveFilepathN = FindRootFilepath(ToAbsoluteFilepath(InitializeMountInfo->FileName));
     if (!archiveFilepathN) {
       return FALSE;
     }
@@ -113,6 +113,6 @@ BOOL SIsSupportedImpl(LPCWSTR FileName) noexcept {
 
 
 
-std::unique_ptr<SourceMountBase> MountImpl(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId) {
-  return std::make_unique<ArchiveSourceMount>(*gPtrNanaZ, FileName, sourceContextId);
+std::unique_ptr<SourceMountBase> MountImpl(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) {
+  return std::make_unique<ArchiveSourceMount>(*gPtrNanaZ, InitializeMountInfo, sourceContextId);
 }

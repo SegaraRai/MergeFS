@@ -133,11 +133,11 @@ NTSTATUS CueSourceMount::ExportPortation::Finish(PORTATION_INFO* portationInfo, 
 
 
 
-CueSourceMount::CueSourceMount(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId) :
-  ReadonlySourceMountBase(FileName, sourceContextId),
+CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) :
+  ReadonlySourceMountBase(InitializeMountInfo, sourceContextId),
   subMutex(),
   portationMap(),
-  cueAudioLoader(FileName, DUseOnMemoryMode),
+  cueAudioLoader(InitializeMountInfo->FileName, DUseOnMemoryMode),
   directoryTree{
     true,
     1,
@@ -148,7 +148,7 @@ CueSourceMount::CueSourceMount(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContext
   HANDLE cueFileHandle = NULL;
 
   try {
-    const auto cueFilePath = ToAbsoluteFilepath(FileName);
+    const auto cueFilePath = ToAbsoluteFilepath(InitializeMountInfo->FileName);
 
     cueFileHandle = CreateFileW(cueFilePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (!IsValidHandle(cueFileHandle)) {

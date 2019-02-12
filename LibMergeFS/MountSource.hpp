@@ -43,7 +43,7 @@ private:
 public:
   static FileType FileAttributesToFileType(DWORD fileAttributes) noexcept;
 
-  MountSource(std::wstring_view sourceFileName, SourcePlugin& sourcePlugin);
+  MountSource(const PLUGIN_INITIALIZE_MOUNT_INFO& initializeMountInfo, SourcePlugin& sourcePlugin);
   ~MountSource();
 
   const SOURCE_INFO& GetSourceInfo() const noexcept;

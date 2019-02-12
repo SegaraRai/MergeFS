@@ -57,9 +57,9 @@ PLUGIN_INITCODE SInitializeImpl(const PLUGIN_INITIALIZE_INFO* InitializeInfo) no
 }
 
 
-BOOL SIsSupportedImpl(LPCWSTR FileName) noexcept {
+BOOL SIsSupportedImpl(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo) noexcept {
   try {
-    const std::wstring_view filepath(FileName);
+    const std::wstring_view filepath(InitializeMountInfo->FileName);
     if (filepath.size() < 4) {
       return FALSE;
     }
@@ -67,7 +67,7 @@ BOOL SIsSupportedImpl(LPCWSTR FileName) noexcept {
     if (ptrEndOfFilepath[-4] != L'.' || (ptrEndOfFilepath[-3] != L'C' && ptrEndOfFilepath[-3] != L'c') || (ptrEndOfFilepath[-2] != L'U' && ptrEndOfFilepath[-2] != L'u') || (ptrEndOfFilepath[-1] != L'E' && ptrEndOfFilepath[-1] != L'e')) {
       return FALSE;
     }
-    const auto fileAttributes = GetFileAttributesW(FileName);
+    const auto fileAttributes = GetFileAttributesW(InitializeMountInfo->FileName);
     if (fileAttributes == INVALID_FILE_ATTRIBUTES) {
       return FALSE;
     }
@@ -82,6 +82,6 @@ BOOL SIsSupportedImpl(LPCWSTR FileName) noexcept {
 
 
 
-std::unique_ptr<SourceMountBase> MountImpl(LPCWSTR FileName, SOURCE_CONTEXT_ID sourceContextId) {
-  return std::make_unique<CueSourceMount>(FileName, sourceContextId);
+std::unique_ptr<SourceMountBase> MountImpl(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) {
+  return std::make_unique<CueSourceMount>(InitializeMountInfo, sourceContextId);
 }

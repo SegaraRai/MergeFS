@@ -222,7 +222,7 @@ namespace Exports {
         return MERGEFS_ERROR_INVALID_PARAMETER;
       }
 
-      std::vector<std::pair<PLUGIN_ID, std::wstring>> sources(mountInitializeInfo->numSources);
+      std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>> sources(mountInitializeInfo->numSources);
       for (std::size_t i = 0; i < mountInitializeInfo->numSources; i++) {
         const auto& mountSourceInitializeInfo = mountInitializeInfo->sources[i];
         PLUGIN_ID pluginId = PLUGIN_ID_NULL;
@@ -237,8 +237,10 @@ namespace Exports {
             return MERGEFS_ERROR_INEXISTENT_PLUGIN;
           }
         }
-        sources[i].first = pluginId;
-        sources[i].second = mountSourceInitializeInfo.mountSource;
+        sources[i] = std::make_pair(pluginId, PLUGIN_INITIALIZE_MOUNT_INFO{
+          mountSourceInitializeInfo.mountSource,
+          mountInitializeInfo->caseSensitive,
+        });
       }
 
       const auto mountId = gMountStore.Mount(mountInitializeInfo->mountPoint, mountInitializeInfo->writable, mountInitializeInfo->metadataFileName, mountInitializeInfo->deferCopyEnabled, sources, callback);
