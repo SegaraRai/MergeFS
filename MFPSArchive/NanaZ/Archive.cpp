@@ -28,6 +28,7 @@
 using namespace std::literals;
 
 
+
 namespace {
   using PasswordCallback = MemoryArchiveExtractCallback::PasswordCallback;
 
@@ -103,8 +104,8 @@ namespace {
           filename = baseFilename + L"."s + std::to_wstring(count++);
         }
       }
-      directoryTree.children[rootDirectoryName] = std::move(file);
-      return &directoryTree.children.at(rootDirectoryName);
+      directoryTree.children[filename] = std::move(file);
+      return &directoryTree.children.at(filename);
     }
 
     if (!directoryTree.children.count(rootDirectoryName)) {
