@@ -190,6 +190,7 @@
     <ClInclude Include="Util.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\SDK\CaseSensitivity.cpp" />
     <ClCompile Include="..\SDK\Plugin\SourceCpp.cpp" />
     <ClCompile Include="..\SDK\Plugin\SourceCppReadonly.cpp" />
     <ClCompile Include="Main.cpp" />

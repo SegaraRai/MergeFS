@@ -15,6 +15,7 @@
 #pragma once
 
 #include "Source.h"
+#include "../CaseSensitivity.hpp"
 
 #include <memory>
 #include <mutex>
@@ -116,10 +117,12 @@ class SourceMountBase {
   std::unordered_map<FILE_CONTEXT_ID, std::unique_ptr<SourceMountFileBase>> fileMap;
 
 protected:
+  std::mutex mutex;
   const SOURCE_CONTEXT_ID sourceContextId;
   const std::wstring filename;
   const bool caseSensitive;
-  std::mutex mutex;
+  const CaseSensitivity::CiEqualTo ciEqualTo;
+  const CaseSensitivity::CiHash ciHash;
 
   SourceMountBase(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId);
 

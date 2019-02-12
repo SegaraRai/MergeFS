@@ -19,14 +19,17 @@
     <Filter Include="Header Files\../SDK\Plugin">
       <UniqueIdentifier>{a26bebd8-763f-498e-9bbb-9324604ac428}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\../SDK/Plugin">
-      <UniqueIdentifier>{4d73a249-9e99-4451-b6be-b3b9a2507725}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\NanaZ">
       <UniqueIdentifier>{9d567f75-467b-4be2-94de-c2945171f031}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\NanaZ">
       <UniqueIdentifier>{6773b509-028e-4381-a32e-2d4358fe48ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\../SDK">
+      <UniqueIdentifier>{4d73a249-9e99-4451-b6be-b3b9a2507725}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\../SDK\Plugin">
+      <UniqueIdentifier>{081dd432-81f2-4413-aecc-3e6fbb507368}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -92,9 +95,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\SDK\Plugin\SourceCpp.cpp">
-      <Filter>Source Files\../SDK/Plugin</Filter>
-    </ClCompile>
     <ClCompile Include="Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -106,9 +106,6 @@
     </ClCompile>
     <ClCompile Include="ArchiveSourceMountFile.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\SDK\Plugin\SourceCppReadonly.cpp">
-      <Filter>Source Files\../SDK/Plugin</Filter>
     </ClCompile>
     <ClCompile Include="NanaZ\FileStream.cpp">
       <Filter>Source Files\NanaZ</Filter>
@@ -140,10 +137,19 @@
     <ClCompile Include="NanaZ\SeekFilterStream.cpp">
       <Filter>Source Files\NanaZ</Filter>
     </ClCompile>
+    <ClCompile Include="..\SDK\CaseSensitivity.cpp">
+      <Filter>Source Files\../SDK</Filter>
+    </ClCompile>
+    <ClCompile Include="..\SDK\Plugin\SourceCpp.cpp">
+      <Filter>Source Files\../SDK\Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\SDK\Plugin\SourceCppReadonly.cpp">
+      <Filter>Source Files\../SDK\Plugin</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\SDK\Plugin\Source.def">
-      <Filter>Source Files\../SDK/Plugin</Filter>
+      <Filter>Source Files\../SDK\Plugin</Filter>
     </None>
   </ItemGroup>
 </Project>

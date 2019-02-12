@@ -13,20 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\../SDK/Plugin">
-      <UniqueIdentifier>{216ea10f-f5a2-4f96-bcec-51a8b91ac709}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\../SDK">
       <UniqueIdentifier>{f58ff1ea-8011-4425-92e8-8cdf316c1f23}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\../SDK\Plugin">
       <UniqueIdentifier>{c0ae1eb1-eb79-4dab-bd90-5761b235fd02}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\SDK\Plugin\Source.def">
-      <Filter>Source Files\../SDK/Plugin</Filter>
-    </None>
+    <Filter Include="Source Files\../SDK">
+      <UniqueIdentifier>{216ea10f-f5a2-4f96-bcec-51a8b91ac709}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\../SDK\Plugin">
+      <UniqueIdentifier>{8dcaca8b-46bb-43ab-9fb4-aa7008b9bbd8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Util.hpp">
@@ -65,7 +63,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\SDK\Plugin\SourceCpp.cpp">
-      <Filter>Source Files\../SDK/Plugin</Filter>
+      <Filter>Source Files\../SDK\Plugin</Filter>
     </ClCompile>
+    <ClCompile Include="..\SDK\CaseSensitivity.cpp">
+      <Filter>Source Files\../SDK</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\SDK\Plugin\Source.def">
+      <Filter>Source Files\../SDK\Plugin</Filter>
+    </None>
   </ItemGroup>
 </Project>

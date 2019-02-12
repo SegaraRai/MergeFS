@@ -15,6 +15,7 @@
 #endif
 
 #include "SourceCpp.hpp"
+#include "../CaseSensitivity.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -265,9 +266,12 @@ NTSTATUS SourceMountFileBase::SwitchSourceClose(PDOKAN_FILE_INFO DokanFileInfo) 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SourceMountBase::SourceMountBase(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) :
+  mutex(),
   sourceContextId(sourceContextId),
   filename(InitializeMountInfo->FileName),
-  caseSensitive(InitializeMountInfo->CaseSensitive)
+  caseSensitive(InitializeMountInfo->CaseSensitive),
+  ciEqualTo(caseSensitive),
+  ciHash(caseSensitive)
 {}
 
 
