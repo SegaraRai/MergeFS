@@ -110,6 +110,7 @@ namespace {
     }
 
     if (!directoryTree.children.count(rootDirectoryName)) {
+      // create directory
       directoryTree.children.emplace(rootDirectoryName, DirectoryTree{
         nullptr,
         directoryTree.caseSensitive,
@@ -124,7 +125,7 @@ namespace {
         std::nullopt,
         std::nullopt,
         0,
-        0,
+        1,
         fileIndexCount++,
         nullptr,
         nullptr,
@@ -243,7 +244,7 @@ namespace {
         }
 
         // TODO
-        contentDirectoryTree.numberOfLinks = 0;
+        contentDirectoryTree.numberOfLinks = 1;
 
         contentDirectoryTree.fileIndex = fileIndexCount++;
 
@@ -394,7 +395,7 @@ namespace {
         contentDirectoryTree.lastAccessTimeN,
         contentDirectoryTree.lastWriteTimeN,
         contentDirectoryTree.fileSize,
-        0,    // TODO: numberOfLinks
+        1,    // TODO: numberOfLinks
         fileIndexCount++,
         contentDirectoryTree.inStream,
         contentInArchive,
@@ -472,7 +473,7 @@ Archive::Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HAND
     byHandleFileInformation.ftLastAccessTime,
     byHandleFileInformation.ftLastWriteTime,
     (static_cast<ULONGLONG>(byHandleFileInformation.nFileSizeHigh) << 32) | byHandleFileInformation.nFileSizeLow,
-    0,
+    1,
     0,
     inStream,
     nullptr,
