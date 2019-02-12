@@ -256,7 +256,8 @@ CueSourceMount::~CueSourceMount() {}
 
 
 NTSTATUS CueSourceMount::ReturnPathOrNameNotFoundError(LPCWSTR filepath) const {
-  return directoryTree.Exists(GetParentPath(filepath + 1)) ? STATUS_OBJECT_NAME_NOT_FOUND : STATUS_OBJECT_PATH_NOT_FOUND;
+  assert(!IsRootDirectory(filepath));
+  return directoryTree.Exists(GetParentPath(filepath).substr(1)) ? STATUS_OBJECT_NAME_NOT_FOUND : STATUS_OBJECT_PATH_NOT_FOUND;
 }
 
 
