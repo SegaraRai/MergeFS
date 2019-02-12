@@ -5,6 +5,8 @@
 
 #include "NanaZ.hpp"
 
+#include "../SDK/CaseSensitivity.hpp"
+
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -41,6 +43,8 @@ struct DirectoryTree {
   static DWORD FilterArchiveFileAttributes(const DirectoryTree& directoryTree);
 
   std::shared_ptr<std::mutex> streamMutex;
+  bool caseSensitive;
+  std::unordered_map<std::wstring, DirectoryTree, CaseSensitivity::CiHash, CaseSensitivity::CiEqualTo> children;
   UseOnMemoryExtractionMode useOnMemoryExtraction;
   bool valid;
   bool contentAvailable;
@@ -58,7 +62,6 @@ struct DirectoryTree {
   FILETIME creationTime;
   FILETIME lastAccessTime;
   FILETIME lastWriteTime;
-  std::unordered_map<std::wstring, DirectoryTree> children;
   std::unique_ptr<std::byte[]> extractionMemory;
 
   const DirectoryTree* Get(std::wstring_view filepath) const;
@@ -78,7 +81,7 @@ public:
   using ArchiveNameCallback = std::function<std::optional<std::pair<std::wstring, bool>>(const std::wstring&, std::size_t)>;
   using PasswordWithFilepathCallback = std::function<std::optional<std::wstring>(const std::wstring&)>;
 
-  Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HANDLE_FILE_INFORMATION& byHandleFileInformation, const std::wstring& defaultFilepath, UInt64 maxCheckStartPosition, OnExistingMode onExistingMode, UseOnMemoryExtractionMode useOnMemoryExtraction, ArchiveNameCallback archiveNameCallback = nullptr, PasswordWithFilepathCallback passwordCallback = nullptr);
+  Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HANDLE_FILE_INFORMATION& byHandleFileInformation, const std::wstring& defaultFilepath, bool caseSensitive, UInt64 maxCheckStartPosition, OnExistingMode onExistingMode, UseOnMemoryExtractionMode useOnMemoryExtraction, ArchiveNameCallback archiveNameCallback = nullptr, PasswordWithFilepathCallback passwordCallback = nullptr);
 
   const DirectoryTree* Get(std::wstring_view filepath) const;
   bool Exists(std::wstring_view filepath) const;

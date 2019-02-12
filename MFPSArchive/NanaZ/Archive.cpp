@@ -6,6 +6,8 @@
 #include <7z/CPP/7zip/IPassword.h>
 #include <7z/CPP/7zip/Archive/IArchive.h>
 
+#include "../SDK/CaseSensitivity.hpp"
+
 #include "Archive.hpp"
 #include "ArchiveOpenCallback.hpp"
 #include "COMError.hpp"
@@ -104,13 +106,14 @@ namespace {
           filename = baseFilename + L"."s + std::to_wstring(count++);
         }
       }
-      directoryTree.children[filename] = std::move(file);
-      return &directoryTree.children.at(filename);
+      return &directoryTree.children.insert_or_assign(filename, std::move(file)).first->second;
     }
 
     if (!directoryTree.children.count(rootDirectoryName)) {
       directoryTree.children.emplace(rootDirectoryName, DirectoryTree{
         nullptr,
+        directoryTree.caseSensitive,
+        decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)),
         directoryTree.useOnMemoryExtraction,
         false,
         true,
@@ -128,6 +131,7 @@ namespace {
         fallbackCreationTime,
         fallbackLastAccessTime,
         fallbackLastWriteTime,
+        nullptr,
       });
     }
 
@@ -187,6 +191,8 @@ namespace {
       try {
         DirectoryTree contentDirectoryTree{
           std::make_shared<std::mutex>(),
+          directoryTree.caseSensitive,
+          decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)),
           directoryTree.useOnMemoryExtraction,
           true,
         };
@@ -339,7 +345,7 @@ namespace {
 
       COMError::CheckHRESULT(directoryTree.inArchive->Extract(extractToMemoryIndices.data(), static_cast<UInt32>(extractToMemoryIndices.size()), FALSE, memoryArchiveExtractCallback.get()));
 
-      for (const auto&[index, contentDirectoryTree, contentFilepath] : extractToMemoryObjects) {
+      for (const auto& [index, contentDirectoryTree, contentFilepath] : extractToMemoryObjects) {
         const std::size_t fileSize = contentDirectoryTree.fileSize;
 
         winrt::com_ptr<InMemoryStream> contentInStream;
@@ -376,6 +382,8 @@ namespace {
 
       DirectoryTree cloneContentDirectoryTree{
         contentDirectoryTree.streamMutex,
+        contentDirectoryTree.caseSensitive,
+        decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(contentDirectoryTree.caseSensitive), CaseSensitivity::CiEqualTo(contentDirectoryTree.caseSensitive)),
         contentDirectoryTree.useOnMemoryExtraction,
         true,
         contentDirectoryTree.contentAvailable,
@@ -393,6 +401,7 @@ namespace {
         contentDirectoryTree.creationTime,
         contentDirectoryTree.lastAccessTime,
         contentDirectoryTree.lastWriteTime,
+        nullptr,
       };
 
       // filename collision will not occur
@@ -448,9 +457,11 @@ bool DirectoryTree::Exists(std::wstring_view filepath) const {
 
 
 
-Archive::Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HANDLE_FILE_INFORMATION& byHandleFileInformation, const std::wstring& defaultFilepath, UInt64 maxCheckStartPosition, OnExistingMode onExistingMode, UseOnMemoryExtractionMode useOnMemoryExtraction, ArchiveNameCallback archiveNameCallback, PasswordWithFilepathCallback passwordCallback) :
+Archive::Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HANDLE_FILE_INFORMATION& byHandleFileInformation, const std::wstring& defaultFilepath, bool caseSensitive, UInt64 maxCheckStartPosition, OnExistingMode onExistingMode, UseOnMemoryExtractionMode useOnMemoryExtraction, ArchiveNameCallback archiveNameCallback, PasswordWithFilepathCallback passwordCallback) :
   DirectoryTree{
     std::make_shared<std::mutex>(),
+    caseSensitive,
+    decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(caseSensitive), CaseSensitivity::CiEqualTo(caseSensitive)),
     useOnMemoryExtraction,
     true,
     true,
@@ -464,6 +475,10 @@ Archive::Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HAND
     0,
     0,
     inStream,
+    nullptr,
+    byHandleFileInformation.ftCreationTime,
+    byHandleFileInformation.ftLastAccessTime,
+    byHandleFileInformation.ftLastWriteTime,
     nullptr,
   },
   nanaZ(nanaZ)
