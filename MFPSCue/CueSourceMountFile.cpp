@@ -70,7 +70,7 @@ NTSTATUS CueSourceMountFile::DGetFileInformation(LPBY_HANDLE_FILE_INFORMATION Bu
   Buffer->dwVolumeSerialNumber = volumeSerialNumber;
   Buffer->nFileSizeHigh = (fileSize >> 32) & 0xFFFFFFFF;
   Buffer->nFileSizeLow = fileSize & 0xFFFFFFFF;
-  Buffer->nNumberOfLinks = 0;
+  Buffer->nNumberOfLinks = 1;
   Buffer->nFileIndexHigh = (ptrDirectoryTree->fileIndex >> 32) & 0xFFFFFFFF;
   Buffer->nFileIndexLow = ptrDirectoryTree->fileIndex & 0xFFFFFFFF;
   return STATUS_SUCCESS;
