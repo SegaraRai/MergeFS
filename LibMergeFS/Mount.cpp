@@ -203,7 +203,11 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
   m_minimumUnusedFileContextId(FileContextIdStart),
   m_fileIndexBases(CalcFileIndexBases(m_mountSources.size())),
   m_thread([this, callback]() {
+    // TODO: make customizable
     ULONG options = DokanConfig::Options;
+#ifdef _DEBUG
+    options |= DOKAN_OPTION_DEBUG;
+#endif
     if (!m_writable) {
       options |= DOKAN_OPTION_WRITE_PROTECT;
     }
