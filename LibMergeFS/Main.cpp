@@ -243,7 +243,7 @@ namespace Exports {
         });
       }
 
-      const auto mountId = gMountStore.Mount(mountInitializeInfo->mountPoint, mountInitializeInfo->writable, mountInitializeInfo->metadataFileName, mountInitializeInfo->deferCopyEnabled, sources, callback);
+      const auto mountId = gMountStore.Mount(mountInitializeInfo->mountPoint, mountInitializeInfo->writable, mountInitializeInfo->metadataFileName, mountInitializeInfo->deferCopyEnabled, mountInitializeInfo->caseSensitive, sources, callback);
 
       if (outMountId) {
         *outMountId = mountId;

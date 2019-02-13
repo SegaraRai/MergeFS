@@ -15,7 +15,7 @@ using namespace std::literals;
 
 
 
-MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(int)> callback) {
+MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(int)> callback) {
   if (sources.empty()) {
     throw NoSourceError();
   }
@@ -37,7 +37,7 @@ MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writab
   do {
     m_minimumUnusedMountId++;
   } while (m_mountMap.count(m_minimumUnusedMountId));
-  auto mount = std::make_unique<::Mount>(mountPoint, writable, metadataFileName, deferCopyEnabled, false, std::move(mountSources), callback);
+  auto mount = std::make_unique<::Mount>(mountPoint, writable, metadataFileName, deferCopyEnabled, caseSensitive, std::move(mountSources), callback);
   m_mountMap.emplace(mountId, std::move(mount));
   return mountId;
 }
