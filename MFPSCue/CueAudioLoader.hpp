@@ -18,7 +18,7 @@
 
 class CueAudioLoader {
 public:
-  enum class UseOnMemoryMode {
+  enum class ExtractToMemory {
     Always,
     Compressed,
     Never,
@@ -59,7 +59,7 @@ private:
   std::map<TrackNumber, AdditionalTrackInfo> mTrackNumberToAdditionalTrackInfoMap;
 
 public:
-  CueAudioLoader(LPCWSTR filepath, UseOnMemoryMode useOnMemoryMode);
+  CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory);
 
   const CueSheet& GetCueSheet() const;
   TrackNumber GetFirstTrackNumber() const;

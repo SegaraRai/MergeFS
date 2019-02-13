@@ -25,7 +25,7 @@ using namespace std::literals;
 
 
 namespace {
-  constexpr CueAudioLoader::UseOnMemoryMode DUseOnMemoryMode = CueAudioLoader::UseOnMemoryMode::Never;
+  constexpr CueAudioLoader::ExtractToMemory ExtractToMemory = CueAudioLoader::ExtractToMemory::Never;
 
 
 
@@ -144,7 +144,7 @@ CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMou
   ReadonlySourceMountBase(InitializeMountInfo, sourceContextId),
   subMutex(),
   portationMap(),
-  cueAudioLoader(InitializeMountInfo->FileName, DUseOnMemoryMode),
+  cueAudioLoader(InitializeMountInfo->FileName, ExtractToMemory),
   directoryTree{
     caseSensitive,
     true,

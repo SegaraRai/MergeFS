@@ -40,7 +40,7 @@ namespace {
 
 
 
-CueAudioLoader::CueAudioLoader(LPCWSTR filepath, UseOnMemoryMode useOnMemoryMode) {
+CueAudioLoader::CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory) {
   const auto fullCueFilepath = ToAbsoluteFilepath(filepath);
   const auto baseDirectoryPath = GetParentPath(fullCueFilepath);
 
@@ -81,7 +81,7 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath, UseOnMemoryMode useOnMemoryMode
       throw std::runtime_error(u8"unsupported data type");
     }
 
-    if (useOnMemoryMode == UseOnMemoryMode::Always || (useOnMemoryMode == UseOnMemoryMode::Compressed && audioSource->IsCompressed())) {
+    if (extractToMemory == ExtractToMemory::Always || (extractToMemory == ExtractToMemory::Compressed && audioSource->IsCompressed())) {
       audioSource = std::make_shared<AudioSourceWrapper>(std::make_shared<OnMemorySourceWrapper>(audioSource), audioSource, false);
     }
 
