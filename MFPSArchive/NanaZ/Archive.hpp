@@ -20,16 +20,16 @@
 
 
 struct DirectoryTree {
-  enum class OnExisting : unsigned char {
-    Skip,
-    Replace,
-    RenameNewOne,
-  };
-
   enum class ExtractToMemory : unsigned char {
     Never,
     Auto,
     Always,
+  };
+
+  enum class OnExisting : unsigned char {
+    Skip,
+    Replace,
+    RenameNewOne,
   };
 
   enum class Type : unsigned char {
@@ -45,7 +45,6 @@ struct DirectoryTree {
   std::shared_ptr<std::mutex> streamMutex;
   bool caseSensitive;
   std::unordered_map<std::wstring, DirectoryTree, CaseSensitivity::CiHash, CaseSensitivity::CiEqualTo> children;
-  ExtractToMemory extractToMemory;
   bool valid;
   bool contentAvailable;
   bool onMemory;
