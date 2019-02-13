@@ -306,7 +306,7 @@ NTSTATUS ArchiveSourceMount::DGetDiskFreeSpace(PULONGLONG FreeBytesAvailable, PU
   }
   if (TotalNumberOfBytes) {
     // sloppy
-    *TotalNumberOfBytes = (static_cast<ULONGLONG>(archiveFileInfo.nFileSizeHigh) << 32) | archiveFileInfo.nFileIndexLow;
+    *TotalNumberOfBytes = (static_cast<ULONGLONG>(archiveFileInfo.nFileSizeHigh) << 32) | archiveFileInfo.nFileSizeLow;
   }
   if (TotalNumberOfFreeBytes) {
     *TotalNumberOfFreeBytes = 0;
