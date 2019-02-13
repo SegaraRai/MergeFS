@@ -57,6 +57,9 @@ STDMETHODIMP MemoryArchiveExtractCallback::GetStream(UInt32 index, ISequentialOu
   if (!indexToInfoMap.count(index)) {
     return E_FAIL;
   }
+  if (!outStream) {
+    return S_OK;
+  }
   ISequentialOutStream* sequentialOutStream = indexToInfoMap.at(index).outFixedMemoryStream.as<ISequentialOutStream>().get();
   sequentialOutStream->AddRef();
   *outStream = sequentialOutStream;
