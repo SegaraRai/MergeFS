@@ -26,7 +26,7 @@ struct DirectoryTree {
     RenameNewOne,
   };
 
-  enum class UseOnMemoryExtractionMode : unsigned char {
+  enum class ExtractToMemory : unsigned char {
     Never,
     Auto,
     Always,
@@ -45,7 +45,7 @@ struct DirectoryTree {
   std::shared_ptr<std::mutex> streamMutex;
   bool caseSensitive;
   std::unordered_map<std::wstring, DirectoryTree, CaseSensitivity::CiHash, CaseSensitivity::CiEqualTo> children;
-  UseOnMemoryExtractionMode useOnMemoryExtraction;
+  ExtractToMemory extractToMemory;
   bool valid;
   bool contentAvailable;
   bool onMemory;
@@ -81,7 +81,7 @@ public:
   using ArchiveNameCallback = std::function<std::optional<std::pair<std::wstring, bool>>(const std::wstring&, std::size_t)>;
   using PasswordWithFilepathCallback = std::function<std::optional<std::wstring>(const std::wstring&)>;
 
-  Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HANDLE_FILE_INFORMATION& byHandleFileInformation, const std::wstring& defaultFilepath, std::wstring_view prefixFilter, bool caseSensitive, UInt64 maxCheckStartPosition, OnExisting onExisting, UseOnMemoryExtractionMode useOnMemoryExtraction, ArchiveNameCallback archiveNameCallback = nullptr, PasswordWithFilepathCallback passwordCallback = nullptr);
+  Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HANDLE_FILE_INFORMATION& byHandleFileInformation, const std::wstring& defaultFilepath, std::wstring_view prefixFilter, bool caseSensitive, UInt64 maxCheckStartPosition, OnExisting onExisting, ExtractToMemory extractToMemory, ArchiveNameCallback archiveNameCallback = nullptr, PasswordWithFilepathCallback passwordCallback = nullptr);
 
   const DirectoryTree* Get(std::wstring_view filepath) const;
   bool Exists(std::wstring_view filepath) const;

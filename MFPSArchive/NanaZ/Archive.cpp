@@ -119,7 +119,7 @@ namespace {
         nullptr,
         directoryTree.caseSensitive,
         decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)),
-        directoryTree.useOnMemoryExtraction,
+        directoryTree.extractToMemory,
         false,
         true,
         directoryTree.onMemory,
@@ -202,7 +202,7 @@ namespace {
           directoryTree.streamMutex,
           directoryTree.caseSensitive,
           decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)),
-          directoryTree.useOnMemoryExtraction,
+          directoryTree.extractToMemory,
           true,
         };
 
@@ -276,9 +276,9 @@ namespace {
         }
 
         // read data
-        bool extractToMemory = directoryTree.useOnMemoryExtraction == DirectoryTree::UseOnMemoryExtractionMode::Always;
+        bool extractCurrentFileToMemory = directoryTree.extractToMemory == DirectoryTree::ExtractToMemory::Always;
 
-        if (!extractToMemory && contentDirectoryTree.type == DirectoryTree::Type::File) {
+        if (!extractCurrentFileToMemory && contentDirectoryTree.type == DirectoryTree::Type::File) {
           winrt::com_ptr<IInStream> contentInStream;
           do {
             if (!inArchiveGetStream) {
@@ -300,10 +300,10 @@ namespace {
 
             contentDirectoryTree.inStream = contentInSeekFilterStream;
           } else {
-            if (directoryTree.useOnMemoryExtraction == DirectoryTree::UseOnMemoryExtractionMode::Never) {
+            if (directoryTree.extractToMemory == DirectoryTree::ExtractToMemory::Never) {
               throw COMError(E_FAIL);
             }
-            extractToMemory = true;
+            extractCurrentFileToMemory = true;
           }
         }
 
@@ -319,7 +319,7 @@ namespace {
 
         auto& insertedDirectoryTree = *ptrInsertedDirectoryTree;
 
-        if (extractToMemory) {
+        if (extractCurrentFileToMemory) {
           if (!insertedDirectoryTree.contentAvailable) {
             assert(!insertedDirectoryTree.inStream);
             insertedDirectoryTree.inStream.attach(new InMemoryStream(nullptr, 0));
@@ -411,7 +411,7 @@ namespace {
         contentDirectoryTree.streamMutex,
         contentDirectoryTree.caseSensitive,
         decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(contentDirectoryTree.caseSensitive), CaseSensitivity::CiEqualTo(contentDirectoryTree.caseSensitive)),
-        contentDirectoryTree.useOnMemoryExtraction,
+        contentDirectoryTree.extractToMemory,
         true,
         contentDirectoryTree.contentAvailable,
         contentDirectoryTree.onMemory,
@@ -489,12 +489,12 @@ bool DirectoryTree::Exists(std::wstring_view filepath) const {
 
 
 
-Archive::Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HANDLE_FILE_INFORMATION& byHandleFileInformation, const std::wstring& defaultFilepath, std::wstring_view prefixFilter, bool caseSensitive, UInt64 maxCheckStartPosition, OnExisting onExisting, UseOnMemoryExtractionMode useOnMemoryExtraction, ArchiveNameCallback archiveNameCallback, PasswordWithFilepathCallback passwordCallback) :
+Archive::Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HANDLE_FILE_INFORMATION& byHandleFileInformation, const std::wstring& defaultFilepath, std::wstring_view prefixFilter, bool caseSensitive, UInt64 maxCheckStartPosition, OnExisting onExisting, ExtractToMemory extractToMemory, ArchiveNameCallback archiveNameCallback, PasswordWithFilepathCallback passwordCallback) :
   DirectoryTree{
     std::make_shared<std::mutex>(),
     caseSensitive,
     decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(caseSensitive), CaseSensitivity::CiEqualTo(caseSensitive)),
-    useOnMemoryExtraction,
+    extractToMemory,
     true,
     true,
     false,

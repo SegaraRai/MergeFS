@@ -27,7 +27,7 @@ namespace {
   const std::wstring DefaultFilepath = L"Content"s;
   constexpr UInt64 MaxCheckStartPosition = 1 << 23;
   constexpr DirectoryTree::OnExisting OnExisting = DirectoryTree::OnExisting::RenameNewOne;
-  constexpr DirectoryTree::UseOnMemoryExtractionMode UseOnMemoryExtraction = DirectoryTree::UseOnMemoryExtractionMode::Auto;
+  constexpr DirectoryTree::ExtractToMemory ExtractToMemory = DirectoryTree::ExtractToMemory::Auto;
 }
 
 
@@ -151,7 +151,7 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
     // open archive
     winrt::com_ptr<InFileStream> inFileStream;
     inFileStream.attach(new InFileStream(archiveFileHandle));
-    archiveN.emplace(nanaZ, inFileStream, archiveFileInfo, DefaultFilepath, pathPrefixWb, caseSensitive, MaxCheckStartPosition, OnExisting, UseOnMemoryExtraction, [](const std::wstring& originalFilepath, std::size_t count) -> std::optional<std::pair<std::wstring, bool>> {
+    archiveN.emplace(nanaZ, inFileStream, archiveFileInfo, DefaultFilepath, pathPrefixWb, caseSensitive, MaxCheckStartPosition, OnExisting, ExtractToMemory, [](const std::wstring& originalFilepath, std::size_t count) -> std::optional<std::pair<std::wstring, bool>> {
       const auto lastDelimiterPos = originalFilepath.find_last_of(Archive::DirectorySeparatorFromLibrary);
       const auto parentDirectoryPath = lastDelimiterPos == std::wstring::npos ? L""s : originalFilepath.substr(0, lastDelimiterPos + 1);
       const auto baseFilename = lastDelimiterPos == std::wstring::npos ? originalFilepath : originalFilepath.substr(lastDelimiterPos + 1);
