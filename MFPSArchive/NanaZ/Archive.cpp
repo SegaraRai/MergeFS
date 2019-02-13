@@ -78,12 +78,16 @@ namespace {
   }
 
 
-  DirectoryTree* Insert(DirectoryTree& directoryTree, std::wstring_view filepath, DirectoryTree&& file, ULONGLONG& fileIndexCount, DirectoryTree::OnExistingMode onExistingMode, const FILETIME& fallbackCreationTime, const FILETIME& fallbackLastAccessTime, const FILETIME& fallbackLastWriteTime) {
+  DirectoryTree* Insert(DirectoryTree& directoryTree, std::wstring_view filepath, DirectoryTree&& file, ULONGLONG& fileIndexCount, DirectoryTree::OnExistingMode onExistingMode) {
     if (filepath.empty()) {
       assert(false);
       directoryTree = std::move(file);
       return &directoryTree;
     }
+
+    const auto& fallbackCreationTime = directoryTree.creationTime;
+    const auto& fallbackLastAccessTime = directoryTree.lastAccessTime;
+    const auto& fallbackLastWriteTime = directoryTree.lastWriteTime;
 
     const auto firstDelimiterPos = filepath.find_first_of(Archive::DirectorySeparatorFromLibrary);
     const std::wstring rootDirectoryName(filepath.substr(0, firstDelimiterPos));
@@ -137,7 +141,7 @@ namespace {
     }
 
     auto& child = directoryTree.children.at(rootDirectoryName);
-    return Insert(child, filepath.substr(firstDelimiterPos + 1), std::move(file), fileIndexCount, onExistingMode, fallbackCreationTime, fallbackLastAccessTime, fallbackLastWriteTime);
+    return Insert(child, filepath.substr(firstDelimiterPos + 1), std::move(file), fileIndexCount, onExistingMode);
   }
 
 
@@ -173,7 +177,11 @@ namespace {
   }
 
 
-  void InitializeDirectoryTree(DirectoryTree& directoryTree, const std::wstring& defaultFilepath, const std::wstring_view prefixFilter, const std::wstring& passwordFilepathPrefix, NanaZ& nanaZ, UInt64 maxCheckStartPosition, DirectoryTree::OnExistingMode onExistingMode, Archive::ArchiveNameCallback archiveNameCallback, Archive::PasswordWithFilepathCallback passwordCallback, UInt64& fileIndexCount, const FILETIME& fallbackCreationTime, const FILETIME& fallbackLastAccessTime, const FILETIME& fallbackLastWriteTime) {
+  void InitializeDirectoryTree(DirectoryTree& directoryTree, const std::wstring& defaultFilepath, const std::wstring_view prefixFilter, const std::wstring& passwordFilepathPrefix, NanaZ& nanaZ, UInt64 maxCheckStartPosition, DirectoryTree::OnExistingMode onExistingMode, Archive::ArchiveNameCallback archiveNameCallback, Archive::PasswordWithFilepathCallback passwordCallback, UInt64& fileIndexCount) {
+    const auto& fallbackCreationTime = directoryTree.creationTime;
+    const auto& fallbackLastAccessTime = directoryTree.lastAccessTime;
+    const auto& fallbackLastWriteTime = directoryTree.lastWriteTime;
+
     winrt::com_ptr<IInArchiveGetStream> inArchiveGetStream;
     if (FAILED(directoryTree.inArchive->QueryInterface(IID_IInArchiveGetStream, inArchiveGetStream.put_void()))) {
       inArchiveGetStream = nullptr;
@@ -304,7 +312,7 @@ namespace {
         contentDirectoryTree.lastWriteTime = GetCreationTime(contentDirectoryTree, fallbackLastWriteTime);
 
         // add to tree
-        auto ptrInsertedDirectoryTree = Insert(directoryTree, contentFilepath, std::move(contentDirectoryTree), fileIndexCount, onExistingMode, fallbackCreationTime, fallbackLastAccessTime, fallbackLastWriteTime);
+        auto ptrInsertedDirectoryTree = Insert(directoryTree, contentFilepath, std::move(contentDirectoryTree), fileIndexCount, onExistingMode);
         if (!ptrInsertedDirectoryTree) {
           throw COMError(E_FAIL);
         }
@@ -427,10 +435,10 @@ namespace {
       contentDirectoryTree.inStream.attach(new InSeekFilterStream(originalContentInStream));
 
       // filename collision will not occur
-      auto ptrInsertedCloneContentDirectoryTree = Insert(directoryTree, asArchiveFilepath, std::move(cloneContentDirectoryTree), fileIndexCount, DirectoryTree::OnExistingMode::Replace, fallbackCreationTime, fallbackLastAccessTime, fallbackLastWriteTime);
+      auto ptrInsertedCloneContentDirectoryTree = Insert(directoryTree, asArchiveFilepath, std::move(cloneContentDirectoryTree), fileIndexCount, DirectoryTree::OnExistingMode::Replace);
 
       if (ptrInsertedCloneContentDirectoryTree) {
-        InitializeDirectoryTree(*ptrInsertedCloneContentDirectoryTree, defaultFilepath, L""sv, passwordFilepathPrefix + L"\\"s + contentFilepath, nanaZ, maxCheckStartPosition, onExistingMode, archiveNameCallback, passwordCallback, fileIndexCount, fallbackCreationTime, fallbackLastAccessTime, fallbackLastWriteTime);
+        InitializeDirectoryTree(*ptrInsertedCloneContentDirectoryTree, defaultFilepath, L""sv, passwordFilepathPrefix + L"\\"s + contentFilepath, nanaZ, maxCheckStartPosition, onExistingMode, archiveNameCallback, passwordCallback, fileIndexCount);
       }
     }
   }
@@ -515,7 +523,7 @@ Archive::Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HAND
   }
   this->inArchive = CreateInArchiveFromInStream(nanaZ, inStream, maxCheckStartPosition, rootArchivePasswordCallback);
   UInt64 fileIndexCount = this->fileIndex + 1;
-  InitializeDirectoryTree(*this, defaultFilepath, prefixFilter, L""s, nanaZ, maxCheckStartPosition, onExistingMode, archiveNameCallback, passwordCallback, fileIndexCount, byHandleFileInformation.ftCreationTime, byHandleFileInformation.ftLastAccessTime, byHandleFileInformation.ftLastWriteTime);
+  InitializeDirectoryTree(*this, defaultFilepath, prefixFilter, L""s, nanaZ, maxCheckStartPosition, onExistingMode, archiveNameCallback, passwordCallback, fileIndexCount);
 }
 
 
