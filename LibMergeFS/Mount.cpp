@@ -11,14 +11,16 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
 #include <utility>
-#include <optional>
+#include <vector>
 
 using namespace std::literals;
 
