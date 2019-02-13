@@ -53,7 +53,7 @@ namespace {
         false,
         fileIndexCount++,
         source,
-        decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)),
+        {0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)},
       });
       return;
     }
@@ -64,7 +64,7 @@ namespace {
         true,
         fileIndexCount++,
         nullptr,
-        decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)),
+        {0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)},
       });
     }
 
@@ -150,7 +150,7 @@ CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMou
     true,
     1,
     nullptr,
-    decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(caseSensitive), CaseSensitivity::CiEqualTo(caseSensitive)),
+    {0, CaseSensitivity::CiHash(caseSensitive), CaseSensitivity::CiEqualTo(caseSensitive)},
   }
 {
   constexpr std::size_t BufferSize = MAX_PATH + 1;

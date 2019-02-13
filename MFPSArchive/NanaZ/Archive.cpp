@@ -118,7 +118,7 @@ namespace {
       directoryTree.children.emplace(rootDirectoryName, DirectoryTree{
         nullptr,
         directoryTree.caseSensitive,
-        decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)),
+        {0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)},
         false,
         true,
         directoryTree.onMemory,
@@ -200,7 +200,7 @@ namespace {
         DirectoryTree contentDirectoryTree{
           directoryTree.streamMutex,
           directoryTree.caseSensitive,
-          decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)),
+          {0, CaseSensitivity::CiHash(directoryTree.caseSensitive), CaseSensitivity::CiEqualTo(directoryTree.caseSensitive)},
           true,
         };
 
@@ -408,7 +408,7 @@ namespace {
       DirectoryTree cloneContentDirectoryTree{
         contentDirectoryTree.streamMutex,
         contentDirectoryTree.caseSensitive,
-        decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(contentDirectoryTree.caseSensitive), CaseSensitivity::CiEqualTo(contentDirectoryTree.caseSensitive)),
+        {0, CaseSensitivity::CiHash(contentDirectoryTree.caseSensitive), CaseSensitivity::CiEqualTo(contentDirectoryTree.caseSensitive)},
         true,
         contentDirectoryTree.contentAvailable,
         contentDirectoryTree.onMemory,
@@ -490,7 +490,7 @@ Archive::Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HAND
   DirectoryTree{
     std::make_shared<std::mutex>(),
     caseSensitive,
-    decltype(DirectoryTree::children)(0, CaseSensitivity::CiHash(caseSensitive), CaseSensitivity::CiEqualTo(caseSensitive)),
+    {0, CaseSensitivity::CiHash(caseSensitive), CaseSensitivity::CiEqualTo(caseSensitive)},
     true,
     true,
     false,
