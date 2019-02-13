@@ -439,11 +439,13 @@ namespace {
 
 
 DWORD DirectoryTree::FilterArchiveFileAttributes(const DirectoryTree& directoryTree) {
-  DWORD originalFileAttributes = directoryTree.fileAttributes;
+  const DWORD originalFileAttributes = directoryTree.fileAttributes;
   if (directoryTree.type != Type::Archive) {
     return originalFileAttributes;
   }
-  return originalFileAttributes == FILE_ATTRIBUTE_NORMAL ? FILE_ATTRIBUTE_DIRECTORY : originalFileAttributes | FILE_ATTRIBUTE_DIRECTORY;
+  return originalFileAttributes == FILE_ATTRIBUTE_NORMAL
+    ? FILE_ATTRIBUTE_DIRECTORY
+    : originalFileAttributes | FILE_ATTRIBUTE_DIRECTORY;
 }
 
 
