@@ -81,7 +81,7 @@ public:
   using ArchiveNameCallback = std::function<std::optional<std::pair<std::wstring, bool>>(const std::wstring&, std::size_t)>;
   using PasswordWithFilepathCallback = std::function<std::optional<std::wstring>(const std::wstring&)>;
 
-  Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HANDLE_FILE_INFORMATION& byHandleFileInformation, const std::wstring& defaultFilepath, bool caseSensitive, UInt64 maxCheckStartPosition, OnExistingMode onExistingMode, UseOnMemoryExtractionMode useOnMemoryExtraction, ArchiveNameCallback archiveNameCallback = nullptr, PasswordWithFilepathCallback passwordCallback = nullptr);
+  Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HANDLE_FILE_INFORMATION& byHandleFileInformation, const std::wstring& defaultFilepath, std::wstring_view prefixFilter, bool caseSensitive, UInt64 maxCheckStartPosition, OnExistingMode onExistingMode, UseOnMemoryExtractionMode useOnMemoryExtraction, ArchiveNameCallback archiveNameCallback = nullptr, PasswordWithFilepathCallback passwordCallback = nullptr);
 
   const DirectoryTree* Get(std::wstring_view filepath) const;
   bool Exists(std::wstring_view filepath) const;
