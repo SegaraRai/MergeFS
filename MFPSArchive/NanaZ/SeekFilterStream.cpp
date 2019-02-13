@@ -48,6 +48,9 @@ STDMETHODIMP InSeekFilterStream::Read(void* data, UInt32 size, UInt32* processed
 
 STDMETHODIMP InSeekFilterStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64* newPosition) {
   std::lock_guard lock(mutex);
+  if (seekOrigin == STREAM_SEEK_CUR && offset == 0) {
+    return inStream->Seek(offset, seekOrigin, newPosition);
+  }
   UInt64 newSeekOffset = -1;
   if (const auto hResult = baseInStream->Seek(baseInStreamSeekOffset, STREAM_SEEK_SET, &newSeekOffset); FAILED(hResult)) {
     return hResult;
