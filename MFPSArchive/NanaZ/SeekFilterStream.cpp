@@ -17,6 +17,12 @@ InSeekFilterStream::InSeekFilterStream(winrt::com_ptr<IInStream> inStream, winrt
   baseInStream(baseInStream),
   baseInStreamSeekOffset(0)
 {
+  auto baseInSeekFilterStream = baseInStream.try_as<InSeekFilterStreamInternal::IInSeekFilterStream>();
+  if (baseInSeekFilterStream) {
+    winrt::com_ptr<IInStream> baseBaseInStream;
+    COMError::CheckHRESULT(baseInSeekFilterStream->GetBaseStream(baseBaseInStream.put()));
+    baseInStream = baseBaseInStream;
+  }
   COMError::CheckHRESULT(baseInStream->Seek(0, STREAM_SEEK_CUR, &baseInStreamSeekOffset));
 }
 
@@ -65,5 +71,16 @@ STDMETHODIMP InSeekFilterStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64* n
     return hResult;
   }
   baseInStreamSeekOffset = newSeekOffset;
+  return S_OK;
+}
+
+
+STDMETHODIMP InSeekFilterStream::GetBaseStream(IInStream** outBaseInStream) {
+  if (!outBaseInStream) {
+    return S_OK;
+  }
+  IInStream* ptrBaseInStream = baseInStream.get();
+  ptrBaseInStream->AddRef();
+  *outBaseInStream = ptrBaseInStream;
   return S_OK;
 }
