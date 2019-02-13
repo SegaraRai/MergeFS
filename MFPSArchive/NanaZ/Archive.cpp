@@ -489,7 +489,7 @@ Archive::Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HAND
     true,
     false,
     Type::Archive,
-    FILE_ATTRIBUTE_NORMAL,
+    byHandleFileInformation.dwFileAttributes,
     byHandleFileInformation.ftCreationTime,
     byHandleFileInformation.ftLastAccessTime,
     byHandleFileInformation.ftLastWriteTime,
