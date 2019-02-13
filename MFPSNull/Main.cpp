@@ -47,7 +47,7 @@ namespace {
 
 
   bool IsSupported(wstring_view wstr) noexcept {
-    return wstr == L"NULLFS";
+    return wstr == L"NULLFS"sv;
   }
 
 
@@ -274,9 +274,9 @@ NTSTATUS WINAPI DGetFileInformation(LPCWSTR FileName, LPBY_HANDLE_FILE_INFORMATI
       DVolumeSerialNumber,
       0,
       0,
+      1,
       0,
-      0,
-      0,
+      1,
     };
   }
   return STATUS_SUCCESS;
