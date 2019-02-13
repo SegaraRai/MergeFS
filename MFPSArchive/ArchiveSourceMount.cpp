@@ -118,7 +118,8 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
     }
 
     archiveFilepath = archiveFilepathN.value();
-    pathPrefix = archiveFilepath.size() == absolutePath.size() ? L""s : absolutePath.substr(archiveFilepath.size() + 1) + L"\\"s;
+    pathPrefix = archiveFilepath.size() == absolutePath.size() ? L""s : absolutePath.substr(archiveFilepath.size() + 1);
+    pathPrefixWb = pathPrefix.empty() ? L""s : pathPrefix + L"\\"s;
 
     archiveFileHandle = CreateFileW(archiveFilepath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (!IsValidHandle(archiveFileHandle)) {
@@ -150,7 +151,7 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
     // open archive
     winrt::com_ptr<InFileStream> inFileStream;
     inFileStream.attach(new InFileStream(archiveFileHandle));
-    archiveN.emplace(nanaZ, inFileStream, archiveFileInfo, DefaultFilepath, pathPrefix, caseSensitive, MaxCheckStartPosition, OnExistingMode, UseOnMemoryExtraction, [](const std::wstring& originalFilepath, std::size_t count) -> std::optional<std::pair<std::wstring, bool>> {
+    archiveN.emplace(nanaZ, inFileStream, archiveFileInfo, DefaultFilepath, pathPrefixWb, caseSensitive, MaxCheckStartPosition, OnExistingMode, UseOnMemoryExtraction, [](const std::wstring& originalFilepath, std::size_t count) -> std::optional<std::pair<std::wstring, bool>> {
       const auto lastDelimiterPos = originalFilepath.find_last_of(Archive::DirectorySeparatorFromLibrary);
       const auto parentDirectoryPath = lastDelimiterPos == std::wstring::npos ? L""s : originalFilepath.substr(0, lastDelimiterPos + 1);
       const auto baseFilename = lastDelimiterPos == std::wstring::npos ? originalFilepath : originalFilepath.substr(lastDelimiterPos + 1);
@@ -181,7 +182,10 @@ ArchiveSourceMount::~ArchiveSourceMount() {
 
 std::wstring ArchiveSourceMount::GetRealPath(LPCWSTR filepath) const {
   assert(filepath && filepath[0] == L'\\');
-  return IsRootDirectory(filepath) ? pathPrefix : pathPrefix + std::wstring(filepath + 1);
+  if (IsRootDirectory(filepath)) {
+    return pathPrefix;
+  }
+  return pathPrefixWb + std::wstring(filepath + 1);
 }
 
 

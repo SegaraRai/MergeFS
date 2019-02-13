@@ -51,6 +51,7 @@ class ArchiveSourceMount : public ReadonlySourceMountBase {
   std::wstring absolutePath;
   std::wstring archiveFilepath;
   std::wstring pathPrefix;
+  std::wstring pathPrefixWb;
   HANDLE archiveFileHandle;
   BY_HANDLE_FILE_INFORMATION archiveFileInfo;
   std::wstring baseVolumeName;
