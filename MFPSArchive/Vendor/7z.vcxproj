@@ -396,12 +396,12 @@
     <ClCompile Include="7z\C\7zBuf2.c" />
     <ClCompile Include="7z\C\7zCrc.c" />
     <ClCompile Include="7z\C\7zCrcOpt.c">
-      <ExcludedFromBuild Condition="'$(Platform)'=='Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="7z\C\7zStream.c" />
     <ClCompile Include="7z\C\Aes.c" />
     <ClCompile Include="7z\C\AesOpt.c">
-      <ExcludedFromBuild Condition="'$(Platform)'=='Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="7z\C\Alloc.c" />
     <ClCompile Include="7z\C\Bcj2.c" />
@@ -436,7 +436,7 @@
     <ClCompile Include="7z\C\Xz.c" />
     <ClCompile Include="7z\C\XzCrc64.c" />
     <ClCompile Include="7z\C\XzCrc64Opt.c">
-      <ExcludedFromBuild Condition="'$(Platform)'=='Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="7z\C\XzDec.c" />
     <ClCompile Include="7z\C\XzEnc.c" />
@@ -445,27 +445,36 @@
   <ItemGroup>
     <CustomBuild Include="7z\Asm\x86\7zCrcOpt.asm">
       <FileType>Document</FileType>
-      <Command>ml.exe /WX /c /Fo$(IntDir) %(Identity)</Command>
+      <Command Condition="'$(Platform)'=='Win32'">ml.exe /WX /c /Fo$(IntDir) %(Identity)</Command>
+      <Command Condition="'$(Platform)'=='x64'">ml64.exe /Dx64 /WX /c /Fo$(IntDir) %(Identity)</Command>
       <Message>ML %(Identity)</Message>
       <Outputs>$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
       <BuildInParallel>true</BuildInParallel>
-      <ExcludedFromBuild Condition="'$(Platform)'!='Win32'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="7z\Asm\x86\AesOpt.asm">
       <FileType>Document</FileType>
-      <Command>ml.exe /WX /c /Fo$(IntDir) %(Identity)</Command>
+      <Command Condition="'$(Platform)'=='Win32'">ml.exe /WX /c /Fo$(IntDir) %(Identity)</Command>
+      <Command Condition="'$(Platform)'=='x64'">ml64.exe /Dx64 /WX /c /Fo$(IntDir) %(Identity)</Command>
       <Message>ML %(Identity)</Message>
       <Outputs>$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
       <BuildInParallel>true</BuildInParallel>
-      <ExcludedFromBuild Condition="'$(Platform)'!='Win32'">true</ExcludedFromBuild>
+    </CustomBuild>
+    <CustomBuild Include="7z\Asm\x86\LzmaDecOpt.asm">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Platform)'=='Win32'">ml.exe /WX /c /Fo$(IntDir) %(Identity)</Command>
+      <Command Condition="'$(Platform)'=='x64'">ml64.exe /Dx64 /WX /c /Fo$(IntDir) %(Identity)</Command>
+      <Message>ML %(Identity)</Message>
+      <Outputs>$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
+      <BuildInParallel>true</BuildInParallel>
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <CustomBuild Include="7z\Asm\x86\XzCrc64Opt.asm">
       <FileType>Document</FileType>
-      <Command>ml.exe /WX /c /Fo$(IntDir) %(Identity)</Command>
+      <Command Condition="'$(Platform)'=='Win32'">ml.exe /WX /c /Fo$(IntDir) %(Identity)</Command>
+      <Command Condition="'$(Platform)'=='x64'">ml64.exe /Dx64 /WX /c /Fo$(IntDir) %(Identity)</Command>
       <Message>ML %(Identity)</Message>
       <Outputs>$(IntDir)%(Filename).obj;%(Outputs)</Outputs>
       <BuildInParallel>true</BuildInParallel>
-      <ExcludedFromBuild Condition="'$(Platform)'!='Win32'">true</ExcludedFromBuild>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

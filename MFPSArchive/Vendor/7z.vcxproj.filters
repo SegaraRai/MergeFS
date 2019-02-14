@@ -857,6 +857,9 @@
     <CustomBuild Include="7z\Asm\x86\AesOpt.asm">
       <Filter>Source Files\Asm</Filter>
     </CustomBuild>
+    <CustomBuild Include="7z\Asm\x86\LzmaDecOpt.asm">
+      <Filter>Source Files\Asm</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <None Include="7z\CPP\7zip\Archive\Archive2.def">
