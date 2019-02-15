@@ -115,9 +115,13 @@ public:
 
 class SourceMountBase {
   std::unordered_map<FILE_CONTEXT_ID, std::unique_ptr<SourceMountFileBase>> fileMap;
+  std::mutex mutex;
+
+  bool SourceMountFileBaseExistsL(FILE_CONTEXT_ID fileContextId) const;
+  const SourceMountFileBase& GetSourceMountFileBaseL(FILE_CONTEXT_ID fileContextId) const;
+  SourceMountFileBase& GetSourceMountFileBaseL(FILE_CONTEXT_ID fileContextId);
 
 protected:
-  std::mutex mutex;
   const SOURCE_CONTEXT_ID sourceContextId;
   const std::wstring filename;
   const bool caseSensitive;
@@ -126,10 +130,7 @@ protected:
 
   SourceMountBase(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId);
 
-  bool SourceMountFileBaseExistsL(FILE_CONTEXT_ID fileContextId) const;
   bool SourceMountFileBaseExists(FILE_CONTEXT_ID fileContextId);
-  const SourceMountFileBase& GetSourceMountFileBaseL(FILE_CONTEXT_ID fileContextId) const;
-  SourceMountFileBase& GetSourceMountFileBaseL(FILE_CONTEXT_ID fileContextId);
   SourceMountFileBase& GetSourceMountFileBase(FILE_CONTEXT_ID fileContextId);
 
 public:
