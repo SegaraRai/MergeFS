@@ -37,7 +37,7 @@ ArchiveSourceMount::ExportPortation::ExportPortation(ArchiveSourceMount& sourceM
   filepath(portationInfo->filepath),
   fileContextId(portationInfo->fileContextId),
   empty(portationInfo->empty),
-  sourceMountFile(portationInfo->fileContextId != FILE_CONTEXT_ID_NULL ? dynamic_cast<ArchiveSourceMountFile*>(&sourceMount.GetSourceMountFileBase(portationInfo->fileContextId)) : nullptr),
+  sourceMountFile(portationInfo->fileContextId != FILE_CONTEXT_ID_NULL ? static_cast<ArchiveSourceMountFile*>(&sourceMount.GetSourceMountFileBase(portationInfo->fileContextId)) : nullptr),
   realPath(sourceMount.GetRealPath(portationInfo->filepath)),
   ptrDirectoryTree(sourceMount.GetDirectoryTreeR(realPath)),
   lastNumberOfBytesWritten(0)
