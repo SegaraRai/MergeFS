@@ -130,6 +130,11 @@ NTSTATUS ReadonlySourceMountBase::SwitchDestinationPrepareImpl(LPCWSTR FileName,
 }
 
 
+NTSTATUS ReadonlySourceMountBase::SwitchDestinationCleanupImpl(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
+  return STATUS_SUCCESS;
+}
+
+
 NTSTATUS ReadonlySourceMountBase::SwitchDestinationCloseImpl(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
   return STATUS_SUCCESS;
 }

@@ -378,6 +378,9 @@ NTSTATUS SourceMountBase::SwitchDestinationOpen(LPCWSTR FileName, PDOKAN_IO_SECU
 
 
 NTSTATUS SourceMountBase::SwitchDestinationCleanup(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
+  if (!SourceMountFileBaseExists(FileContextId)) {
+    return SwitchDestinationCleanupImpl(FileName, DokanFileInfo, FileContextId);
+  }
   return GetSourceMountFileBase(FileContextId).SwitchDestinationCleanup(DokanFileInfo);
 }
 

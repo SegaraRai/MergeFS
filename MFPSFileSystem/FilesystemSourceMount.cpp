@@ -426,6 +426,11 @@ NTSTATUS FilesystemSourceMount::SwitchDestinationPrepareImpl(LPCWSTR FileName, P
 }
 
 
+NTSTATUS FilesystemSourceMount::SwitchDestinationCleanupImpl(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
+  return STATUS_SUCCESS;
+}
+
+
 NTSTATUS FilesystemSourceMount::SwitchDestinationCloseImpl(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
   /*
   const std::wstring realPath = GetRealPath(FileName);

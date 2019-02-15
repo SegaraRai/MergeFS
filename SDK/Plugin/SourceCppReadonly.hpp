@@ -55,6 +55,7 @@ public:
 
   NTSTATUS RemoveFile(LPCWSTR FileName) override;
   NTSTATUS SwitchDestinationPrepareImpl(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) override;
+  NTSTATUS SwitchDestinationCleanupImpl(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) override;
   NTSTATUS SwitchDestinationCloseImpl(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) override;
   NTSTATUS ImportStartImpl(PORTATION_INFO* PortationInfo) override;
   NTSTATUS ImportDataImpl(PORTATION_INFO* PortationInfo) override;
