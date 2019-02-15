@@ -18,8 +18,8 @@ public:
   NTSTATUS ImportStart(PORTATION_INFO* PortationInfo) override;
   NTSTATUS ImportData(PORTATION_INFO* PortationInfo) override;
   NTSTATUS ImportFinish(PORTATION_INFO* PortationInfo, BOOL Success) override;
-  NTSTATUS SwitchDestinationCleanup(PDOKAN_FILE_INFO DokanFileInfo) override;
-  NTSTATUS SwitchDestinationClose(PDOKAN_FILE_INFO DokanFileInfo) override;
+  NTSTATUS SwitchDestinationCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) override;
+  NTSTATUS SwitchDestinationCloseImpl(PDOKAN_FILE_INFO DokanFileInfo) override;
   NTSTATUS DWriteFile(LPCVOID Buffer, DWORD NumberOfBytesToWrite, LPDWORD NumberOfBytesWritten, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo) override;
   NTSTATUS DFlushFileBuffers(PDOKAN_FILE_INFO DokanFileInfo) override;
   NTSTATUS DSetFileAttributes(DWORD FileAttributes, PDOKAN_FILE_INFO DokanFileInfo) override;
@@ -36,9 +36,9 @@ public:
   virtual NTSTATUS ExportData(PORTATION_INFO* PortationInfo);
   virtual NTSTATUS ExportFinish(PORTATION_INFO* PortationInfo, BOOL Success);
 
-  virtual NTSTATUS SwitchSourceClose(PDOKAN_FILE_INFO DokanFileInfo) = 0;
-  virtual void DCleanup(PDOKAN_FILE_INFO DokanFileInfo) = 0;
-  virtual void DCloseFile(PDOKAN_FILE_INFO DokanFileInfo) = 0;
+  virtual NTSTATUS SwitchSourceCloseImpl(PDOKAN_FILE_INFO DokanFileInfo) = 0;
+  virtual void DCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) = 0;
+  virtual void DCloseFileImpl(PDOKAN_FILE_INFO DokanFileInfo) = 0;
   virtual NTSTATUS DReadFile(LPVOID Buffer, DWORD BufferLength, LPDWORD ReadLength, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo) = 0;
   virtual NTSTATUS DGetFileInformation(LPBY_HANDLE_FILE_INFORMATION Buffer, PDOKAN_FILE_INFO DokanFileInfo) = 0;
   virtual NTSTATUS DGetFileSecurity(PSECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR SecurityDescriptor, ULONG BufferLength, PULONG LengthNeeded, PDOKAN_FILE_INFO DokanFileInfo) = 0;

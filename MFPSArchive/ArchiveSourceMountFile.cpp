@@ -36,10 +36,10 @@ ArchiveSourceMountFile::ArchiveSourceMountFile(ArchiveSourceMount& sourceMount, 
 }
 
 
-void ArchiveSourceMountFile::DCleanup(PDOKAN_FILE_INFO DokanFileInfo) {}
+void ArchiveSourceMountFile::DCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) {}
 
 
-void ArchiveSourceMountFile::DCloseFile(PDOKAN_FILE_INFO DokanFileInfo) {}
+void ArchiveSourceMountFile::DCloseFileImpl(PDOKAN_FILE_INFO DokanFileInfo) {}
 
 
 NTSTATUS ArchiveSourceMountFile::DReadFile(LPVOID Buffer, DWORD BufferLength, LPDWORD ReadLength, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo) {

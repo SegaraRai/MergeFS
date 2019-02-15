@@ -255,9 +255,77 @@ NTSTATUS SourceMountFileBase::ImportFinish(PORTATION_INFO* PortationInfo, BOOL S
 }
 
 
-NTSTATUS SourceMountFileBase::SwitchSourceClose(PDOKAN_FILE_INFO DokanFileInfo) {
-  DCloseFile(DokanFileInfo);
+NTSTATUS SourceMountFileBase::SwitchSourceCloseImpl(PDOKAN_FILE_INFO DokanFileInfo) {
+  DCloseFileImpl(DokanFileInfo);
   return STATUS_SUCCESS;
+}
+
+
+bool SourceMountFileBase::IsCleanuped() const {
+  return privateCleanuped;
+}
+
+
+bool SourceMountFileBase::IsClosed() const {
+  return privateClosed;
+}
+
+
+NTSTATUS SourceMountFileBase::SwitchSourceClose(PDOKAN_FILE_INFO DokanFileInfo) {
+  try {
+    auto ret = SwitchSourceCloseImpl(DokanFileInfo);
+    privateClosed = true;
+    return ret;
+  } catch (...) {
+    privateClosed = true;
+    throw;
+  }
+}
+
+
+NTSTATUS SourceMountFileBase::SwitchDestinationCleanup(PDOKAN_FILE_INFO DokanFileInfo) {
+  try {
+    auto ret = SwitchDestinationCleanupImpl(DokanFileInfo);
+    privateCleanuped = true;
+    return ret;
+  } catch (...) {
+    privateCleanuped = true;
+    throw;
+  }
+}
+
+
+NTSTATUS SourceMountFileBase::SwitchDestinationClose(PDOKAN_FILE_INFO DokanFileInfo) {
+  try {
+    auto ret = SwitchDestinationCloseImpl(DokanFileInfo);
+    privateClosed = true;
+    return ret;
+  } catch (...) {
+    privateClosed = true;
+    throw;
+  }
+}
+
+
+void SourceMountFileBase::DCleanup(PDOKAN_FILE_INFO DokanFileInfo) {
+  try {
+    DCleanupImpl(DokanFileInfo);
+    privateCleanuped = true;
+  } catch (...) {
+    privateCleanuped = true;
+    throw;
+  }
+}
+
+
+void SourceMountFileBase::DCloseFile(PDOKAN_FILE_INFO DokanFileInfo) {
+  try {
+    DCloseFileImpl(DokanFileInfo);
+    privateClosed = true;
+  } catch (...) {
+    privateClosed = true;
+    throw;
+  }
 }
 
 
@@ -394,7 +462,7 @@ NTSTATUS SourceMountBase::SwitchDestinationClose(LPCWSTR FileName, PDOKAN_FILE_I
   }
   auto spSourceMountFile = privateFileMap.at(FileContextId);
   privateFileMap.erase(FileContextId);
-  return spSourceMountFile->SwitchDestinationClose(DokanFileInfo);
+  return spSourceMountFile->SwitchDestinationClose(DokanFileInfo);;
 }
 
 

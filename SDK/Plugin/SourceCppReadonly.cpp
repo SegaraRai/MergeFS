@@ -51,12 +51,12 @@ NTSTATUS ReadonlySourceMountFileBase::ImportFinish(PORTATION_INFO* PortationInfo
 }
 
 
-NTSTATUS ReadonlySourceMountFileBase::SwitchDestinationCleanup(PDOKAN_FILE_INFO DokanFileInfo) {
+NTSTATUS ReadonlySourceMountFileBase::SwitchDestinationCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) {
   return STATUS_SUCCESS;
 }
 
 
-NTSTATUS ReadonlySourceMountFileBase::SwitchDestinationClose(PDOKAN_FILE_INFO DokanFileInfo) {
+NTSTATUS ReadonlySourceMountFileBase::SwitchDestinationCloseImpl(PDOKAN_FILE_INFO DokanFileInfo) {
   return STATUS_SUCCESS;
 }
 

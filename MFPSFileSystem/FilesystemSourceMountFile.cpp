@@ -131,7 +131,7 @@ FilesystemSourceMountFile::~FilesystemSourceMountFile() {
 }
 
 
-NTSTATUS FilesystemSourceMountFile::SwitchDestinationCleanup(PDOKAN_FILE_INFO DokanFileInfo) {
+NTSTATUS FilesystemSourceMountFile::SwitchDestinationCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) {
   if (IsValidHandle(hFile)) {
     DokanFileInfo->DeleteOnClose = TRUE;
     DDeleteFile(DokanFileInfo);
@@ -141,7 +141,7 @@ NTSTATUS FilesystemSourceMountFile::SwitchDestinationCleanup(PDOKAN_FILE_INFO Do
 }
 
 
-NTSTATUS FilesystemSourceMountFile::SwitchDestinationClose(PDOKAN_FILE_INFO DokanFileInfo) {
+NTSTATUS FilesystemSourceMountFile::SwitchDestinationCloseImpl(PDOKAN_FILE_INFO DokanFileInfo) {
   if (IsValidHandle(hFile)) {
     DokanFileInfo->DeleteOnClose = TRUE;
     DDeleteFile(DokanFileInfo);
@@ -151,7 +151,7 @@ NTSTATUS FilesystemSourceMountFile::SwitchDestinationClose(PDOKAN_FILE_INFO Doka
 }
 
 
-void FilesystemSourceMountFile::DCleanup(PDOKAN_FILE_INFO DokanFileInfo) {
+void FilesystemSourceMountFile::DCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) {
   // Cleanupの後にもGetFileInformationが呼ばれることがあったため、この時点ではCloseHandleしないこととした
   // そもそもCleanupとCloseFileのそれぞれでやるべき処理が分からない…
   /*
@@ -163,7 +163,7 @@ void FilesystemSourceMountFile::DCleanup(PDOKAN_FILE_INFO DokanFileInfo) {
 }
 
 
-void FilesystemSourceMountFile::DCloseFile(PDOKAN_FILE_INFO DokanFileInfo) {
+void FilesystemSourceMountFile::DCloseFileImpl(PDOKAN_FILE_INFO DokanFileInfo) {
   if (IsValidHandle(hFile)) {
     CloseHandle(hFile);
     hFile = NULL;
