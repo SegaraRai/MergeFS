@@ -261,6 +261,24 @@ NTSTATUS SourceMountFileBase::SwitchSourceCloseImpl(PDOKAN_FILE_INFO DokanFileIn
 }
 
 
+NTSTATUS SourceMountFileBase::SwitchDestinationCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) {
+  DCloseFileImpl(DokanFileInfo);
+  return STATUS_SUCCESS;
+}
+
+
+NTSTATUS SourceMountFileBase::SwitchDestinationCloseImpl(PDOKAN_FILE_INFO DokanFileInfo) {
+  DCleanupImpl(DokanFileInfo);
+  return STATUS_SUCCESS;
+}
+
+
+void SourceMountFileBase::DCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) {}
+
+
+void SourceMountFileBase::DCloseFileImpl(PDOKAN_FILE_INFO DokanFileInfo) {}
+
+
 bool SourceMountFileBase::IsCleanuped() const {
   return privateCleanuped;
 }

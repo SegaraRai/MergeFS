@@ -36,12 +36,6 @@ ArchiveSourceMountFile::ArchiveSourceMountFile(ArchiveSourceMount& sourceMount, 
 }
 
 
-void ArchiveSourceMountFile::DCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) {}
-
-
-void ArchiveSourceMountFile::DCloseFileImpl(PDOKAN_FILE_INFO DokanFileInfo) {}
-
-
 NTSTATUS ArchiveSourceMountFile::DReadFile(LPVOID Buffer, DWORD BufferLength, LPDWORD ReadLength, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo) {
   static_assert(sizeof(UInt32) == sizeof(DWORD));
 

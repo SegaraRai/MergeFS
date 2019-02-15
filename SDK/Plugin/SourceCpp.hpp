@@ -95,11 +95,11 @@ public:
   virtual NTSTATUS ImportData(PORTATION_INFO* PortationInfo);
   virtual NTSTATUS ImportFinish(PORTATION_INFO* PortationInfo, BOOL Success);
   virtual NTSTATUS SwitchSourceCloseImpl(PDOKAN_FILE_INFO DokanFileInfo);
+  virtual NTSTATUS SwitchDestinationCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo);
+  virtual NTSTATUS SwitchDestinationCloseImpl(PDOKAN_FILE_INFO DokanFileInfo);
+  virtual void DCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo);
+  virtual void DCloseFileImpl(PDOKAN_FILE_INFO DokanFileInfo);
 
-  virtual NTSTATUS SwitchDestinationCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) = 0;
-  virtual NTSTATUS SwitchDestinationCloseImpl(PDOKAN_FILE_INFO DokanFileInfo) = 0;
-  virtual void DCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) = 0;
-  virtual void DCloseFileImpl(PDOKAN_FILE_INFO DokanFileInfo) = 0;
   virtual NTSTATUS DReadFile(LPVOID Buffer, DWORD BufferLength, LPDWORD ReadLength, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo) = 0;
   virtual NTSTATUS DWriteFile(LPCVOID Buffer, DWORD NumberOfBytesToWrite, LPDWORD NumberOfBytesWritten, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo) = 0;
   virtual NTSTATUS DFlushFileBuffers(PDOKAN_FILE_INFO DokanFileInfo) = 0;

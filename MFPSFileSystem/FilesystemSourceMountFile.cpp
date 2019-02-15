@@ -136,7 +136,7 @@ NTSTATUS FilesystemSourceMountFile::SwitchDestinationCleanupImpl(PDOKAN_FILE_INF
     DokanFileInfo->DeleteOnClose = TRUE;
     DDeleteFile(DokanFileInfo);
   }
-  DCleanup(DokanFileInfo);
+  DCleanupImpl(DokanFileInfo);
   return STATUS_SUCCESS;
 }
 
@@ -146,7 +146,7 @@ NTSTATUS FilesystemSourceMountFile::SwitchDestinationCloseImpl(PDOKAN_FILE_INFO 
     DokanFileInfo->DeleteOnClose = TRUE;
     DDeleteFile(DokanFileInfo);
   }
-  DCloseFile(DokanFileInfo);
+  DCloseFileImpl(DokanFileInfo);
   return STATUS_SUCCESS;
 }
 

@@ -28,6 +28,7 @@ public:
   FilesystemSourceMountFile(FilesystemSourceMount& sourceMount, LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, BOOL MaybeSwitched, FILE_CONTEXT_ID FileContextId);
   FilesystemSourceMountFile(FilesystemSourceMount& sourceMount, LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId);
   ~FilesystemSourceMountFile();
+
   NTSTATUS SwitchDestinationCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) override;
   NTSTATUS SwitchDestinationCloseImpl(PDOKAN_FILE_INFO DokanFileInfo) override;
   void DCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) override;

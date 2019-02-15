@@ -38,12 +38,6 @@ CueSourceMountFile::CueSourceMountFile(CueSourceMount& sourceMount, LPCWSTR File
 }
 
 
-void CueSourceMountFile::DCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) {}
-
-
-void CueSourceMountFile::DCloseFileImpl(PDOKAN_FILE_INFO DokanFileInfo) {}
-
-
 NTSTATUS CueSourceMountFile::DReadFile(LPVOID Buffer, DWORD BufferLength, LPDWORD ReadLength, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo) {
   if (!ptrDirectoryTree->source) {
     return STATUS_UNSUCCESSFUL;
