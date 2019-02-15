@@ -424,11 +424,6 @@ RenameStore::Result RenameStore::Rename(std::wstring_view srcFilepath, std::wstr
   const auto trimedSrcFilepath = srcFilepath.substr(1);
   const auto trimedDestFilepath = destFilepath.substr(1);
 
-  // check if target node does not exists in reverse lookup tree
-  if (const auto ptrReverseSourceNode = mReverseLookupTree.RetrieveRecursive(trimedSrcFilepath); ptrReverseSourceNode && ptrReverseSourceNode->IsValid()) {
-    return Result::NotExists;
-  }
-
   const auto resolvedSrcFilepath = Resolve(srcFilepath);
   if (!resolvedSrcFilepath) {
     return Result::NotExists;
