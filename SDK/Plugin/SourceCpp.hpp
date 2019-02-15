@@ -114,8 +114,8 @@ public:
 
 
 class SourceMountBase {
-  std::unordered_map<FILE_CONTEXT_ID, std::unique_ptr<SourceMountFileBase>> fileMap;
-  std::mutex mutex;
+  std::mutex privateMutex;
+  std::unordered_map<FILE_CONTEXT_ID, std::unique_ptr<SourceMountFileBase>> privateFileMap;
 
   bool SourceMountFileBaseExistsL(FILE_CONTEXT_ID fileContextId) const;
   const SourceMountFileBase& GetSourceMountFileBaseL(FILE_CONTEXT_ID fileContextId) const;

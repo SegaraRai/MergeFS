@@ -266,7 +266,8 @@ NTSTATUS SourceMountFileBase::SwitchSourceClose(PDOKAN_FILE_INFO DokanFileInfo) 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SourceMountBase::SourceMountBase(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) :
-  mutex(),
+  privateMutex(),
+  privateFileMap(),
   sourceContextId(sourceContextId),
   filename(InitializeMountInfo->FileName),
   caseSensitive(InitializeMountInfo->CaseSensitive),
@@ -276,28 +277,28 @@ SourceMountBase::SourceMountBase(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeM
 
 
 bool SourceMountBase::SourceMountFileBaseExistsL(FILE_CONTEXT_ID fileContextId) const {
-  return fileMap.count(fileContextId);
+  return privateFileMap.count(fileContextId);
 }
 
 
 bool SourceMountBase::SourceMountFileBaseExists(FILE_CONTEXT_ID fileContextId) {
-  std::lock_guard lock(mutex);
+  std::lock_guard lock(privateMutex);
   return SourceMountFileBaseExistsL(fileContextId);
 }
 
 
 const SourceMountFileBase& SourceMountBase::GetSourceMountFileBaseL(FILE_CONTEXT_ID fileContextId) const {
-  return *fileMap.at(fileContextId);
+  return *privateFileMap.at(fileContextId);
 }
 
 
 SourceMountFileBase& SourceMountBase::GetSourceMountFileBaseL(FILE_CONTEXT_ID fileContextId) {
-  return *fileMap.at(fileContextId);
+  return *privateFileMap.at(fileContextId);
 }
 
 
 SourceMountFileBase& SourceMountBase::GetSourceMountFileBase(FILE_CONTEXT_ID fileContextId) {
-  std::lock_guard lock(mutex);
+  std::lock_guard lock(privateMutex);
   return GetSourceMountFileBaseL(fileContextId);
 }
 
@@ -358,9 +359,9 @@ NTSTATUS SourceMountBase::ImportFinish(PORTATION_INFO* PortationInfo, BOOL Succe
 
 NTSTATUS SourceMountBase::SwitchSourceClose(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
   // erase entry as early as possible to ensure erasion
-  std::lock_guard lock(mutex);
-  auto upSourceMountFile = std::move(fileMap.at(FileContextId));
-  fileMap.erase(FileContextId);
+  std::lock_guard lock(privateMutex);
+  auto upSourceMountFile = std::move(privateFileMap.at(FileContextId));
+  privateFileMap.erase(FileContextId);
   return upSourceMountFile->SwitchSourceClose(DokanFileInfo);
 }
 
@@ -371,14 +372,14 @@ NTSTATUS SourceMountBase::SwitchDestinationPrepare(LPCWSTR FileName, PDOKAN_IO_S
 
 
 NTSTATUS SourceMountBase::SwitchDestinationOpen(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  std::lock_guard lock(mutex);
-  fileMap.emplace(FileContextId, SwitchDestinationOpenImpl(FileName, SecurityContext, DesiredAccess, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, DokanFileInfo, FileContextId));
+  std::lock_guard lock(privateMutex);
+  privateFileMap.emplace(FileContextId, SwitchDestinationOpenImpl(FileName, SecurityContext, DesiredAccess, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, DokanFileInfo, FileContextId));
   return STATUS_SUCCESS;
 }
 
 
 NTSTATUS SourceMountBase::SwitchDestinationCleanup(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  std::lock_guard lock(mutex);
+  std::lock_guard lock(privateMutex);
   if (!SourceMountFileBaseExistsL(FileContextId)) {
     return SwitchDestinationCleanupImpl(FileName, DokanFileInfo, FileContextId);
   }
@@ -388,19 +389,19 @@ NTSTATUS SourceMountBase::SwitchDestinationCleanup(LPCWSTR FileName, PDOKAN_FILE
 
 NTSTATUS SourceMountBase::SwitchDestinationClose(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
   // erase entry as early as possible to ensure erasion
-  std::lock_guard lock(mutex);
+  std::lock_guard lock(privateMutex);
   if (!SourceMountFileBaseExistsL(FileContextId)) {
     return SwitchDestinationCloseImpl(FileName, DokanFileInfo, FileContextId);
   }
-  auto upSourceMountFile = std::move(fileMap.at(FileContextId));
-  fileMap.erase(FileContextId);
+  auto upSourceMountFile = std::move(privateFileMap.at(FileContextId));
+  privateFileMap.erase(FileContextId);
   return upSourceMountFile->SwitchDestinationClose(DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DZwCreateFile(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, BOOL MaybeSwitched, FILE_CONTEXT_ID FileContextId) {
-  std::lock_guard lock(mutex);
-  fileMap.emplace(FileContextId, DZwCreateFileImpl(FileName, SecurityContext, DesiredAccess, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, DokanFileInfo, MaybeSwitched, FileContextId));
+  std::lock_guard lock(privateMutex);
+  privateFileMap.emplace(FileContextId, DZwCreateFileImpl(FileName, SecurityContext, DesiredAccess, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, DokanFileInfo, MaybeSwitched, FileContextId));
   return STATUS_SUCCESS;
 }
 
@@ -412,9 +413,9 @@ void SourceMountBase::DCleanup(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo,
 
 void SourceMountBase::DCloseFile(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
   // erase entry as early as possible to ensure erasion
-  std::lock_guard lock(mutex);
-  auto upSourceMountFile = std::move(fileMap.at(FileContextId));
-  fileMap.erase(FileContextId);
+  std::lock_guard lock(privateMutex);
+  auto upSourceMountFile = std::move(privateFileMap.at(FileContextId));
+  privateFileMap.erase(FileContextId);
   upSourceMountFile->DCloseFile(DokanFileInfo);
 }
 
