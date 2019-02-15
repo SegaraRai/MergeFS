@@ -287,17 +287,16 @@ bool SourceMountBase::SourceMountFileBaseExists(FILE_CONTEXT_ID fileContextId) {
 }
 
 
-const SourceMountFileBase& SourceMountBase::GetSourceMountFileBaseL(FILE_CONTEXT_ID fileContextId) const {
-  return *privateFileMap.at(fileContextId);
+std::shared_ptr<SourceMountFileBase> SourceMountBase::GetSourceMountFileBaseL(FILE_CONTEXT_ID fileContextId) const {
+  auto itrChild = privateFileMap.find(fileContextId);
+  if (itrChild == privateFileMap.end()) {
+    return nullptr;
+  }
+  return itrChild->second;
 }
 
 
-SourceMountFileBase& SourceMountBase::GetSourceMountFileBaseL(FILE_CONTEXT_ID fileContextId) {
-  return *privateFileMap.at(fileContextId);
-}
-
-
-SourceMountFileBase& SourceMountBase::GetSourceMountFileBase(FILE_CONTEXT_ID fileContextId) {
+std::shared_ptr<SourceMountFileBase> SourceMountBase::GetSourceMountFileBase(FILE_CONTEXT_ID fileContextId) {
   std::lock_guard lock(privateMutex);
   return GetSourceMountFileBaseL(fileContextId);
 }
@@ -308,7 +307,7 @@ NTSTATUS SourceMountBase::ExportStart(PORTATION_INFO* PortationInfo) {
     return STATUS_INVALID_PARAMETER;
   }
   const FILE_CONTEXT_ID fileContextId = PortationInfo->fileContextId;
-  return fileContextId != FILE_CONTEXT_ID_NULL ? GetSourceMountFileBase(fileContextId).ExportStart(PortationInfo) : ExportStartImpl(PortationInfo);
+  return fileContextId != FILE_CONTEXT_ID_NULL ? GetSourceMountFileBase(fileContextId)->ExportStart(PortationInfo) : ExportStartImpl(PortationInfo);
 }
 
 
@@ -317,7 +316,7 @@ NTSTATUS SourceMountBase::ExportData(PORTATION_INFO* PortationInfo) {
     return STATUS_INVALID_PARAMETER;
   }
   const FILE_CONTEXT_ID fileContextId = PortationInfo->fileContextId;
-  return fileContextId != FILE_CONTEXT_ID_NULL ? GetSourceMountFileBase(fileContextId).ExportData(PortationInfo) : ExportDataImpl(PortationInfo);
+  return fileContextId != FILE_CONTEXT_ID_NULL ? GetSourceMountFileBase(fileContextId)->ExportData(PortationInfo) : ExportDataImpl(PortationInfo);
 }
 
 
@@ -326,7 +325,7 @@ NTSTATUS SourceMountBase::ExportFinish(PORTATION_INFO* PortationInfo, BOOL Succe
     return STATUS_INVALID_PARAMETER;
   }
   const FILE_CONTEXT_ID fileContextId = PortationInfo->fileContextId;
-  return fileContextId != FILE_CONTEXT_ID_NULL ? GetSourceMountFileBase(fileContextId).ExportFinish(PortationInfo, Success) : ExportFinishImpl(PortationInfo, Success);
+  return fileContextId != FILE_CONTEXT_ID_NULL ? GetSourceMountFileBase(fileContextId)->ExportFinish(PortationInfo, Success) : ExportFinishImpl(PortationInfo, Success);
 }
 
 
@@ -335,7 +334,7 @@ NTSTATUS SourceMountBase::ImportStart(PORTATION_INFO* PortationInfo) {
     return STATUS_INVALID_PARAMETER;
   }
   const FILE_CONTEXT_ID fileContextId = PortationInfo->fileContextId;
-  return fileContextId != FILE_CONTEXT_ID_NULL ? GetSourceMountFileBase(fileContextId).ImportStart(PortationInfo) : ImportStartImpl(PortationInfo);
+  return fileContextId != FILE_CONTEXT_ID_NULL ? GetSourceMountFileBase(fileContextId)->ImportStart(PortationInfo) : ImportStartImpl(PortationInfo);
 }
 
 
@@ -344,7 +343,7 @@ NTSTATUS SourceMountBase::ImportData(PORTATION_INFO* PortationInfo) {
     return STATUS_INVALID_PARAMETER;
   }
   const FILE_CONTEXT_ID fileContextId = PortationInfo->fileContextId;
-  return fileContextId != FILE_CONTEXT_ID_NULL ? GetSourceMountFileBase(fileContextId).ImportData(PortationInfo) : ImportDataImpl(PortationInfo);
+  return fileContextId != FILE_CONTEXT_ID_NULL ? GetSourceMountFileBase(fileContextId)->ImportData(PortationInfo) : ImportDataImpl(PortationInfo);
 }
 
 
@@ -353,7 +352,7 @@ NTSTATUS SourceMountBase::ImportFinish(PORTATION_INFO* PortationInfo, BOOL Succe
     return STATUS_INVALID_PARAMETER;
   }
   const FILE_CONTEXT_ID fileContextId = PortationInfo->fileContextId;
-  return fileContextId != FILE_CONTEXT_ID_NULL ? GetSourceMountFileBase(fileContextId).ImportFinish(PortationInfo, Success) : ImportFinishImpl(PortationInfo, Success);
+  return fileContextId != FILE_CONTEXT_ID_NULL ? GetSourceMountFileBase(fileContextId)->ImportFinish(PortationInfo, Success) : ImportFinishImpl(PortationInfo, Success);
 }
 
 
@@ -383,7 +382,7 @@ NTSTATUS SourceMountBase::SwitchDestinationCleanup(LPCWSTR FileName, PDOKAN_FILE
   if (!SourceMountFileBaseExistsL(FileContextId)) {
     return SwitchDestinationCleanupImpl(FileName, DokanFileInfo, FileContextId);
   }
-  return GetSourceMountFileBase(FileContextId).SwitchDestinationCleanup(DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->SwitchDestinationCleanup(DokanFileInfo);
 }
 
 
@@ -393,9 +392,9 @@ NTSTATUS SourceMountBase::SwitchDestinationClose(LPCWSTR FileName, PDOKAN_FILE_I
   if (!SourceMountFileBaseExistsL(FileContextId)) {
     return SwitchDestinationCloseImpl(FileName, DokanFileInfo, FileContextId);
   }
-  auto upSourceMountFile = std::move(privateFileMap.at(FileContextId));
+  auto spSourceMountFile = privateFileMap.at(FileContextId);
   privateFileMap.erase(FileContextId);
-  return upSourceMountFile->SwitchDestinationClose(DokanFileInfo);
+  return spSourceMountFile->SwitchDestinationClose(DokanFileInfo);
 }
 
 
@@ -407,81 +406,81 @@ NTSTATUS SourceMountBase::DZwCreateFile(LPCWSTR FileName, PDOKAN_IO_SECURITY_CON
 
 
 void SourceMountBase::DCleanup(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  GetSourceMountFileBase(FileContextId).DCleanup(DokanFileInfo);
+  GetSourceMountFileBase(FileContextId)->DCleanup(DokanFileInfo);
 }
 
 
 void SourceMountBase::DCloseFile(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
   // erase entry as early as possible to ensure erasion
   std::lock_guard lock(privateMutex);
-  auto upSourceMountFile = std::move(privateFileMap.at(FileContextId));
+  auto spSourceMountFile = privateFileMap.at(FileContextId);
   privateFileMap.erase(FileContextId);
-  upSourceMountFile->DCloseFile(DokanFileInfo);
+  spSourceMountFile->DCloseFile(DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DReadFile(LPCWSTR FileName, LPVOID Buffer, DWORD BufferLength, LPDWORD ReadLength, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  return GetSourceMountFileBase(FileContextId).DReadFile(Buffer, BufferLength, ReadLength, Offset, DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->DReadFile(Buffer, BufferLength, ReadLength, Offset, DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DWriteFile(LPCWSTR FileName, LPCVOID Buffer, DWORD NumberOfBytesToWrite, LPDWORD NumberOfBytesWritten, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  return GetSourceMountFileBase(FileContextId).DWriteFile(Buffer, NumberOfBytesToWrite, NumberOfBytesWritten, Offset, DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->DWriteFile(Buffer, NumberOfBytesToWrite, NumberOfBytesWritten, Offset, DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DFlushFileBuffers(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  return GetSourceMountFileBase(FileContextId).DFlushFileBuffers(DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->DFlushFileBuffers(DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DGetFileInformation(LPCWSTR FileName, LPBY_HANDLE_FILE_INFORMATION Buffer, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  return GetSourceMountFileBase(FileContextId).DGetFileInformation(Buffer, DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->DGetFileInformation(Buffer, DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DSetFileAttributes(LPCWSTR FileName, DWORD FileAttributes, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  return GetSourceMountFileBase(FileContextId).DSetFileAttributes(FileAttributes, DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->DSetFileAttributes(FileAttributes, DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DSetFileTime(LPCWSTR FileName, const FILETIME* CreationTime, const FILETIME* LastAccessTime, const FILETIME* LastWriteTime, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  return GetSourceMountFileBase(FileContextId).DSetFileTime(CreationTime, LastAccessTime, LastWriteTime, DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->DSetFileTime(CreationTime, LastAccessTime, LastWriteTime, DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DDeleteFile(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  return GetSourceMountFileBase(FileContextId).DDeleteFile(DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->DDeleteFile(DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DDeleteDirectory(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  return GetSourceMountFileBase(FileContextId).DDeleteDirectory(DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->DDeleteDirectory(DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DMoveFile(LPCWSTR FileName, LPCWSTR NewFileName, BOOL ReplaceIfExisting, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  return GetSourceMountFileBase(FileContextId).DMoveFile(NewFileName, ReplaceIfExisting, DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->DMoveFile(NewFileName, ReplaceIfExisting, DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DSetEndOfFile(LPCWSTR FileName, LONGLONG ByteOffset, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  return GetSourceMountFileBase(FileContextId).DSetEndOfFile(ByteOffset, DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->DSetEndOfFile(ByteOffset, DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DSetAllocationSize(LPCWSTR FileName, LONGLONG AllocSize, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  return GetSourceMountFileBase(FileContextId).DSetAllocationSize(AllocSize, DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->DSetAllocationSize(AllocSize, DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DGetFileSecurity(LPCWSTR FileName, PSECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR SecurityDescriptor, ULONG BufferLength, PULONG LengthNeeded, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  return GetSourceMountFileBase(FileContextId).DGetFileSecurity(SecurityInformation, SecurityDescriptor, BufferLength, LengthNeeded, DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->DGetFileSecurity(SecurityInformation, SecurityDescriptor, BufferLength, LengthNeeded, DokanFileInfo);
 }
 
 
 NTSTATUS SourceMountBase::DSetFileSecurity(LPCWSTR FileName, PSECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR SecurityDescriptor, ULONG BufferLength, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) {
-  return GetSourceMountFileBase(FileContextId).DSetFileSecurity(SecurityInformation, SecurityDescriptor, BufferLength, DokanFileInfo);
+  return GetSourceMountFileBase(FileContextId)->DSetFileSecurity(SecurityInformation, SecurityDescriptor, BufferLength, DokanFileInfo);
 }
 
 

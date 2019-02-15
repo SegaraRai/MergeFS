@@ -80,7 +80,7 @@ CueSourceMount::ExportPortation::ExportPortation(CueSourceMount& sourceMount, PO
   filepath(portationInfo->filepath),
   fileContextId(portationInfo->fileContextId),
   empty(portationInfo->empty),
-  sourceMountFile(portationInfo->fileContextId != FILE_CONTEXT_ID_NULL ? static_cast<CueSourceMountFile*>(&sourceMount.GetSourceMountFileBase(portationInfo->fileContextId)) : nullptr),
+  sourceMountFile(portationInfo->fileContextId != FILE_CONTEXT_ID_NULL ? std::static_pointer_cast<CueSourceMountFile>(sourceMount.GetSourceMountFileBase(portationInfo->fileContextId)) : nullptr),
   ptrDirectoryTree(sourceMount.GetDirectoryTree(portationInfo->filepath)),
   lastNumberOfBytesWritten(0)
 {

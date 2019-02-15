@@ -28,7 +28,7 @@ class CueSourceMount : public ReadonlySourceMountBase {
     const std::wstring filepath;
     const FILE_CONTEXT_ID fileContextId;
     const bool empty;
-    CueSourceMountFile* const sourceMountFile;
+    const std::shared_ptr<CueSourceMountFile> sourceMountFile;
     const DirectoryTree* const ptrDirectoryTree;
 
     std::size_t lastNumberOfBytesWritten;

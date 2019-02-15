@@ -23,7 +23,7 @@ class FilesystemSourceMount : public SourceMountBase {
     const std::wstring filepath;
     const FILE_CONTEXT_ID fileContextId;
     const bool empty;
-    FilesystemSourceMountFile* const sourceMountFile;
+    const std::shared_ptr<FilesystemSourceMountFile> sourceMountFile;
     const std::wstring realPath;
 
     HANDLE hFile;

@@ -29,7 +29,7 @@ class ArchiveSourceMount : public ReadonlySourceMountBase {
     const std::wstring filepath;
     const FILE_CONTEXT_ID fileContextId;
     const bool empty;
-    ArchiveSourceMountFile* const sourceMountFile;
+    const std::shared_ptr<ArchiveSourceMountFile> sourceMountFile;
     const std::wstring realPath;
     const DirectoryTree* const ptrDirectoryTree;
 

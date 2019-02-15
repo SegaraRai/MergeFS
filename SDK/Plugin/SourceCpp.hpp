@@ -115,11 +115,10 @@ public:
 
 class SourceMountBase {
   std::mutex privateMutex;
-  std::unordered_map<FILE_CONTEXT_ID, std::unique_ptr<SourceMountFileBase>> privateFileMap;
+  std::unordered_map<FILE_CONTEXT_ID, std::shared_ptr<SourceMountFileBase>> privateFileMap;
 
   bool SourceMountFileBaseExistsL(FILE_CONTEXT_ID fileContextId) const;
-  const SourceMountFileBase& GetSourceMountFileBaseL(FILE_CONTEXT_ID fileContextId) const;
-  SourceMountFileBase& GetSourceMountFileBaseL(FILE_CONTEXT_ID fileContextId);
+  std::shared_ptr<SourceMountFileBase> GetSourceMountFileBaseL(FILE_CONTEXT_ID fileContextId) const;
 
 protected:
   const SOURCE_CONTEXT_ID sourceContextId;
@@ -131,7 +130,7 @@ protected:
   SourceMountBase(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId);
 
   bool SourceMountFileBaseExists(FILE_CONTEXT_ID fileContextId);
-  SourceMountFileBase& GetSourceMountFileBase(FILE_CONTEXT_ID fileContextId);
+  std::shared_ptr<SourceMountFileBase> GetSourceMountFileBase(FILE_CONTEXT_ID fileContextId);
 
 public:
   virtual ~SourceMountBase() = default;
