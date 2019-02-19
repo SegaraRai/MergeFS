@@ -142,7 +142,8 @@ FilesystemSourceMount::ImportPortation::ImportPortation(FilesystemSourceMount& s
   lastAccessTime(portationInfo->lastAccessTime),
   lastWriteTime(portationInfo->lastWriteTime),
   securitySize(portationInfo->securitySize),
-  fileSize(portationInfo->fileSize) {
+  fileSize(portationInfo->fileSize)
+{
   if (securitySize) {
     securityData = std::make_unique<char[]>(securitySize);
     memcpy(securityData.get(), portationInfo->securityData, securitySize);
