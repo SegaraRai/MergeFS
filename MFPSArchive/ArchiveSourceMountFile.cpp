@@ -44,19 +44,34 @@ NTSTATUS ArchiveSourceMountFile::DReadFile(LPVOID Buffer, DWORD BufferLength, LP
   std::wstring debugStr = L"ReadFile  "s + realPath + L"  Offset: "s + std::to_wstring(Offset) + L", BufferLength: "s + std::to_wstring(BufferLength) + L", Sum: "s + std::to_wstring(Offset + BufferLength) + L"\n"s;
   OutputDebugStringW(debugStr.c_str());
   */
+  if (Offset < 0) {
+    return NtstatusFromWin32(ERROR_NEGATIVE_SEEK);
+  }
+  if (static_cast<ULONGLONG>(Offset) >= ptrDirectoryTree->fileSize) {
+    if (ReadLength) {
+      *ReadLength = 0;
+    }
+    return STATUS_SUCCESS;
+  }
   UInt64 newPosition = -1;
   COMError::CheckHRESULT(ptrDirectoryTree->inStream->Seek(Offset, STREAM_SEEK_SET, &newPosition));
   if (newPosition != Offset) {
     return NtstatusFromWin32(ERROR_SEEK);
   }
-  UInt32 readSize = 0;
-  COMError::CheckHRESULT(ptrDirectoryTree->inStream->Read(Buffer, BufferLength, &readSize));
+  const UInt32 sizeToRead = static_cast<UInt32>(std::min<ULONGLONG>(BufferLength, ptrDirectoryTree->fileSize - Offset));
+  UInt32 totalReadSize = 0;
+  UInt32 readSize;
+  do {
+    readSize = 0;
+    COMError::CheckHRESULT(ptrDirectoryTree->inStream->Read(static_cast<std::byte*>(Buffer) + totalReadSize, sizeToRead - totalReadSize, &readSize));
+    totalReadSize += readSize;
+  } while (readSize && totalReadSize < sizeToRead);
   if (ReadLength) {
-    *ReadLength = readSize;
+    *ReadLength = totalReadSize;
   }
 #ifdef _DEBUG
-  if (readSize != BufferLength) {
-    std::wstring debugStr = L"ArchiveSourceMountFile::DReadFile ["s + realPath + L"] BufferLength ("s + std::to_wstring(BufferLength) + L") != readSize("s + std::to_wstring(readSize) + L"), Offset = "s + std::to_wstring(Offset) + L"\n"s;
+  if (totalReadSize != BufferLength) {
+    std::wstring debugStr = L"ArchiveSourceMountFile::DReadFile ["s + realPath + L"] BufferLength ("s + std::to_wstring(BufferLength) + L") != totalReadSize ("s + std::to_wstring(totalReadSize) + L"), Offset = "s + std::to_wstring(Offset) + L"\n"s;
     OutputDebugStringW(debugStr.c_str());
   }
 #endif
