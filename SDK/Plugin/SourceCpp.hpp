@@ -74,7 +74,7 @@ protected:
   SourceMountBase& sourceMountBase;
   const FILE_CONTEXT_ID fileContextId;
   const std::wstring filename;
-  const std::optional<BOOL> maybeSwitched;
+  const std::optional<BOOL> maybeSwitchedN;
   const DOKAN_IO_SECURITY_CONTEXT argSecurityContext;
   const ACCESS_MASK argDesiredAccess;
   const ULONG argFileAttributes;

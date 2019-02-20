@@ -200,7 +200,7 @@ SourceMountFileBase::SourceMountFileBase(SourceMountBase& sourceMountBase, LPCWS
   sourceMountBase(sourceMountBase),
   fileContextId(FileContextId),
   filename(FileName),
-  maybeSwitched(MaybeSwitchedN),
+  maybeSwitchedN(MaybeSwitchedN),
   argSecurityContext(*SecurityContext),
   argDesiredAccess(DesiredAccess),
   argFileAttributes(FileAttributes),
