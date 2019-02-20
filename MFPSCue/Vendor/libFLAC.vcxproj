@@ -95,6 +95,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_UNICODE;UNICODE;WIN32;_LIB;_USE_MATH_DEFINES;PACKAGE_VERSION="1.3.2";FLAC__NO_DLL;FLAC__HAS_OGG=0;FLAC__ALIGN_MALLOC_DATA;FLaC__INLINE=_inline;FLAC__HAS_X86INTRIN;FLAC__CPU_X86_64;ENABLE_64_BIT_WORDS;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalIncludeDirectories>flac\src\libFLAC\include;flac\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -107,6 +108,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_UNICODE;UNICODE;WIN32;_LIB;_USE_MATH_DEFINES;PACKAGE_VERSION="1.3.2";FLAC__NO_DLL;FLAC__HAS_OGG=0;FLAC__ALIGN_MALLOC_DATA;FLaC__INLINE=_inline;FLAC__HAS_X86INTRIN;FLAC__CPU_IA32;FLAC__HAS_NASM;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>flac\src\libFLAC\include;flac\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -121,6 +123,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_UNICODE;UNICODE;WIN32;_LIB;_USE_MATH_DEFINES;PACKAGE_VERSION="1.3.2";FLAC__NO_DLL;FLAC__HAS_OGG=0;FLAC__ALIGN_MALLOC_DATA;FLaC__INLINE=_inline;FLAC__HAS_X86INTRIN;FLAC__CPU_IA32;FLAC__HAS_NASM;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>flac\src\libFLAC\include;flac\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -144,6 +147,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <AdditionalIncludeDirectories>flac\src\libFLAC\include;flac\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
