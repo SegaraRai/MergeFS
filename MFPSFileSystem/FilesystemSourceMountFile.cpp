@@ -107,9 +107,10 @@ FilesystemSourceMountFile::FilesystemSourceMountFile(FilesystemSourceMount& sour
 
     BY_HANDLE_FILE_INFORMATION byHandleFileInformation;
     if (!GetFileInformationByHandle(this->hFile, &byHandleFileInformation)) {
+      const auto error = GetLastError();
       CloseHandle(this->hFile);
       this->hFile = NULL;
-      throw Win32Error();
+      throw Win32Error(error);
     }
 
     this->existingFileAttributes = byHandleFileInformation.dwFileAttributes;
