@@ -17,7 +17,29 @@ using namespace std::literals;
 
 
 
-NTSTATUS FilesystemSourceMountFile::Constructor(PDOKAN_FILE_INFO DokanFileInfo) {
+FilesystemSourceMountFile::FilesystemSourceMountFile(FilesystemSourceMount& sourceMount, LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId, std::optional<BOOL> MaybeSwitchedN) :
+  SourceMountFileBase(sourceMount, FileName, SecurityContext, DesiredAccess, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, DokanFileInfo, FileContextId, MaybeSwitchedN),
+  sourceMount(sourceMount),
+  realPath(sourceMount.GetRealPath(FileName))
+{
+  const HANDLE preparedHandle = MaybeSwitchedN ? NULL : sourceMount.TransferSwitchDestinationHandle(FileContextId);
+  if (IsValidHandle(preparedHandle)) {
+    this->hFile = preparedHandle;
+
+    BY_HANDLE_FILE_INFORMATION byHandleFileInformation;
+    if (!GetFileInformationByHandle(this->hFile, &byHandleFileInformation)) {
+      const auto error = GetLastError();
+      CloseHandle(this->hFile);
+      this->hFile = NULL;
+      throw Win32Error(error);
+    }
+
+    this->existingFileAttributes = byHandleFileInformation.dwFileAttributes;
+    this->directory = byHandleFileInformation.dwFileAttributes != FILE_ATTRIBUTE_NORMAL && (byHandleFileInformation.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
+
+    return;
+  }
+
   const auto csRealPath = realPath.c_str();
 
   ULONG shareAccess = this->argShareAccess;
@@ -46,7 +68,7 @@ NTSTATUS FilesystemSourceMountFile::Constructor(PDOKAN_FILE_INFO DokanFileInfo) 
     if (creationDisposition == CREATE_NEW || creationDisposition == OPEN_ALWAYS) {
       if (!CreateDirectoryW(csRealPath, &securityAttributes)) {
         if (GetLastError() != ERROR_ALREADY_EXISTS || creationDisposition == CREATE_NEW) {
-          return NtstatusFromWin32();
+          throw Win32Error();
         }
       }
     }
@@ -54,7 +76,7 @@ NTSTATUS FilesystemSourceMountFile::Constructor(PDOKAN_FILE_INFO DokanFileInfo) 
     // FILE_FLAG_BACKUP_SEMANTICS is required for opening directory handles
     this->hFile = CreateFileW(csRealPath, userDesiredAccess, shareAccess, &securityAttributes, OPEN_EXISTING, fileAttributesAndFlags | FILE_FLAG_BACKUP_SEMANTICS, NULL);
     if (this->hFile == INVALID_HANDLE_VALUE) {
-      return NtstatusFromWin32();
+      throw Win32Error();
     }
   } else {
     // It is a create file request
@@ -67,7 +89,7 @@ NTSTATUS FilesystemSourceMountFile::Constructor(PDOKAN_FILE_INFO DokanFileInfo) 
 
     this->hFile = CreateFileW(csRealPath, userDesiredAccess, shareAccess, &securityAttributes, creationDisposition, fileAttributesAndFlags, NULL);
     if (this->hFile == INVALID_HANDLE_VALUE) {
-      return NtstatusFromWin32();
+      throw Win32Error();
     }
 
     // Need to update FileAttributes with previous when Overwrite file
@@ -75,52 +97,17 @@ NTSTATUS FilesystemSourceMountFile::Constructor(PDOKAN_FILE_INFO DokanFileInfo) 
       SetFileAttributesW(csRealPath, fileAttributesAndFlags | fileAttributes);
     }
   }
-
-  return STATUS_SUCCESS;
-}
-
-
-HANDLE FilesystemSourceMountFile::GetFileHandle() {
-  return hFile;
 }
 
 
 FilesystemSourceMountFile::FilesystemSourceMountFile(FilesystemSourceMount& sourceMount, LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, BOOL MaybeSwitched, FILE_CONTEXT_ID FileContextId) :
-  SourceMountFileBase(sourceMount, FileName, SecurityContext, DesiredAccess, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, DokanFileInfo, MaybeSwitched, FileContextId),
-  sourceMount(sourceMount),
-  realPath(sourceMount.GetRealPath(FileName))
-{
-  if (const NTSTATUS status = Constructor(DokanFileInfo); status != STATUS_SUCCESS) {
-    throw NtstatusError(status);
-  }
-}
+  FilesystemSourceMountFile(sourceMount, FileName, SecurityContext, DesiredAccess, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, DokanFileInfo, FileContextId, std::make_optional(MaybeSwitched))
+{}
 
 
 FilesystemSourceMountFile::FilesystemSourceMountFile(FilesystemSourceMount& sourceMount, LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) :
-  SourceMountFileBase(sourceMount, FileName, SecurityContext, DesiredAccess, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, DokanFileInfo, FileContextId),
-  sourceMount(sourceMount),
-  realPath(sourceMount.GetRealPath(FileName))
-{
-  HANDLE preparedHandle = sourceMount.TransferSwitchDestinationHandle(FileContextId);
-  if (IsValidHandle(preparedHandle)) {
-    this->hFile = preparedHandle;
-
-    BY_HANDLE_FILE_INFORMATION byHandleFileInformation;
-    if (!GetFileInformationByHandle(this->hFile, &byHandleFileInformation)) {
-      const auto error = GetLastError();
-      CloseHandle(this->hFile);
-      this->hFile = NULL;
-      throw Win32Error(error);
-    }
-
-    this->existingFileAttributes = byHandleFileInformation.dwFileAttributes;
-    this->directory = byHandleFileInformation.dwFileAttributes != FILE_ATTRIBUTE_NORMAL && (byHandleFileInformation.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
-  } else {
-    if (const NTSTATUS status = Constructor(DokanFileInfo); status != STATUS_SUCCESS) {
-      throw NtstatusError(status);
-    }
-  }
-}
+  FilesystemSourceMountFile(sourceMount, FileName, SecurityContext, DesiredAccess, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, DokanFileInfo, FileContextId, std::nullopt)
+{}
 
 
 FilesystemSourceMountFile::~FilesystemSourceMountFile() {
@@ -129,6 +116,11 @@ FilesystemSourceMountFile::~FilesystemSourceMountFile() {
     CloseHandle(hFile);
     hFile = NULL;
   }
+}
+
+
+HANDLE FilesystemSourceMountFile::GetFileHandle() {
+  return hFile;
 }
 
 

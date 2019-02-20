@@ -4,6 +4,7 @@
 
 #include "../SDK/Plugin/SourceCpp.hpp"
 
+#include <optional>
 #include <string>
 
 #include <Windows.h>
@@ -20,14 +21,14 @@ class FilesystemSourceMountFile : public SourceMountFileBase {
   DWORD existingFileAttributes;
   HANDLE hFile;
 
-  NTSTATUS Constructor(PDOKAN_FILE_INFO DokanFileInfo);
+  FilesystemSourceMountFile(FilesystemSourceMount& sourceMount, LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId, std::optional<BOOL> MaybeSwitchedN);
 
 public:
-  HANDLE GetFileHandle();
-
   FilesystemSourceMountFile(FilesystemSourceMount& sourceMount, LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, BOOL MaybeSwitched, FILE_CONTEXT_ID FileContextId);
   FilesystemSourceMountFile(FilesystemSourceMount& sourceMount, LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId);
   ~FilesystemSourceMountFile();
+
+  HANDLE GetFileHandle();
 
   NTSTATUS SwitchDestinationCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) override;
   NTSTATUS SwitchDestinationCloseImpl(PDOKAN_FILE_INFO DokanFileInfo) override;
