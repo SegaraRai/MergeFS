@@ -195,12 +195,12 @@ Win32Error::Win32Error(const std::string& errorMessage) :
 // SourceMountFileBase
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-SourceMountFileBase::SourceMountFileBase(SourceMountBase& sourceMountBase, LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, BOOL MaybeSwitched, FILE_CONTEXT_ID FileContextId) :
+SourceMountFileBase::SourceMountFileBase(SourceMountBase& sourceMountBase, LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId, std::optional<BOOL> MaybeSwitchedN) :
   mutex(),
   sourceMountBase(sourceMountBase),
   fileContextId(FileContextId),
   filename(FileName),
-  maybeSwitched(MaybeSwitched),
+  maybeSwitched(MaybeSwitchedN),
   argSecurityContext(*SecurityContext),
   argDesiredAccess(DesiredAccess),
   argFileAttributes(FileAttributes),
@@ -210,18 +210,13 @@ SourceMountFileBase::SourceMountFileBase(SourceMountBase& sourceMountBase, LPCWS
 {}
 
 
+SourceMountFileBase::SourceMountFileBase(SourceMountBase& sourceMountBase, LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, BOOL MaybeSwitched, FILE_CONTEXT_ID FileContextId) :
+  SourceMountFileBase(sourceMountBase, FileName, SecurityContext, DesiredAccess, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, DokanFileInfo, FileContextId, std::make_optional(MaybeSwitched))
+{}
+
+
 SourceMountFileBase::SourceMountFileBase(SourceMountBase& sourceMountBase, LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId) :
-  mutex(),
-  sourceMountBase(sourceMountBase),
-  fileContextId(FileContextId),
-  filename(FileName),
-  maybeSwitched(std::nullopt),
-  argSecurityContext(*SecurityContext),
-  argDesiredAccess(DesiredAccess),
-  argFileAttributes(FileAttributes),
-  argShareAccess(ShareAccess),
-  argCreateDisposition(CreateDisposition),
-  argCreateOptions(CreateOptions)
+  SourceMountFileBase(sourceMountBase, FileName, SecurityContext, DesiredAccess, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, DokanFileInfo, FileContextId, std::nullopt)
 {}
 
 
