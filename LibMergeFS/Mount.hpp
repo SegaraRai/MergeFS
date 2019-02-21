@@ -85,9 +85,6 @@ class Mount {
   std::wstring ResolveFilepath(std::wstring_view filename) const;
   std::optional<std::size_t> GetMountSourceIndexR(std::wstring_view resolvedFilename) const;
   std::optional<std::size_t> GetMountSourceIndex(std::wstring_view filename) const;
-  NTSTATUS IsDirectoryEmptyRNe(std::wstring_view resolvedFilename) const noexcept;
-  bool IsDirectoryEmptyR(std::wstring_view resolvedFilename) const;
-  bool IsDirectoryEmpty(std::wstring_view filename) const;
   bool FileExists(std::wstring_view filename) const;
   FileType GetFileTypeR(std::wstring_view resolvedFilename) const;
   FileType GetFileType(std::wstring_view filename) const;

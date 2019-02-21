@@ -327,48 +327,6 @@ std::optional<std::size_t> Mount::GetMountSourceIndex(std::wstring_view filename
 }
 
 
-NTSTATUS Mount::IsDirectoryEmptyRNe(std::wstring_view resolvedFilename) const noexcept {
-  bool isFirst = true;
-
-  const std::wstring sResolvedFilename(resolvedFilename);
-  for (auto& mountSource : m_mountSources) {
-    const auto status = mountSource->IsDirectoryEmptyNe(sResolvedFilename.c_str());
-    if (status == STATUS_OBJECT_NAME_NOT_FOUND || status == STATUS_OBJECT_PATH_NOT_FOUND) {
-      // 存在しないソースを飛ばす
-      continue;
-    }
-    if (!isFirst && status == STATUS_NOT_A_DIRECTORY) {
-      // 2番目以降のソースで対象がディレクトリ以外として存在している場合、そのソースは無視する
-      continue;
-    }
-    if (status != STATUS_SUCCESS) {
-      // ディレクトリが空でなかった場合はSTATUS_DIRECTORY_NOT_EMPTYが返されるので、他のエラーもろともここでそのまま返すことができる
-      return status;
-    }
-    isFirst = false;
-  }
-
-  // この時点でisFirstがtrueの場合、全てのソースでSTATUS_OBJECT_NAME_NOT_FOUNDが返されたことを表す
-  // すなわち、指定されたディレクトリは存在しなかった
-  // TODO: STATUS_OBJECT_NAME_NOT_FOUNDとSTATUS_OBJECT_PATH_NOT_FOUNDを使い分ける
-  return isFirst ? STATUS_OBJECT_NAME_NOT_FOUND : STATUS_SUCCESS;
-}
-
-
-bool Mount::IsDirectoryEmptyR(std::wstring_view resolvedFilename) const {
-  const auto status = IsDirectoryEmptyRNe(resolvedFilename);
-  if (status != STATUS_SUCCESS && status != STATUS_DIRECTORY_NOT_EMPTY) {
-    throw NsError(status);
-  }
-  return status == STATUS_SUCCESS;
-}
-
-
-bool Mount::IsDirectoryEmpty(std::wstring_view filename) const {
-  return IsDirectoryEmptyR(ResolveFilepath(filename));
-}
-
-
 bool Mount::FileExists(std::wstring_view filename) const {
   return GetMountSourceIndex(filename).has_value();
 }
