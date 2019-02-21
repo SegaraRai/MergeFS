@@ -283,8 +283,6 @@ std::wstring Mount::ResolveFilepath(std::wstring_view filename) const {
 
 
 std::optional<std::size_t> Mount::GetMountSourceIndexR(std::wstring_view resolvedFilename) const {
-  // exception may thrown by: GetParentPath, HasMetadata, GetMetadata, GetFileType
-
   if (IsRootDirectory(resolvedFilename)) {
     return TopSourceIndex;
   }
@@ -333,7 +331,6 @@ bool Mount::FileExists(std::wstring_view filename) const {
 
 
 Mount::FileType Mount::GetFileTypeR(std::wstring_view resolvedFilename) const {
-  // exception may thrown by: GetMountSourceIndex, GetFileType
   if (IsRootDirectory(resolvedFilename)) {
     return FileType::Directory;
   }
@@ -356,7 +353,6 @@ Mount::FileType Mount::GetFileType(std::wstring_view filename) const {
 
 
 void Mount::CopyFileToTopSourceR(std::wstring_view resolvedFilename, bool empty, FILE_CONTEXT_ID fileContextId) {
-  // exception may thrown by: GetMountSourceIndex, ctor of MountSource::ExportedFileRAII
   if (!m_writable) {
     throw NsError(STATUS_MEDIA_WRITE_PROTECTED);
   }
@@ -418,7 +414,6 @@ void Mount::CopyFileToTopSource(std::wstring_view filename, bool empty, FILE_CON
 
 
 void Mount::RemoveFile(std::wstring_view filename) {
-  // exception may thrown by: ResolveFilepath, GetMountSourceIndex, Delete
   const auto resolvedFileName = ResolveFilepath(filename);
 
   const auto sourceIndex = GetMountSourceIndexR(resolvedFileName);
@@ -582,7 +577,6 @@ NTSTATUS Mount::DZwCreateFile(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT Secur
   // ・ファイルがmutateeに存在する場合
   // ・読み込み操作のみのとき
 
-  // exception may thrown by: GetMountSourceIndex, AssignFileContextId, CopyFileToTopSourceR
   return WrapException([=]() -> NTSTATUS {
     DokanFileInfo->Context = NULL;
 
@@ -917,7 +911,6 @@ GetFileInformation Dokan API callback.
 Get specific information on a file.
 */
 NTSTATUS Mount::DGetFileInformation(LPCWSTR FileName, LPBY_HANDLE_FILE_INFORMATION Buffer, PDOKAN_FILE_INFO DokanFileInfo) noexcept {
-  // exception may thrown by: HasMetadata, GetMetadata
   return WrapException([=]() -> NTSTATUS {
     if (!HasFileContext(DokanFileInfo)) {
       return STATUS_INVALID_HANDLE;
@@ -1137,7 +1130,6 @@ SetFileAttributes Dokan API callback.
 Set file attributes on a specific file
 */
 NTSTATUS Mount::DSetFileAttributes(LPCWSTR FileName, DWORD FileAttributes, PDOKAN_FILE_INFO DokanFileInfo) noexcept {
-  // exception may thrown by: GetMetadata2, SetMetadata
   return WrapException([=]() -> NTSTATUS {
     if (!HasFileContext(DokanFileInfo)) {
       return STATUS_INVALID_HANDLE;
@@ -1168,7 +1160,6 @@ SetFileTime Dokan API callback.
 Set file attributes on a specific file
 */
 NTSTATUS Mount::DSetFileTime(LPCWSTR FileName, const FILETIME *CreationTime, const FILETIME *LastAccessTime, const FILETIME *LastWriteTime, PDOKAN_FILE_INFO DokanFileInfo) noexcept {
-  // exception may thrown by: GetMetadata2, SetMetadata
   return WrapException([=]() -> NTSTATUS {
     if (!HasFileContext(DokanFileInfo)) {
       return STATUS_INVALID_HANDLE;
