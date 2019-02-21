@@ -65,7 +65,7 @@ MountSource::FileType MountSource::GetFileType(LPCWSTR FileName) const {
 }
 
 
-NTSTATUS MountSource::IsDirectoryEmptyNe(LPCWSTR FileName) const noexcept {
+NTSTATUS MountSource::GetDirectoryInfo(LPCWSTR FileName) const noexcept {
   return m_sourcePlugin.GetDirectoryInfo(FileName, m_sourceContextId);
 }
 
