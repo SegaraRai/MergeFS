@@ -65,29 +65,8 @@ MountSource::FileType MountSource::GetFileType(LPCWSTR FileName) const {
 }
 
 
-MountSource::FileType MountSource::GetFileTypeNe(LPCWSTR FileName, FileType fallback) const noexcept {
-  try {
-    return GetFileType(FileName);
-  } catch (...) {}
-  return fallback;
-}
-
-
 NTSTATUS MountSource::IsDirectoryEmptyNe(LPCWSTR FileName) const noexcept {
   return m_sourcePlugin.GetDirectoryInfo(FileName, m_sourceContextId);
-}
-
-
-bool MountSource::IsDirectoryEmpty(LPCWSTR FileName) const {
-  const auto status = IsDirectoryEmptyNe(FileName);
-  switch (status) {
-    case STATUS_SUCCESS:
-      return true;
-
-    case STATUS_DIRECTORY_NOT_EMPTY:
-      return false;
-  }
-  throw NsError(status);
 }
 
 

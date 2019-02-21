@@ -49,9 +49,7 @@ public:
   const SOURCE_INFO& GetSourceInfo() const noexcept;
   NTSTATUS GetFileInfoAttributes(LPCWSTR FileName, DWORD* FileAttributes) const noexcept;
   FileType GetFileType(LPCWSTR FileName) const;
-  FileType GetFileTypeNe(LPCWSTR FileName, FileType fallback = FileType::Inexistent) const noexcept;
   NTSTATUS IsDirectoryEmptyNe(LPCWSTR FileName) const noexcept;
-  bool IsDirectoryEmpty(LPCWSTR FileName) const;
   NTSTATUS GetFileInfo(LPCWSTR FileName, WIN32_FILE_ATTRIBUTE_DATA* Win32FileAttributeData) const noexcept;
   NTSTATUS RemoveFile(LPCWSTR FileName) noexcept;
   NTSTATUS ExportStart(PORTATION_INFO* PortationInfo) noexcept;
