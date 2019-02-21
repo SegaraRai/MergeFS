@@ -21,6 +21,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <shared_mutex>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -86,12 +87,12 @@ namespace {
 
   PLUGIN_INITIALIZE_INFO gPluginInitializeInfo{};
   std::unordered_map<SOURCE_CONTEXT_ID, std::unique_ptr<SourceMountBase>> gSourceMountBaseMap;
-  std::mutex gMutex;
+  std::shared_mutex gMutex;
 
 
 
   SourceMountBase& GetSourceMountBase(SOURCE_CONTEXT_ID sourceContextId) {
-    std::lock_guard lock(gMutex);
+    std::shared_lock lock(gMutex);
     return *gSourceMountBaseMap.at(sourceContextId);
   }
 
