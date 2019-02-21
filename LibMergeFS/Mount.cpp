@@ -268,12 +268,12 @@ bool Mount::SafeUnmount() {
 }
 
 
-std::optional<std::wstring> Mount::ResolveFilepathN(std::wstring_view filename) const {
+std::optional<std::wstring> Mount::ResolveFilepathN(std::wstring_view filename) {
   return m_metadataStore.ResolveFilepath(filename);
 }
 
 
-std::wstring Mount::ResolveFilepath(std::wstring_view filename) const {
+std::wstring Mount::ResolveFilepath(std::wstring_view filename) {
   const auto resolvedFilenameN = ResolveFilepathN(filename);
   if (!resolvedFilenameN) {
     throw W32Error(ERROR_FILE_NOT_FOUND);
@@ -282,7 +282,7 @@ std::wstring Mount::ResolveFilepath(std::wstring_view filename) const {
 }
 
 
-std::optional<std::size_t> Mount::GetMountSourceIndexR(std::wstring_view resolvedFilename) const {
+std::optional<std::size_t> Mount::GetMountSourceIndexR(std::wstring_view resolvedFilename) {
   if (IsRootDirectory(resolvedFilename)) {
     return TopSourceIndex;
   }
@@ -316,7 +316,7 @@ std::optional<std::size_t> Mount::GetMountSourceIndexR(std::wstring_view resolve
 }
 
 
-std::optional<std::size_t> Mount::GetMountSourceIndex(std::wstring_view filename) const {
+std::optional<std::size_t> Mount::GetMountSourceIndex(std::wstring_view filename) {
   const auto resolvedFilenameN = ResolveFilepathN(filename);
   if (!resolvedFilenameN) {
     return std::nullopt;
@@ -325,12 +325,12 @@ std::optional<std::size_t> Mount::GetMountSourceIndex(std::wstring_view filename
 }
 
 
-bool Mount::FileExists(std::wstring_view filename) const {
+bool Mount::FileExists(std::wstring_view filename) {
   return GetMountSourceIndex(filename).has_value();
 }
 
 
-Mount::FileType Mount::GetFileTypeR(std::wstring_view resolvedFilename) const {
+Mount::FileType Mount::GetFileTypeR(std::wstring_view resolvedFilename) {
   if (IsRootDirectory(resolvedFilename)) {
     return FileType::Directory;
   }
@@ -343,7 +343,7 @@ Mount::FileType Mount::GetFileTypeR(std::wstring_view resolvedFilename) const {
 }
 
 
-Mount::FileType Mount::GetFileType(std::wstring_view filename) const {
+Mount::FileType Mount::GetFileType(std::wstring_view filename) {
   const auto resolvedFilenameN = ResolveFilepathN(filename);
   if (!resolvedFilenameN) {
     return FileType::Inexistent;

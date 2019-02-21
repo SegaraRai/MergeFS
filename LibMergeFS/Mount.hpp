@@ -81,13 +81,13 @@ class Mount {
   static NTSTATUS TransportR(std::wstring_view path, bool empty, FILE_CONTEXT_ID fileContextId, MountSource& source, MountSource& destination);
 
   std::wstring FilenameToKey(std::wstring_view filename) const;
-  std::optional<std::wstring> ResolveFilepathN(std::wstring_view filename) const;
-  std::wstring ResolveFilepath(std::wstring_view filename) const;
-  std::optional<std::size_t> GetMountSourceIndexR(std::wstring_view resolvedFilename) const;
-  std::optional<std::size_t> GetMountSourceIndex(std::wstring_view filename) const;
-  bool FileExists(std::wstring_view filename) const;
-  FileType GetFileTypeR(std::wstring_view resolvedFilename) const;
-  FileType GetFileType(std::wstring_view filename) const;
+  std::optional<std::wstring> ResolveFilepathN(std::wstring_view filename);
+  std::wstring ResolveFilepath(std::wstring_view filename);
+  std::optional<std::size_t> GetMountSourceIndexR(std::wstring_view resolvedFilename);
+  std::optional<std::size_t> GetMountSourceIndex(std::wstring_view filename);
+  bool FileExists(std::wstring_view filename);
+  FileType GetFileTypeR(std::wstring_view resolvedFilename);
+  FileType GetFileType(std::wstring_view filename);
   void CopyFileToTopSourceR(std::wstring_view filename, bool empty = false, FILE_CONTEXT_ID fileContextId = FILE_CONTEXT_ID_NULL);
   void CopyFileToTopSource(std::wstring_view filename, bool empty = false, FILE_CONTEXT_ID fileContextId = FILE_CONTEXT_ID_NULL);
   void RemoveFile(std::wstring_view filename);
