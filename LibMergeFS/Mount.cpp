@@ -32,17 +32,6 @@ std::unordered_map<Mount::FileContext*, std::shared_ptr<Mount::FileContext>> Mou
 
 
 namespace {
-  constexpr bool IsValidFiletime(const FILETIME& filetime) {
-    if (filetime.dwLowDateTime == 0 && filetime.dwHighDateTime == 0) {
-      return false;
-    }
-    if (filetime.dwLowDateTime == 0xFFFFFFFF && filetime.dwHighDateTime == 0xFFFFFFFF) {
-      return false;
-    }
-    return true;
-  }
-
-
   template<typename T>
   NTSTATUS WrapException(const T& func) noexcept {
 	  static_assert(std::is_same_v<decltype(func()), NTSTATUS>);
@@ -105,6 +94,49 @@ namespace {
 
     return fileIndexBases;
   }
+}
+
+
+
+NTSTATUS Mount::FileContext::UpdateLastAccessTime() {
+  if (writable || !autoUpdateLastAccessTime) {
+    return STATUS_SUCCESS;
+  }
+
+  // edit metadata
+  SYSTEMTIME currentSystemtime;
+  GetSystemTime(&currentSystemtime);
+  FILETIME currentFiletime;
+  if (!SystemTimeToFileTime(&currentSystemtime, &currentFiletime)) {
+    return __NTSTATUS_FROM_WIN32(GetLastError());
+  }
+
+  auto metadata = mount.m_metadataStore.GetMetadata2R(resolvedFilename);
+  metadata.lastAccessTime = currentFiletime;
+  mount.m_metadataStore.SetMetadataR(resolvedFilename, metadata);
+
+  return STATUS_SUCCESS;
+}
+
+
+NTSTATUS Mount::FileContext::UpdateLastWriteTime() {
+  if (writable || !autoUpdateLastWriteTime) {
+    return STATUS_SUCCESS;
+  }
+
+  // edit metadata
+  SYSTEMTIME currentSystemtime;
+  GetSystemTime(&currentSystemtime);
+  FILETIME currentFiletime;
+  if (!SystemTimeToFileTime(&currentSystemtime, &currentFiletime)) {
+    return __NTSTATUS_FROM_WIN32(GetLastError());
+  }
+
+  auto metadata = mount.m_metadataStore.GetMetadata2R(resolvedFilename);
+  metadata.lastWriteTime = currentFiletime;
+  mount.m_metadataStore.SetMetadataR(resolvedFilename, metadata);
+
+  return STATUS_SUCCESS;
 }
 
 
@@ -475,6 +507,8 @@ Mount::FILE_CONTEXT_ID Mount::AssignFileContextId(std::wstring_view FileName, st
     isDirectory,
     writable,
     deferCopy,
+    true,
+    true,
     m_fileIndexBases.at(mountSourceIndex),
     *SecurityContext,
     DesiredAccess,
@@ -866,11 +900,18 @@ NTSTATUS Mount::DReadFile(LPCWSTR FileName, LPVOID Buffer, DWORD BufferLength, L
     }
     auto ptrFileContext = GetFileContextSharedPtr(DokanFileInfo);
     auto& fileContext = *ptrFileContext;
+    NTSTATUS status = STATUS_UNSUCCESSFUL;
     if (fileContext.copyDeferred) {
       std::lock_guard lock(fileContext.mutex);
-      return fileContext.mountSource.get().DReadFile(fileContext.resolvedFilename.c_str(), Buffer, BufferLength, ReadLength, Offset, DokanFileInfo, fileContext.id);
+      status = fileContext.mountSource.get().DReadFile(fileContext.resolvedFilename.c_str(), Buffer, BufferLength, ReadLength, Offset, DokanFileInfo, fileContext.id);
+    } else {
+      status = fileContext.mountSource.get().DReadFile(fileContext.resolvedFilename.c_str(), Buffer, BufferLength, ReadLength, Offset, DokanFileInfo, fileContext.id);
     }
-    return fileContext.mountSource.get().DReadFile(fileContext.resolvedFilename.c_str(), Buffer, BufferLength, ReadLength, Offset, DokanFileInfo, fileContext.id);
+    if (status != STATUS_SUCCESS) {
+      return status;
+    }
+    //return fileContext.UpdateLastAccessTime();
+    return STATUS_SUCCESS;
   });
 }
 
@@ -1196,6 +1237,12 @@ NTSTATUS Mount::DSetFileAttributes(LPCWSTR FileName, DWORD FileAttributes, PDOKA
     metadata.fileAttributes = FileAttributes;
     m_metadataStore.SetMetadataR(resolvedFilename, metadata);
 
+    /*
+    if (const auto status = fileContext.UpdateLastWriteTime(); status != STATUS_SUCCESS) {
+      return status;
+    }
+    //*/
+
     return STATUS_SUCCESS;
   });
 }
@@ -1220,17 +1267,33 @@ NTSTATUS Mount::DSetFileTime(LPCWSTR FileName, const FILETIME *CreationTime, con
     if (fileContext.writable) {
       return fileContext.mountSource.get().DSetFileTime(resolvedFilename.c_str(), CreationTime, LastAccessTime, LastWriteTime, DokanFileInfo, fileContext.id);
     }
-  
+
+    constexpr auto IsZeroFiletime = [](const FILETIME& filetime) -> bool {
+      return filetime.dwLowDateTime == 0 && filetime.dwHighDateTime == 0;
+    };
+
+    constexpr auto IsMinusOneFiletime = [](const FILETIME& filetime) -> bool {
+      return filetime.dwLowDateTime == 0xFFFFFFFF && filetime.dwHighDateTime == 0xFFFFFFFF;
+    };
+
     // edit metadata
     auto metadata = m_metadataStore.GetMetadata2R(resolvedFilename);
-    if (CreationTime && IsValidFiletime(*CreationTime)) {
+    if (CreationTime && !IsZeroFiletime(*CreationTime)) {
       metadata.creationTime = *CreationTime;
     }
-    if (LastAccessTime && IsValidFiletime(*LastAccessTime)) {
-      metadata.lastAccessTime = *LastAccessTime;
+    if (LastAccessTime && !IsZeroFiletime(*LastAccessTime)) {
+      if (!IsMinusOneFiletime(*LastAccessTime)) {
+        metadata.lastAccessTime = *LastAccessTime;
+      } else {
+        fileContext.autoUpdateLastAccessTime = false;
+      }
     }
-    if (LastWriteTime && IsValidFiletime(*LastWriteTime)) {
-      metadata.lastWriteTime = *LastWriteTime;
+    if (LastWriteTime && !IsZeroFiletime(*LastWriteTime)) {
+      if (!IsMinusOneFiletime(*LastAccessTime)) {
+        metadata.lastWriteTime = *LastWriteTime;
+      } else {
+        fileContext.autoUpdateLastWriteTime = false;
+      }
     }
     m_metadataStore.SetMetadataR(resolvedFilename, metadata);
 
@@ -1586,6 +1649,11 @@ NTSTATUS Mount::DSetFileSecurity(LPCWSTR FileName, PSECURITY_INFORMATION Securit
       return fileContext.mountSource.get().DSetFileSecurity(fileContext.resolvedFilename.c_str(), SecurityInformation, SecurityDescriptor, BufferLength, DokanFileInfo, fileContext.id);
     }
     // TODO: edit metadata
+    /*
+    if (const auto status = fileContext.UpdateLastWriteTime(); status != STATUS_SUCCESS) {
+      return status;
+    }
+    //*/
     return STATUS_SUCCESS;
   });
 }

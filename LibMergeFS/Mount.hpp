@@ -40,6 +40,8 @@ class Mount {
     bool directory;
     std::atomic<bool> writable;
     std::atomic<bool> copyDeferred;
+    std::atomic<bool> autoUpdateLastAccessTime;
+    std::atomic<bool> autoUpdateLastWriteTime;
     ULONGLONG fileIndexBase;
     DOKAN_IO_SECURITY_CONTEXT SecurityContext;
     ACCESS_MASK DesiredAccess;
@@ -49,6 +51,9 @@ class Mount {
     ULONG CreateOptions;
 
     FileContext(const FileContext&) = delete;
+
+    NTSTATUS UpdateLastAccessTime();
+    NTSTATUS UpdateLastWriteTime();
   };
 
   static std::shared_mutex gFileContextMapMutex;
