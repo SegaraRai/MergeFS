@@ -12,10 +12,15 @@
 #include <memory>
 #include <mutex>
 #include <stdexcept>
+#include <string>
+
+#include <Windows.h>
 
 #include "SourceToAudioSourceFLAC.hpp"
 #include "AudioSource.hpp"
 #include "Source.hpp"
+
+using namespace std::literals;
 
 
 
@@ -327,6 +332,11 @@ NTSTATUS SourceToAudioSourceFLAC::Read(SourceOffset offset, std::byte* buffer, s
     if (firstSampleIndex <= requestedSampleBegin && requestedSampleBegin <= lastSampleIndex) {
       needsSeek = false;
     }
+
+#ifdef _DEBUG
+    const std::wstring debugStr = L"SourceToAudioSourceFLAC::Read: first = "s + std::to_wstring(firstSampleIndex) + L", last = "s + std::to_wstring(lastSampleIndex) + L", requested = "s + std::to_wstring(requestedSampleBegin) + L", needsSeek = "s + std::to_wstring(needsSeek) + L" \n"s;
+    OutputDebugStringW(debugStr.c_str());
+#endif
   }
 
   auto& decoder = *static_cast<FLACDecoderImpl*>(mDecoder.get());
@@ -369,6 +379,10 @@ NTSTATUS SourceToAudioSourceFLAC::Read(SourceOffset offset, std::byte* buffer, s
     if (finished) {
       // copy FLAC data for next use
       if (!mLastFLACAvailable || frame->header.number.sample_number != reinterpret_cast<const FLAC__Frame*>(mLastFLACFrame.get())->header.number.sample_number) {
+#ifdef _DEBUG
+        const std::wstring debugStr = L"SourceToAudioSourceFLAC::Read: copy FLAC Frame; old = "s + (mLastFLACAvailable ? std::to_wstring(reinterpret_cast<const FLAC__Frame*>(mLastFLACFrame.get())->header.number.sample_number) : L"null"s) + L", new = "s + std::to_wstring(frame->header.number.sample_number) + L"\n"s;
+        OutputDebugStringW(debugStr.c_str());
+#endif
         mLastFLACAvailable = true;
         *reinterpret_cast<FLAC__Frame*>(mLastFLACFrame.get()) = *frame;
         std::size_t blockSize = frame->header.blocksize * sizeof(FLAC__int32);
@@ -377,12 +391,21 @@ NTSTATUS SourceToAudioSourceFLAC::Read(SourceOffset offset, std::byte* buffer, s
           mLastFLACBufferPointers[i] = mLastFLACBufferData.get() + blockSize * i;
           std::memcpy(mLastFLACBufferPointers[i], srcBuffer[i], blockSize);
         }
+      } else {
+#ifdef _DEBUG
+        const std::wstring debugStr = L"SourceToAudioSourceFLAC::Read: skipped copying FLAC Frame\n"s;
+        OutputDebugStringW(debugStr.c_str());
+#endif
       }
     }
 
     return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
   });
   if (needsSeek) {
+#ifdef _DEBUG
+    const std::wstring debugStr = L"SourceToAudioSourceFLAC::Read: seek_absolute "s + std::to_wstring(requestedSampleBegin) + L"\n"s;
+    OutputDebugStringW(debugStr.c_str());
+#endif
     if (!decoder.seek_absolute(requestedSampleBegin)) {
       return __NTSTATUS_FROM_WIN32(ERROR_SEEK);
     }
