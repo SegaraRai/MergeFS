@@ -368,13 +368,15 @@ NTSTATUS SourceToAudioSourceFLAC::Read(SourceOffset offset, std::byte* buffer, s
 
     if (finished) {
       // copy FLAC data for next use
-      mLastFLACAvailable = true;
-      *reinterpret_cast<FLAC__Frame*>(mLastFLACFrame.get()) = *frame;
-      std::size_t blockSize = frame->header.blocksize * sizeof(FLAC__int32);
-      mLastFLACBufferData = std::make_unique<std::byte[]>(blockSize * frame->header.channels);
-      for (std::size_t i = 0; i < frame->header.channels; i++) {
-        mLastFLACBufferPointers[i] = mLastFLACBufferData.get() + blockSize * i;
-        std::memcpy(mLastFLACBufferPointers[i], srcBuffer[i], blockSize);
+      if (!mLastFLACAvailable || frame->header.number.sample_number != reinterpret_cast<const FLAC__Frame*>(mLastFLACFrame.get())->header.number.sample_number) {
+        mLastFLACAvailable = true;
+        *reinterpret_cast<FLAC__Frame*>(mLastFLACFrame.get()) = *frame;
+        std::size_t blockSize = frame->header.blocksize * sizeof(FLAC__int32);
+        mLastFLACBufferData = std::make_unique<std::byte[]>(blockSize * frame->header.channels);
+        for (std::size_t i = 0; i < frame->header.channels; i++) {
+          mLastFLACBufferPointers[i] = mLastFLACBufferData.get() + blockSize * i;
+          std::memcpy(mLastFLACBufferPointers[i], srcBuffer[i], blockSize);
+        }
       }
     }
 
