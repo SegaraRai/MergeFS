@@ -51,6 +51,9 @@ class Mount {
     FileContext(const FileContext&) = delete;
   };
 
+  static std::shared_mutex gFileContextMapMutex;
+  static std::unordered_map<Mount::FileContext*, std::shared_ptr<Mount::FileContext>> gFileContextPtrToSharedPtrMap;
+
   std::mutex m_mutex;
   const std::wstring m_mountPoint;
   std::vector<std::unique_ptr<MountSource>> m_mountSources;

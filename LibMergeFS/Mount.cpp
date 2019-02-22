@@ -26,6 +26,11 @@ using namespace std::literals;
 
 
 
+std::shared_mutex Mount::gFileContextMapMutex;
+std::unordered_map<Mount::FileContext*, std::shared_ptr<Mount::FileContext>> Mount::gFileContextPtrToSharedPtrMap;
+
+
+
 namespace {
   template<typename T>
   NTSTATUS WrapException(const T& func) noexcept {
@@ -109,11 +114,11 @@ std::shared_ptr<Mount::FileContext> Mount::GetFileContextSharedPtr(PDOKAN_FILE_I
   if (!ptrFileContext) {
     throw NsError(STATUS_INVALID_HANDLE);
   }
-  std::lock_guard lock(ptrFileContext->mount.m_mutex);
-  if (!ptrFileContext->mount.m_fileContextMap.count(ptrFileContext->id)) {
+  std::shared_lock lock(gFileContextMapMutex);
+  if (!gFileContextPtrToSharedPtrMap.count(ptrFileContext)) {
     throw NsError(STATUS_INVALID_HANDLE);
   }
-  return ptrFileContext->mount.m_fileContextMap.at(ptrFileContext->id);
+  return gFileContextPtrToSharedPtrMap.at(ptrFileContext);
 }
 #else
 Mount::FileContext* Mount::GetFileContextSharedPtr(PDOKAN_FILE_INFO DokanFileInfo) {
@@ -468,7 +473,10 @@ Mount::FILE_CONTEXT_ID Mount::AssignFileContextId(std::wstring_view FileName, st
     CreateOptions,
   };
 #ifdef USE_SHARED_PTR_FOR_FILE_CONTEXT
-  m_fileContextMap.emplace(id, std::move(std::shared_ptr<FileContext>(ptrFileContext)));
+  std::lock_guard glock(gFileContextMapMutex);
+  std::shared_ptr<FileContext> spFileContext(ptrFileContext);
+  m_fileContextMap.emplace(id, spFileContext);
+  gFileContextPtrToSharedPtrMap.emplace(ptrFileContext, spFileContext);
 #else
   m_fileContextMap.emplace(id, std::move(std::unique_ptr<FileContext>(ptrFileContext)));
 #endif
@@ -487,14 +495,18 @@ bool Mount::ReleaseFileContextId(FILE_CONTEXT_ID FileContextId) noexcept {
     if (FileContextId < m_minimumUnusedFileContextId) {
       m_minimumUnusedFileContextId = FileContextId;
     }
-#ifdef _DEBUG
+#ifdef USE_SHARED_PTR_FOR_FILE_CONTEXT
+# ifdef _DEBUG
     assert(m_fileContextMap.count(FileContextId));
-    // use_count will be usually 2 ( +1 for m_fileContextMap and +1 for ptrFileContext in DCloseFile)
+    // use_count will be usually 3 (+1 for m_fileContextMap and +1 for gFileContextPtrToSharedPtrMap and +1 for ptrFileContext in DCloseFile)
     const std::size_t useCount = m_fileContextMap.at(FileContextId).use_count();
-    //assert(useCount == 2);
-    if (useCount != 2) {
+    //assert(useCount == 3);
+    if (useCount != 3) {
       OutputDebugStringW((L"### FileContext "s + std::to_wstring(FileContextId) + L" released with use count "s + std::to_wstring(useCount) + L"\n"s).c_str());
     }
+# endif
+    std::lock_guard glock(gFileContextMapMutex);
+    gFileContextPtrToSharedPtrMap.erase(m_fileContextMap.at(FileContextId).get());
 #endif
     return m_fileContextMap.erase(FileContextId);
   } catch (...) {}
