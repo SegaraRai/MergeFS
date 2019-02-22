@@ -989,6 +989,8 @@ NTSTATUS Mount::DFindFiles(LPCWSTR FileName, PFillFindData FillFindData, PDOKAN_
       excludeSet.emplace(FilenameToKey(key));
     }
 
+    const auto resolvedDirectoryPrefix = resolvedFilename + L"\\";
+
     // list files
     bool isFirst = true;
     for (std::size_t i = 0; i < m_mountSources.size(); i++) {
@@ -996,17 +998,19 @@ NTSTATUS Mount::DFindFiles(LPCWSTR FileName, PFillFindData FillFindData, PDOKAN_
 
       auto& mountSource = *m_mountSources[i];
       NTSTATUS statusFromCallback = STATUS_SUCCESS;
-      const auto status = mountSource.ListFiles(resolvedFilename.c_str(), [this, &excludeSet, &findDataMap, canAddCurrentAndParentDirectory, &statusFromCallback](PWIN32_FIND_DATAW findData) noexcept {
+      const auto status = mountSource.ListFiles(resolvedFilename.c_str(), [this, sourceIndex = i, &resolvedDirectoryPrefix, &excludeSet, &findDataMap, canAddCurrentAndParentDirectory, &statusFromCallback](PWIN32_FIND_DATAW ptrFindData) noexcept {
         if (statusFromCallback != STATUS_SUCCESS) {
           return;
         }
-        if (!findData) {
+        if (!ptrFindData) {
           statusFromCallback = STATUS_ACCESS_VIOLATION;
           return;
         }
         statusFromCallback = WrapExceptionV([&]() {
-          const std::wstring wsFileName = findData->cFileName;
-          const std::wstring wsKey = FilenameToKey(wsFileName);
+          WIN32_FIND_DATAW findData(*ptrFindData);
+
+          const std::wstring wsFileName(findData.cFileName);
+          const std::wstring wsKey(FilenameToKey(wsFileName));
           if (!canAddCurrentAndParentDirectory && (wsFileName == L"."sv || wsFileName == L".."sv)) {
             return;
           }
@@ -1016,7 +1020,27 @@ NTSTATUS Mount::DFindFiles(LPCWSTR FileName, PFillFindData FillFindData, PDOKAN_
           if (findDataMap.count(wsKey)) {
             return;
           }
-          findDataMap.emplace(wsKey, *findData);
+          // refer metadata if available
+          // excludeSetに登録されていないということは、このファイルはリネームされていない
+          if (sourceIndex != TopSourceIndex) {
+            const auto resolvedFilepath = resolvedDirectoryPrefix + wsFileName;
+            if (m_metadataStore.HasMetadataR(resolvedFilepath)) {
+              const auto& metadata = m_metadataStore.GetMetadataR(resolvedFilepath);
+              if (metadata.fileAttributes) {
+                findData.dwFileAttributes = metadata.fileAttributes.value();
+              }
+              if (metadata.creationTime) {
+                findData.ftCreationTime = metadata.creationTime.value();
+              }
+              if (metadata.lastAccessTime) {
+                findData.ftLastAccessTime = metadata.lastAccessTime.value();
+              }
+              if (metadata.lastWriteTime) {
+                findData.ftLastWriteTime = metadata.lastWriteTime.value();
+              }
+            }
+          }
+          findDataMap.emplace(wsKey, findData);
         });
       });
       if (status == STATUS_OBJECT_NAME_NOT_FOUND || status == STATUS_OBJECT_PATH_NOT_FOUND) {
