@@ -133,6 +133,10 @@ namespace {
 
 
   void CopyAudioData(std::byte* destBuffer, std::size_t size, std::size_t unalignedOffset, const FLAC__int32* sourceLeft, const FLAC__int32* sourceRight) {
+    if (!size) {
+      return;
+    }
+
     assert(unalignedOffset < Alignment);
 
     const auto alignedSourceIndex = unalignedOffset ? 1 : 0;
@@ -320,7 +324,7 @@ NTSTATUS SourceToAudioSourceFLAC::Read(SourceOffset offset, std::byte* buffer, s
     const auto numSamplesInBlock = lastFLACFrame.header.blocksize;
     const auto lastSampleIndex = firstSampleIndex + numSamplesInBlock;
 
-    if (firstSampleIndex <= requestedSampleBegin && requestedSampleBegin < lastSampleIndex) {
+    if (firstSampleIndex <= requestedSampleBegin && requestedSampleBegin <= lastSampleIndex) {
       needsSeek = false;
     }
   }
