@@ -63,12 +63,12 @@ static_assert(sizeof(DWORD) == 4);
 static_assert(sizeof(FILETIME) == sizeof(DWORD) * 2);
 
 
-std::wstring MetadataStore::FilenameToKeyL(std::wstring_view filename) const {
+std::wstring MetadataStore::FilenameToKey(std::wstring_view filename) const {
   return ::FilenameToKey(filename, mCaseSensitive);
 }
 
 
-void MetadataStore::LoadFromFileL() {
+void MetadataStore::LoadFromFile() {
   using namespace MetadataFile;
 
   if (!IsValidHandle(mHFile)) {
@@ -205,7 +205,7 @@ void MetadataStore::LoadFromFileL() {
 }
 
 
-void MetadataStore::SaveToFileL() {
+void MetadataStore::SaveToFile() {
   using namespace MetadataFile;
 
   if (!IsValidHandle(mHFile)) {
@@ -353,7 +353,6 @@ MetadataStore::MetadataStore(std::wstring_view storeFileName, bool caseSensitive
 
 
 MetadataStore::~MetadataStore() {
-  std::lock_guard lock(mMutex);
   if (IsValidHandle(mHFile)) {
     CloseHandle(mHFile);
     mHFile = NULL;
@@ -362,12 +361,10 @@ MetadataStore::~MetadataStore() {
 
 
 void MetadataStore::SetFilePath(std::wstring_view storeFilename) {
-  std::lock_guard lock(mMutex);
-
   const bool previousExists = IsValidHandle(mHFile);
 
   if (previousExists) {
-    SaveToFileL();
+    SaveToFile();
     CloseHandle(mHFile);
   }
 
@@ -378,51 +375,38 @@ void MetadataStore::SetFilePath(std::wstring_view storeFilename) {
   }
 
   if (!previousExists) {
-    LoadFromFileL();
+    LoadFromFile();
   }
 }
 
 
-std::optional<std::wstring> MetadataStore::ResolveFilepathL(std::wstring_view filename) const {
+std::optional<std::wstring> MetadataStore::ResolveFilepath(std::wstring_view filename) const {
   return mRenameStore.Resolve(filename);
 }
 
 
-std::optional<std::wstring> MetadataStore::ResolveFilepath(std::wstring_view filename) {
-  std::shared_lock lock(mMutex);
-  return ResolveFilepathL(filename);
-}
-
-
-bool MetadataStore::HasMetadataRL(std::wstring_view resolvedFilename) const {
+bool MetadataStore::HasMetadataR(std::wstring_view resolvedFilename) const {
   if (!IsValidHandle(mHFile)) {
     return false;
   }
-  return mMetadataMap.count(FilenameToKeyL(resolvedFilename));
+  return mMetadataMap.count(FilenameToKey(resolvedFilename));
 }
 
 
-bool MetadataStore::HasMetadataR(std::wstring_view resolvedFilename) {
-  std::shared_lock lock(mMutex);
-  return HasMetadataRL(resolvedFilename);
-}
-
-
-bool MetadataStore::HasMetadata(std::wstring_view filename) {
-  std::shared_lock lock(mMutex);
-  const auto resolvedFilenameN = ResolveFilepathL(filename);
+bool MetadataStore::HasMetadata(std::wstring_view filename) const {
+  const auto resolvedFilenameN = ResolveFilepath(filename);
   if (!resolvedFilenameN) {
     return false;
   }
-  return HasMetadataRL(resolvedFilenameN.value());
+  return HasMetadataR(resolvedFilenameN.value());
 }
 
 
-const Metadata& MetadataStore::GetMetadataRL(std::wstring_view resolvedFilename) const {
+const Metadata& MetadataStore::GetMetadataR(std::wstring_view resolvedFilename) const {
   if (!IsValidHandle(mHFile)) {
     throw W32Error(ERROR_FILE_NOT_FOUND);
   }
-  const std::wstring key = FilenameToKeyL(resolvedFilename);
+  const std::wstring key = FilenameToKey(resolvedFilename);
   if (!mMetadataMap.count(key)) {
     throw W32Error(ERROR_FILE_NOT_FOUND);
   }
@@ -430,99 +414,71 @@ const Metadata& MetadataStore::GetMetadataRL(std::wstring_view resolvedFilename)
 }
 
 
-const Metadata& MetadataStore::GetMetadataR(std::wstring_view resolvedFilename) {
-  std::shared_lock lock(mMutex);
-  return GetMetadataRL(resolvedFilename);
-}
-
-
-const Metadata& MetadataStore::GetMetadata(std::wstring_view filename) {
-  std::shared_lock lock(mMutex);
-  const auto resolvedFilenameN = ResolveFilepathL(filename);
+const Metadata& MetadataStore::GetMetadata(std::wstring_view filename) const {
+  const auto resolvedFilenameN = ResolveFilepath(filename);
   if (!resolvedFilenameN) {
     throw W32Error(ERROR_FILE_NOT_FOUND);
   }
-  return GetMetadataRL(resolvedFilenameN.value());
+  return GetMetadataR(resolvedFilenameN.value());
 }
 
 
-Metadata MetadataStore::GetMetadata2RL(std::wstring_view resolvedFilename) const {
+Metadata MetadataStore::GetMetadata2R(std::wstring_view resolvedFilename) const {
   if (!IsValidHandle(mHFile)) {
     return Metadata{};
   }
-  const std::wstring key = FilenameToKeyL(resolvedFilename);
+  const std::wstring key = FilenameToKey(resolvedFilename);
   return mMetadataMap.count(key) ? mMetadataMap.at(key) : Metadata{};
 }
 
 
-Metadata MetadataStore::GetMetadata2R(std::wstring_view resolvedFilename) {
-  std::shared_lock lock(mMutex);
-  return GetMetadata2RL(resolvedFilename);
-}
-
-
-Metadata MetadataStore::GetMetadata2(std::wstring_view filename) {
-  std::shared_lock lock(mMutex);
-  const auto resolvedFilenameN = ResolveFilepathL(filename);
+Metadata MetadataStore::GetMetadata2(std::wstring_view filename) const {
+  const auto resolvedFilenameN = ResolveFilepath(filename);
   if (!resolvedFilenameN) {
     return Metadata{};
   }
-  return GetMetadata2RL(resolvedFilenameN.value());
-}
-
-
-void MetadataStore::SetMetadataRL(std::wstring_view resolvedFilename, const Metadata& metadata) {
-  if (!IsValidHandle(mHFile)) {
-    return;
-  }
-  mMetadataMap.insert_or_assign(FilenameToKeyL(resolvedFilename), metadata);
-  SaveToFileL();
+  return GetMetadata2R(resolvedFilenameN.value());
 }
 
 
 void MetadataStore::SetMetadataR(std::wstring_view resolvedFilename, const Metadata& metadata) {
-  std::lock_guard lock(mMutex);
-  SetMetadataRL(resolvedFilename, metadata);
+  if (!IsValidHandle(mHFile)) {
+    return;
+  }
+  mMetadataMap.insert_or_assign(FilenameToKey(resolvedFilename), metadata);
+  SaveToFile();
 }
 
 
 void MetadataStore::SetMetadata(std::wstring_view filename, const Metadata& metadata) {
-  std::lock_guard lock(mMutex);
-  const auto resolvedFilenameN = ResolveFilepathL(filename);
+  const auto resolvedFilenameN = ResolveFilepath(filename);
   if (!resolvedFilenameN) {
     throw W32Error(ERROR_FILE_NOT_FOUND);
   }
-  SetMetadataRL(resolvedFilenameN.value(), metadata);
-}
-
-
-bool MetadataStore::RemoveMetadataRL(std::wstring_view resolvedFilename) {
-  if (!IsValidHandle(mHFile)) {
-    return false;
-  }
-  const auto ret = mMetadataMap.erase(FilenameToKeyL(resolvedFilename));
-  SaveToFileL();
-  return ret;
+  SetMetadataR(resolvedFilenameN.value(), metadata);
 }
 
 
 bool MetadataStore::RemoveMetadataR(std::wstring_view resolvedFilename) {
-  std::lock_guard lock(mMutex);
-  return RemoveMetadataRL(resolvedFilename);
+  if (!IsValidHandle(mHFile)) {
+    return false;
+  }
+  const auto ret = mMetadataMap.erase(FilenameToKey(resolvedFilename));
+  SaveToFile();
+  return ret;
 }
 
 
 bool MetadataStore::RemoveMetadata(std::wstring_view filename) {
-  std::lock_guard lock(mMutex);
-  const auto resolvedFilenameN = ResolveFilepathL(filename);
+  const auto resolvedFilenameN = ResolveFilepath(filename);
   if (!resolvedFilenameN) {
     return false;
   }
-  return RemoveMetadataRL(resolvedFilenameN.value());
+  return RemoveMetadataR(resolvedFilenameN.value());
 }
 
 
-bool MetadataStore::ExistsRL(std::wstring_view resolvedFilename) const {
+bool MetadataStore::ExistsR(std::wstring_view resolvedFilename) const {
   if (!IsValidHandle(mHFile)) {
     return true;
   }
@@ -535,41 +491,31 @@ bool MetadataStore::ExistsRL(std::wstring_view resolvedFilename) const {
 }
 
 
-bool MetadataStore::ExistsR(std::wstring_view resolvedFilename) {
-  std::shared_lock lock(mMutex);
-  return ExistsRL(resolvedFilename);
-}
-
-
-bool MetadataStore::Exists(std::wstring_view filename) {
-  std::shared_lock lock(mMutex);
-  const auto resolvedFilenameN = ResolveFilepathL(filename);
+bool MetadataStore::Exists(std::wstring_view filename) const {
+  const auto resolvedFilenameN = ResolveFilepath(filename);
   if (!resolvedFilenameN) {
     return false;
   }
-  return ExistsRL(resolvedFilenameN.value());
+  return ExistsR(resolvedFilenameN.value());
 }
 
 
-std::optional<bool> MetadataStore::ExistsO(std::wstring_view filename) {
-  std::shared_lock lock(mMutex);
+std::optional<bool> MetadataStore::ExistsO(std::wstring_view filename) const {
   return mRenameStore.Exists(filename);
 }
 
 
-std::vector<std::pair<std::wstring, std::wstring>> MetadataStore::ListChildrenInForwardLookupTree(std::wstring_view filename) {
-  std::shared_lock lock(mMutex);
+std::vector<std::pair<std::wstring, std::wstring>> MetadataStore::ListChildrenInForwardLookupTree(std::wstring_view filename) const {
   return mRenameStore.ListChildrenInForwardLookupTree(filename);
 }
 
 
-std::vector<std::pair<std::wstring, std::wstring>> MetadataStore::ListChildrenInReverseLookupTree(std::wstring_view filename) {
-  std::shared_lock lock(mMutex);
+std::vector<std::pair<std::wstring, std::wstring>> MetadataStore::ListChildrenInReverseLookupTree(std::wstring_view filename) const {
   return mRenameStore.ListChildrenInReverseLookupTree(filename);
 }
 
 
-void MetadataStore::RenameL(std::wstring_view srcFilename, std::wstring_view destFilename) {
+void MetadataStore::Rename(std::wstring_view srcFilename, std::wstring_view destFilename) {
   if (!IsValidHandle(mHFile)) {
     return;
   }
@@ -590,35 +536,27 @@ void MetadataStore::RenameL(std::wstring_view srcFilename, std::wstring_view des
     default:
       throw W32Error(ERROR_GEN_FAILURE);
   }
-  SaveToFileL();
-}
-
-
-void MetadataStore::Rename(std::wstring_view srcFilename, std::wstring_view destFilename) {
-  std::lock_guard lock(mMutex);
-  RenameL(srcFilename, destFilename);
+  SaveToFile();
 }
 
 
 void MetadataStore::Delete(std::wstring_view filename) {
-  std::lock_guard lock(mMutex);
   if (!IsValidHandle(mHFile)) {
     return;
   }
-  const auto resolvedFilenameN = ResolveFilepathL(filename);
+  const auto resolvedFilenameN = ResolveFilepath(filename);
   if (!resolvedFilenameN) {
     return;
   }
-  RenameL(filename, StrRemovedPrefix + resolvedFilenameN.value());
+  Rename(filename, StrRemovedPrefix + resolvedFilenameN.value());
 }
 
 
 bool MetadataStore::RemoveRenameEntry(std::wstring_view filename) {
-  std::lock_guard lock(mMutex);
   if (!IsValidHandle(mHFile)) {
     return false;
   }
   const auto result = mRenameStore.RemoveEntry(filename);
-  SaveToFileL();
+  SaveToFile();
   return result;
 }

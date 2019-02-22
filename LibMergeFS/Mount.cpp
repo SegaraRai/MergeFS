@@ -112,9 +112,12 @@ NTSTATUS Mount::FileContext::UpdateLastAccessTime() {
     return __NTSTATUS_FROM_WIN32(GetLastError());
   }
 
-  auto metadata = mount.m_metadataStore.GetMetadata2R(resolvedFilename);
-  metadata.lastAccessTime = currentFiletime;
-  mount.m_metadataStore.SetMetadataR(resolvedFilename, metadata);
+  {
+    std::lock_guard lock(mount.m_metadataMutex);
+    auto metadata = mount.m_metadataStore.GetMetadata2R(resolvedFilename);
+    metadata.lastAccessTime = currentFiletime;
+    mount.m_metadataStore.SetMetadataR(resolvedFilename, metadata);
+  }
 
   return STATUS_SUCCESS;
 }
@@ -133,9 +136,12 @@ NTSTATUS Mount::FileContext::UpdateLastWriteTime() {
     return __NTSTATUS_FROM_WIN32(GetLastError());
   }
 
-  auto metadata = mount.m_metadataStore.GetMetadata2R(resolvedFilename);
-  metadata.lastWriteTime = currentFiletime;
-  mount.m_metadataStore.SetMetadataR(resolvedFilename, metadata);
+  {
+    std::lock_guard lock(mount.m_metadataMutex);
+    auto metadata = mount.m_metadataStore.GetMetadata2R(resolvedFilename);
+    metadata.lastWriteTime = currentFiletime;
+    mount.m_metadataStore.SetMetadataR(resolvedFilename, metadata);
+  }
 
   return STATUS_SUCCESS;
 }
@@ -239,6 +245,7 @@ std::wstring Mount::FilenameToKey(std::wstring_view filename) const {
 
 Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, std::vector<std::unique_ptr<MountSource>>&& sources, std::function<void(int)> callback) :
   m_mutex(),
+  m_metadataMutex(),
   m_mountPoint(mountPoint),
   m_mountSources(std::move(sources)),
   m_topSource(*m_mountSources[0].get()),
@@ -347,8 +354,11 @@ std::optional<std::size_t> Mount::GetMountSourceIndexR(std::wstring_view resolve
   }
 
   // メタデータにより削除済みとマークされている場合は存在しない
-  if (!m_metadataStore.ExistsR(resolvedFilename)) {
-    return std::nullopt;
+  {
+    std::shared_lock lock(m_metadataMutex);
+    if (!m_metadataStore.ExistsR(resolvedFilename)) {
+      return std::nullopt;
+    }
   }
 
   // それ以外の場合、一番上位のソースに存在するものを探す
@@ -480,6 +490,7 @@ void Mount::RemoveFile(std::wstring_view filename) {
   }
 
   if (editMetadata) {
+    std::lock_guard lock(m_metadataMutex);
     m_metadataStore.Delete(filename);
   }
 }
@@ -693,7 +704,10 @@ NTSTATUS Mount::DZwCreateFile(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT Secur
       }
 
       // メタデータを消しておく
-      m_metadataStore.RemoveMetadata(FileName);
+      {
+        std::lock_guard lock(m_metadataMutex);
+        m_metadataStore.RemoveMetadata(FileName);
+      }
 
       // mutateeに対して操作
       // 既にtargetSourceIndex == TopSourceIndex
@@ -821,6 +835,7 @@ NTSTATUS Mount::DZwCreateFile(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT Secur
 
     if (!resolvedFilenameN) {
       // TODO: もっと効率良く書く
+      std::lock_guard lock(m_metadataMutex);
       m_metadataStore.Rename(std::wstring(GetParentPath(FileName)) + std::wstring(GetBaseName(resolvedFilename)), FileName);
       //m_metadataStore.Rename(resolvedFilename, FileName);
     }
@@ -995,19 +1010,22 @@ NTSTATUS Mount::DGetFileInformation(LPCWSTR FileName, LPBY_HANDLE_FILE_INFORMATI
     }
 
     // read metadata if available
-    if (Buffer && m_metadataStore.HasMetadataR(resolvedFilename)) {
-      const auto& metadata = m_metadataStore.GetMetadataR(resolvedFilename);
-      if (metadata.fileAttributes) {
-        Buffer->dwFileAttributes = metadata.fileAttributes.value();
-      }
-      if (metadata.creationTime) {
-        Buffer->ftCreationTime = metadata.creationTime.value();
-      }
-      if (metadata.lastAccessTime) {
-        Buffer->ftLastAccessTime = metadata.lastAccessTime.value();
-      }
-      if (metadata.lastWriteTime) {
-        Buffer->ftLastWriteTime = metadata.lastWriteTime.value();
+    if (Buffer) {
+      std::shared_lock lock(m_metadataMutex);
+      if (m_metadataStore.HasMetadataR(resolvedFilename)) {
+        const auto& metadata = m_metadataStore.GetMetadataR(resolvedFilename);
+        if (metadata.fileAttributes) {
+          Buffer->dwFileAttributes = metadata.fileAttributes.value();
+        }
+        if (metadata.creationTime) {
+          Buffer->ftCreationTime = metadata.creationTime.value();
+        }
+        if (metadata.lastAccessTime) {
+          Buffer->ftLastAccessTime = metadata.lastAccessTime.value();
+        }
+        if (metadata.lastWriteTime) {
+          Buffer->ftLastWriteTime = metadata.lastWriteTime.value();
+        }
       }
     }
 
@@ -1032,8 +1050,13 @@ NTSTATUS Mount::DFindFiles(LPCWSTR FileName, PFillFindData FillFindData, PDOKAN_
     const auto& resolvedFilename = fileContext.resolvedFilename;
 
     //
-    const auto excludeList = m_metadataStore.ListChildrenInReverseLookupTree(fileContext.filename);
-    const auto includeList = m_metadataStore.ListChildrenInForwardLookupTree(fileContext.filename);
+    std::vector<std::pair<std::wstring, std::wstring>> excludeList;
+    std::vector<std::pair<std::wstring, std::wstring>> includeList;
+    {
+      std::shared_lock lock(m_metadataMutex);
+      excludeList = m_metadataStore.ListChildrenInReverseLookupTree(fileContext.filename);
+      includeList = m_metadataStore.ListChildrenInForwardLookupTree(fileContext.filename);
+    }
 
     std::unordered_set<std::wstring> excludeSet;
     for (const auto& [key, value] : excludeList) {
@@ -1074,6 +1097,7 @@ NTSTATUS Mount::DFindFiles(LPCWSTR FileName, PFillFindData FillFindData, PDOKAN_
           // refer metadata if available
           // excludeSetに登録されていないということは、このファイルはリネームされていない
           if (sourceIndex != TopSourceIndex) {
+            std::shared_lock lock(m_metadataMutex);
             const auto resolvedFilepath = resolvedDirectoryPrefix + wsFileName;
             if (m_metadataStore.HasMetadataR(resolvedFilepath)) {
               const auto& metadata = m_metadataStore.GetMetadataR(resolvedFilepath);
@@ -1145,6 +1169,7 @@ NTSTATUS Mount::DFindFiles(LPCWSTR FileName, PFillFindData FillFindData, PDOKAN_
       }
 
       if (sourceIndex != TopSourceIndex) {
+        std::shared_lock lock(m_metadataMutex);
         if (m_metadataStore.HasMetadataR(resolvedFullPath)) {
           const auto& metadata = m_metadataStore.GetMetadataR(resolvedFullPath);
           if (metadata.fileAttributes) {
@@ -1232,9 +1257,12 @@ NTSTATUS Mount::DSetFileAttributes(LPCWSTR FileName, DWORD FileAttributes, PDOKA
     }
   
     // edit metadata
-    auto metadata = m_metadataStore.GetMetadata2R(resolvedFilename);
-    metadata.fileAttributes = FileAttributes;
-    m_metadataStore.SetMetadataR(resolvedFilename, metadata);
+    {
+      std::lock_guard lock(m_metadataMutex);
+      auto metadata = m_metadataStore.GetMetadata2R(resolvedFilename);
+      metadata.fileAttributes = FileAttributes;
+      m_metadataStore.SetMetadataR(resolvedFilename, metadata);
+    }
 
     /*
     if (const auto status = fileContext.UpdateLastWriteTime(); status != STATUS_SUCCESS) {
@@ -1276,25 +1304,28 @@ NTSTATUS Mount::DSetFileTime(LPCWSTR FileName, const FILETIME *CreationTime, con
     };
 
     // edit metadata
-    auto metadata = m_metadataStore.GetMetadata2R(resolvedFilename);
-    if (CreationTime && !IsZeroFiletime(*CreationTime)) {
-      metadata.creationTime = *CreationTime;
-    }
-    if (LastAccessTime && !IsZeroFiletime(*LastAccessTime)) {
-      if (!IsMinusOneFiletime(*LastAccessTime)) {
-        metadata.lastAccessTime = *LastAccessTime;
-      } else {
-        fileContext.autoUpdateLastAccessTime = false;
+    {
+      std::lock_guard lock(m_metadataMutex);
+      auto metadata = m_metadataStore.GetMetadata2R(resolvedFilename);
+      if (CreationTime && !IsZeroFiletime(*CreationTime)) {
+        metadata.creationTime = *CreationTime;
       }
-    }
-    if (LastWriteTime && !IsZeroFiletime(*LastWriteTime)) {
-      if (!IsMinusOneFiletime(*LastAccessTime)) {
-        metadata.lastWriteTime = *LastWriteTime;
-      } else {
-        fileContext.autoUpdateLastWriteTime = false;
+      if (LastAccessTime && !IsZeroFiletime(*LastAccessTime)) {
+        if (!IsMinusOneFiletime(*LastAccessTime)) {
+          metadata.lastAccessTime = *LastAccessTime;
+        } else {
+          fileContext.autoUpdateLastAccessTime = false;
+        }
       }
+      if (LastWriteTime && !IsZeroFiletime(*LastWriteTime)) {
+        if (!IsMinusOneFiletime(*LastAccessTime)) {
+          metadata.lastWriteTime = *LastWriteTime;
+        } else {
+          fileContext.autoUpdateLastWriteTime = false;
+        }
+      }
+      m_metadataStore.SetMetadataR(resolvedFilename, metadata);
     }
-    m_metadataStore.SetMetadataR(resolvedFilename, metadata);
 
     return STATUS_SUCCESS;
   });
@@ -1429,6 +1460,7 @@ NTSTATUS Mount::DMoveFile(LPCWSTR FileName, LPCWSTR NewFileName, BOOL ReplaceIfE
         if (isOriginalFilenameRenamed) {
           // リネーム元ファイル名が既にリネーム済みである場合、そのエントリを削除する必要がある
           // TODO: エラーチェック
+          std::lock_guard lock(m_metadataMutex);
           m_metadataStore.RemoveRenameEntry(fileContext.filename);
         }
         const auto resolvedNewFileNameN = ResolveFilepathN(NewFileName);
@@ -1454,11 +1486,13 @@ NTSTATUS Mount::DMoveFile(LPCWSTR FileName, LPCWSTR NewFileName, BOOL ReplaceIfE
         // TODO: 現状DMoveFileのIOに依存しているので、DMoveFileの前に下位層に存在しているか確認して処理した方が良いかも知れない
         const auto newIndex = GetMountSourceIndexR(resolvedFilename);
         if (newIndex && newIndex != TopSourceIndex) {
+          std::lock_guard lock(m_metadataMutex);
           m_metadataStore.Delete(fileContext.filename);
         }
         //
         if (!resolvedNewFileNameN) {
           // TODO: もっと効率良く書く
+          std::lock_guard lock(m_metadataMutex);
           m_metadataStore.Rename(std::wstring(GetParentPath(NewFileName)) + std::wstring(GetBaseName(resolvedNewFileName)), NewFileName);
           //m_metadataStore.Rename(resolvedNewFileName, NewFileName);
         }
@@ -1466,7 +1500,10 @@ NTSTATUS Mount::DMoveFile(LPCWSTR FileName, LPCWSTR NewFileName, BOOL ReplaceIfE
       }
     }
     // リネーム
-    m_metadataStore.Rename(FileName, NewFileName);
+    {
+      std::lock_guard lock(m_metadataMutex);
+      m_metadataStore.Rename(FileName, NewFileName);
+    }
     return STATUS_SUCCESS;
   });
 }
