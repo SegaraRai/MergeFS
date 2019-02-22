@@ -297,7 +297,7 @@ FilesystemSourceMount::FilesystemSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO*
   baseFileSystemName = std::wstring(baseFileSystemNameBuffer.get());
 
   const auto lastSlashPos = realPathPrefix.find_last_of(L'\\');
-  volumeName = realPathPrefix.substr(lastSlashPos == std::wstring::npos ? 0 : lastSlashPos).substr(0, MAX_PATH);
+  volumeName = realPathPrefix.substr(lastSlashPos == std::wstring::npos ? 0 : lastSlashPos + 1).substr(0, MAX_PATH);
   volumeSerialNumber = baseVolumeSerialNumber ^ rootDirectoryInfo.nFileIndexHigh ^ rootDirectoryInfo.nFileIndexLow;
   maximumComponentLength = static_cast<DWORD>(baseMaximumComponentLength - realPathPrefix.size() - 1);
   fileSystemFlags = baseFileSystemFlags & ~static_cast<DWORD>(FILE_SUPPORTS_TRANSACTIONS | FILE_SUPPORTS_HARD_LINKS | FILE_SUPPORTS_REPARSE_POINTS | FILE_SUPPORTS_USN_JOURNAL | FILE_VOLUME_QUOTAS);
