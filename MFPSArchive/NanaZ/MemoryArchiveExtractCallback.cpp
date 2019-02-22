@@ -11,6 +11,30 @@
 #include <winrt/base.h>
 
 
+
+namespace {
+  constexpr std::size_t ExtraMemorySize = 0;
+  constexpr std::size_t MemoryAlignment = 4096;
+}
+
+
+
+std::size_t MemoryArchiveExtractCallback::CalcMemorySize(const std::vector<UInt64>& filesizes) {
+  std::size_t totalMemorySize = 0;
+  
+  for (const auto& filesize : filesizes) {
+    std::size_t memorySize = filesize + ExtraMemorySize;
+    if constexpr (MemoryAlignment > 1) {
+      memorySize = (memorySize + MemoryAlignment - 1) / MemoryAlignment * MemoryAlignment;
+    }
+
+    totalMemorySize += memorySize;
+  }
+
+  return totalMemorySize;
+}
+
+
 MemoryArchiveExtractCallback::MemoryArchiveExtractCallback(std::byte* storageBuffer, std::size_t storageBufferSize, const std::vector<std::pair<UInt32, UInt64>>& indexAndFilesizes, PasswordCallback passwordCallback) :
   passwordCallback(passwordCallback),
   processingIndex(-1),
@@ -18,21 +42,30 @@ MemoryArchiveExtractCallback::MemoryArchiveExtractCallback(std::byte* storageBuf
 {
   UInt64 offset = 0;
   for (std::size_t i = 0; i < indexAndFilesizes.size(); i++) {
-    const auto& [index, fileSize] = indexAndFilesizes[i];
+    const auto& [index, filesize] = indexAndFilesizes[i];
     auto currentFileDataBuffer = storageBuffer + offset;
 
+    std::size_t memorySize = filesize + ExtraMemorySize;
+    if constexpr (MemoryAlignment > 1) {
+      memorySize = (memorySize + MemoryAlignment - 1) / MemoryAlignment * MemoryAlignment;
+    }
+
     winrt::com_ptr<OutFixedMemoryStream> outFixedMemoryStream;
-    outFixedMemoryStream.attach(new OutFixedMemoryStream(currentFileDataBuffer, fileSize));
+    outFixedMemoryStream.attach(new OutFixedMemoryStream(currentFileDataBuffer, memorySize));
 
     indexToInfoMap.emplace(index, ObjectInfo{
       currentFileDataBuffer,
-      static_cast<std::size_t>(fileSize),
+      memorySize,
       outFixedMemoryStream,
       0,
       NArchive::NExtract::NOperationResult::kUnavailable,
     });
 
-    offset += fileSize;
+    offset += memorySize;
+  }
+
+  if (storageBufferSize < offset) {
+    throw std::runtime_error("insufficient memory space provided");
   }
 }
 

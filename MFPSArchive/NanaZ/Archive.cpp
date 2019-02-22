@@ -191,8 +191,7 @@ namespace {
 
     std::vector<UInt32> extractToMemoryIndices;
     std::vector<std::tuple<UInt32, DirectoryTree&, std::wstring>> extractToMemoryObjects;
-    UInt64 totalExtractionMemorySize = 0;
-
+    
     std::vector<std::tuple<UInt32, DirectoryTree&, std::wstring>> openAsArchiveObjects;
 
     for (UInt32 index = 0; index < numItems; index++) {
@@ -325,7 +324,6 @@ namespace {
             insertedDirectoryTree.onMemory = true;
             extractToMemoryIndices.emplace_back(index);
             extractToMemoryObjects.emplace_back(index, insertedDirectoryTree, contentFilepath);
-            totalExtractionMemorySize += contentDirectoryTree.fileSize;
           }
         }
 
@@ -349,14 +347,17 @@ namespace {
         };
       }
 
-      directoryTree.extractionMemory = std::make_unique<std::byte[]>(totalExtractionMemorySize);
-
+      std::vector<std::size_t> filesizes(extractToMemoryIndices.size());
       std::vector<std::pair<UInt32, UInt64>> indexAndFilesizes(extractToMemoryIndices.size());
       for (std::size_t i = 0; i < extractToMemoryIndices.size(); i++) {
         const auto& [index, contentDirectoryTree, contentFilepath] = extractToMemoryObjects.at(i);
+        filesizes.at(i) = contentDirectoryTree.fileSize;
         indexAndFilesizes.at(i) = std::make_pair(static_cast<UInt32>(index), static_cast<UInt64>(contentDirectoryTree.fileSize));
         assert(contentDirectoryTree.contentAvailable);
       }
+
+      const auto totalExtractionMemorySize = MemoryArchiveExtractCallback::CalcMemorySize(filesizes);
+      directoryTree.extractionMemory = std::make_unique<std::byte[]>(totalExtractionMemorySize);
 
       memoryArchiveExtractCallback.attach(new MemoryArchiveExtractCallback(directoryTree.extractionMemory.get(), totalExtractionMemorySize, indexAndFilesizes, contentPasswordCallback));
 

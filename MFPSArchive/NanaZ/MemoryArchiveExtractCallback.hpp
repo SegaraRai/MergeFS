@@ -38,6 +38,8 @@ private:
   bool extracting;
 
 public:
+  static std::size_t CalcMemorySize(const std::vector<UInt64>& filesizes);
+
   MemoryArchiveExtractCallback(std::byte* storageBuffer, std::size_t storageBufferSize, const std::vector<std::pair<UInt32, UInt64>>& indexAndFilesizes, PasswordCallback passwordCallback = nullptr);
 
   std::byte* GetData(UInt32 index) const;
