@@ -1258,9 +1258,12 @@ NTSTATUS Mount::DSetFileAttributes(LPCWSTR FileName, DWORD FileAttributes, PDOKA
   
     // edit metadata
     {
+      const auto filteredFileAttributes = (FileAttributes & FILE_ATTRIBUTE_NORMAL) && (FileAttributes != FILE_ATTRIBUTE_NORMAL)
+        ? FileAttributes & ~static_cast<DWORD>(FILE_ATTRIBUTE_NORMAL)
+        : FileAttributes;
       std::lock_guard lock(m_metadataMutex);
       auto metadata = m_metadataStore.GetMetadata2R(resolvedFilename);
-      metadata.fileAttributes = FileAttributes;
+      metadata.fileAttributes = filteredFileAttributes;
       m_metadataStore.SetMetadataR(resolvedFilename, metadata);
     }
 
