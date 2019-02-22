@@ -364,7 +364,7 @@ bool SourceMountBase::SourceMountFileBaseExistsL(FILE_CONTEXT_ID fileContextId) 
 
 
 bool SourceMountBase::SourceMountFileBaseExists(FILE_CONTEXT_ID fileContextId) {
-  std::lock_guard lock(privateMutex);
+  std::shared_lock lock(privateMutex);
   return SourceMountFileBaseExistsL(fileContextId);
 }
 
@@ -379,7 +379,7 @@ std::shared_ptr<SourceMountFileBase> SourceMountBase::GetSourceMountFileBaseL(FI
 
 
 std::shared_ptr<SourceMountFileBase> SourceMountBase::GetSourceMountFileBase(FILE_CONTEXT_ID fileContextId) {
-  std::lock_guard lock(privateMutex);
+  std::shared_lock lock(privateMutex);
   return GetSourceMountFileBaseL(fileContextId);
 }
 

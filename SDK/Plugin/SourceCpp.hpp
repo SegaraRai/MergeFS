@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <shared_mutex>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -126,7 +127,7 @@ public:
 
 
 class SourceMountBase {
-  std::mutex privateMutex;
+  std::shared_mutex privateMutex;
   std::unordered_map<FILE_CONTEXT_ID, std::shared_ptr<SourceMountFileBase>> privateFileMap;
 
   bool SourceMountFileBaseExistsL(FILE_CONTEXT_ID fileContextId) const;
