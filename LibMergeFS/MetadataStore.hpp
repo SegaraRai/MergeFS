@@ -16,7 +16,7 @@
 
 class MetadataStore {
 public:
-  static constexpr auto RemovedPrefix = L"$MergeFSSystemData\\Removed";
+  static constexpr auto RemovedPrefix = L"\\$MergeFSSystemData\\Removed";
 
 private:
   const bool mCaseSensitive;

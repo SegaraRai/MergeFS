@@ -479,11 +479,7 @@ bool MetadataStore::ExistsR(std::wstring_view resolvedFilename) const {
   if (!IsValidHandle(mHFile)) {
     return true;
   }
-  /*
-  if (resolvedFilename.size() > StrRemovedPrefixB.size() && resolvedFilename.substr(0, StrRemovedPrefixB.size()) == StrRemovedPrefixB) {
-    return false;
-  }
-  //*/
+  // TODO:
   return true;
 }
 
