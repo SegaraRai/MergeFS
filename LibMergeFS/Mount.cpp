@@ -32,6 +32,17 @@ std::unordered_map<Mount::FileContext*, std::shared_ptr<Mount::FileContext>> Mou
 
 
 namespace {
+  constexpr bool IsValidFiletime(const FILETIME& filetime) {
+    if (filetime.dwLowDateTime == 0 && filetime.dwHighDateTime == 0) {
+      return false;
+    }
+    if (filetime.dwLowDateTime == 0xFFFFFFFF && filetime.dwHighDateTime == 0xFFFFFFFF) {
+      return false;
+    }
+    return true;
+  }
+
+
   template<typename T>
   NTSTATUS WrapException(const T& func) noexcept {
 	  static_assert(std::is_same_v<decltype(func()), NTSTATUS>);
@@ -1212,13 +1223,13 @@ NTSTATUS Mount::DSetFileTime(LPCWSTR FileName, const FILETIME *CreationTime, con
   
     // edit metadata
     auto metadata = m_metadataStore.GetMetadata2R(resolvedFilename);
-    if (CreationTime) {
+    if (CreationTime && IsValidFiletime(*CreationTime)) {
       metadata.creationTime = *CreationTime;
     }
-    if (LastAccessTime) {
+    if (LastAccessTime && IsValidFiletime(*LastAccessTime)) {
       metadata.lastAccessTime = *LastAccessTime;
     }
-    if (LastWriteTime) {
+    if (LastWriteTime && IsValidFiletime(*LastWriteTime)) {
       metadata.lastWriteTime = *LastWriteTime;
     }
     m_metadataStore.SetMetadataR(resolvedFilename, metadata);
