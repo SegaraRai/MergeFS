@@ -16,6 +16,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <shared_mutex>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -498,7 +499,7 @@ Mount::FILE_CONTEXT_ID Mount::AssignFileContextId(std::wstring_view FileName, st
 
   const bool writable = m_writable && mountSourceIndex == TopSourceIndex;
   auto ptrFileContext = new FileContext{
-    std::mutex(),
+    std::shared_mutex(),
     id,
     *this,
     *m_mountSources[mountSourceIndex].get(),
@@ -900,17 +901,15 @@ NTSTATUS Mount::DReadFile(LPCWSTR FileName, LPVOID Buffer, DWORD BufferLength, L
     }
     auto ptrFileContext = GetFileContextSharedPtr(DokanFileInfo);
     auto& fileContext = *ptrFileContext;
-    NTSTATUS status = STATUS_UNSUCCESSFUL;
-    if (fileContext.copyDeferred) {
-      std::lock_guard lock(fileContext.mutex);
-      status = fileContext.mountSource.get().DReadFile(fileContext.resolvedFilename.c_str(), Buffer, BufferLength, ReadLength, Offset, DokanFileInfo, fileContext.id);
-    } else {
-      status = fileContext.mountSource.get().DReadFile(fileContext.resolvedFilename.c_str(), Buffer, BufferLength, ReadLength, Offset, DokanFileInfo, fileContext.id);
-    }
-    if (status != STATUS_SUCCESS) {
+    std::shared_lock lock(fileContext.mutex);
+    if (const auto status = fileContext.mountSource.get().DReadFile(fileContext.resolvedFilename.c_str(), Buffer, BufferLength, ReadLength, Offset, DokanFileInfo, fileContext.id); status != STATUS_SUCCESS) {
       return status;
     }
-    //return fileContext.UpdateLastAccessTime();
+    /*
+    if (const auto status = fileContext.UpdateLastAccessTime(); status != STATUS_SUCCESS) {
+      return status;
+    }
+    //*/
     return STATUS_SUCCESS;
   });
 }

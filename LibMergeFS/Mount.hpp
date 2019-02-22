@@ -12,6 +12,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <shared_mutex>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -31,7 +32,7 @@ class Mount {
   static constexpr FILE_CONTEXT_ID FileContextIdStart = FILE_CONTEXT_ID_NULL + 1;
 
   struct FileContext {
-    std::mutex mutex;
+    std::shared_mutex mutex;
     FILE_CONTEXT_ID id;
     Mount& mount;
     std::reference_wrapper<MountSource> mountSource;
