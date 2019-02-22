@@ -231,12 +231,9 @@ void MetadataStore::SaveToFile() {
     throw W32Error();
   }
 
-  for (const auto& kvPair : mMetadataMap) {
-    const auto& keyName = kvPair.first;
-    const auto& metadata = kvPair.second;
-
-    const auto securityCount = metadata.security ? metadata.security.value().size() : 0;
-    const auto keyNameCount = keyName.size();
+  for (const auto& [keyName, metadata] : mMetadataMap) {
+    const SecurityCount securityCount = metadata.security ? metadata.security.value().size() : 0;
+    const KeyNameCount keyNameCount = keyName.size();
 
     const std::size_t maxBufferSize =
       sizeof(EntrySize)
