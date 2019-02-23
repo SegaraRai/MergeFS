@@ -10,6 +10,8 @@
 #include <Windows.h>
 #include <winrt/base.h>
 
+using namespace std::literals;
+
 
 
 namespace {
@@ -20,7 +22,7 @@ namespace {
 
 
 std::size_t MemoryArchiveExtractCallback::CalcMemorySize(const std::vector<UInt64>& filesizes) {
-  std::size_t totalMemorySize = 0;
+  std::size_t totalMemorySize = MemoryAlignment;
   
   for (const auto& filesize : filesizes) {
     std::size_t memorySize = filesize + ExtraMemorySize;
@@ -40,18 +42,56 @@ MemoryArchiveExtractCallback::MemoryArchiveExtractCallback(std::byte* storageBuf
   processingIndex(-1),
   extracting(false)
 {
-  UInt64 offset = 0;
+  std::byte* currentFileDataBuffer = storageBuffer;
+
+  [[maybe_unused]] bool extraMemorySpaceForFirstTime = false;
+
+  if constexpr (MemoryAlignment > 1) {
+    void* alignedFileDataBuffer = currentFileDataBuffer;
+    std::size_t alignedMemorySize = storageBufferSize;
+    if (std::align(MemoryAlignment, storageBufferSize - MemoryAlignment, alignedFileDataBuffer, alignedMemorySize)) {
+      currentFileDataBuffer = static_cast<std::byte*>(alignedFileDataBuffer);
+    } else {
+      assert(false);
+      extraMemorySpaceForFirstTime = true;
+    }
+  }
+
   for (std::size_t i = 0; i < indexAndFilesizes.size(); i++) {
     const auto& [index, filesize] = indexAndFilesizes[i];
-    auto currentFileDataBuffer = storageBuffer + offset;
 
     std::size_t memorySize = filesize + ExtraMemorySize;
     if constexpr (MemoryAlignment > 1) {
       memorySize = (memorySize + MemoryAlignment - 1) / MemoryAlignment * MemoryAlignment;
     }
 
+    void* alignedFileDataBuffer = currentFileDataBuffer;
+    std::size_t alignedMemorySize = memorySize;
+    if constexpr (MemoryAlignment > 1) {
+      if (extraMemorySpaceForFirstTime) {
+        alignedMemorySize += MemoryAlignment;
+        extraMemorySpaceForFirstTime = false;
+      }
+      if (!std::align(MemoryAlignment, filesize, alignedFileDataBuffer, alignedMemorySize)) {
+#ifdef _DEBUG
+        const std::wstring debugStr = L"no aligned memory space for "s + std::to_wstring(i) + L"; offset: "s + std::to_wstring(currentFileDataBuffer - storageBuffer) + L", filesize: "s + std::to_wstring(filesize) + L", memsize: "s + std::to_wstring(memorySize) + L"\n"s;
+        OutputDebugStringW(debugStr.c_str());
+#endif
+        alignedFileDataBuffer = currentFileDataBuffer;
+        alignedMemorySize = memorySize;
+      } else {
+#ifdef _DEBUG
+        const std::wstring debugStr = L"aligned memory space for "s + std::to_wstring(i) + L"; offset: "s + std::to_wstring(currentFileDataBuffer - storageBuffer) + L", alignedOffset: "s + std::to_wstring(static_cast<std::byte*>(alignedFileDataBuffer) - storageBuffer) + L", filesize: "s + std::to_wstring(filesize) + L", memsize: "s + std::to_wstring(memorySize) + L", alignedMemsize: "s + std::to_wstring(alignedMemorySize) + L"\n"s;
+        OutputDebugStringW(debugStr.c_str());
+#endif
+      }
+    }
+
+    const std::size_t availableMemorySize = alignedMemorySize / MemoryAlignment * MemoryAlignment;
+    assert(availableMemorySize >= filesize + ExtraMemorySize);
+
     winrt::com_ptr<OutFixedMemoryStream> outFixedMemoryStream;
-    outFixedMemoryStream.attach(new OutFixedMemoryStream(currentFileDataBuffer, memorySize));
+    outFixedMemoryStream.attach(new OutFixedMemoryStream(static_cast<std::byte*>(alignedFileDataBuffer), availableMemorySize));
 
     indexToInfoMap.emplace(index, ObjectInfo{
       currentFileDataBuffer,
@@ -61,10 +101,10 @@ MemoryArchiveExtractCallback::MemoryArchiveExtractCallback(std::byte* storageBuf
       NArchive::NExtract::NOperationResult::kUnavailable,
     });
 
-    offset += memorySize;
+    currentFileDataBuffer = static_cast<std::byte*>(alignedFileDataBuffer) + availableMemorySize;
   }
 
-  if (storageBufferSize < offset) {
+  if (currentFileDataBuffer > storageBuffer + storageBufferSize) {
     throw std::runtime_error("insufficient memory space provided");
   }
 }
