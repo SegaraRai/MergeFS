@@ -5,8 +5,7 @@
 [Mm]eta[Dd]ata.db
 experiments
 
-# TODO: use submodule
-dokan
+dokan/bin
 
 # User-specific files
 *.suo
