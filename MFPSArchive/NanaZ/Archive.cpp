@@ -1,4 +1,4 @@
-#define INITGUID
+#define NOMINMAX
 
 #include <dokan/dokan.h>
 
@@ -19,6 +19,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <string>
@@ -50,7 +51,7 @@ namespace {
   }
 
 
-  FILETIME GetLastAccessTimeN(const DirectoryTree& directoryTree, const FILETIME& fallbackLastAccessTime) {
+  FILETIME GetLastAccessTime(const DirectoryTree& directoryTree, const FILETIME& fallbackLastAccessTime) {
     if (directoryTree.lastAccessTimeN) {
       return directoryTree.lastAccessTimeN.value();
     }
@@ -64,7 +65,7 @@ namespace {
   }
 
 
-  FILETIME GetLastWriteTimeN(const DirectoryTree& directoryTree, const FILETIME& fallbackLastWriteTime) {
+  FILETIME GetLastWriteTime(const DirectoryTree& directoryTree, const FILETIME& fallbackLastWriteTime) {
     if (directoryTree.lastWriteTimeN) {
       return directoryTree.lastWriteTimeN.value();
     }
@@ -305,8 +306,8 @@ namespace {
         }
 
         contentDirectoryTree.creationTime = GetCreationTime(contentDirectoryTree, fallbackCreationTime);
-        contentDirectoryTree.lastAccessTime = GetCreationTime(contentDirectoryTree, fallbackLastAccessTime);
-        contentDirectoryTree.lastWriteTime = GetCreationTime(contentDirectoryTree, fallbackLastWriteTime);
+        contentDirectoryTree.lastAccessTime = GetLastAccessTime(contentDirectoryTree, fallbackLastAccessTime);
+        contentDirectoryTree.lastWriteTime = GetLastWriteTime(contentDirectoryTree, fallbackLastWriteTime);
 
         // add to tree
         auto ptrInsertedDirectoryTree = Insert(directoryTree, contentFilepath, std::move(contentDirectoryTree), fileIndexCount, onExisting, extractToMemory);
