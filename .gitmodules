@@ -1,0 +1,4 @@
+[submodule "MFPSArchive/Vendor/7z"]
+	path = MFPSArchive/Vendor/7z
+	url = https://github.com/SegaraRai/7-Zip.git
+	branch = 7z

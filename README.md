@@ -181,10 +181,6 @@ Microsoft Visual Studio 2017 (15.9.7) でのコンパイルを確認していま
      /MFPSCue/Vendor以下にflacディレクトリを作成し、[FLACのダウンロードページ](https://xiph.org/flac/download.html)からダウンロードしたFLACのソースコード（flac-1.3.2.tar.xzなど）をそこに展開してください。  
      /MFPSCue/Vendor/flac/READMEが存在すれば大丈夫です。
 
-   - 7-Zipの追加（MFPSArchive用）  
-     /MFPSArchive/Vendor以下に7zディレクトリを作成し、[7-Zipのダウンロードページ](https://sevenzip.osdn.jp/download.html)からダウンロードした7-Zipのソースコード（7z1806-src.7zなど）をそこに展開してください。  
-     /MFPSArchive/Vendor/7z/CPPが存在すれば大丈夫です。
-
 2. /MergeFS.slnを開き、ビルドします。
 
 ## 未対応・未完成なもの
