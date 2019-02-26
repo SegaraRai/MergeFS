@@ -256,7 +256,7 @@ int wmain(int argc, wchar_t* argv[]) {
   std::ios_base::sync_with_stdio(false);
   _setmode(_fileno(stdout), _O_U8TEXT);
   _setmode(_fileno(stderr), _O_U8TEXT);
-  _setmode(_fileno(stdin), _O_U16TEXT);
+  _setmode(_fileno(stdin), _O_WTEXT);
 
   for (std::wstring line; (std::wcout << L"MFSCC>"sv), std::getline(std::wcin, line);) {
     auto commands = SplitCommand(line);
