@@ -301,6 +301,11 @@ namespace {
             if (extractToMemory == DirectoryTree::ExtractToMemory::Never) {
               throw COMError(E_FAIL);
             }
+            if constexpr (std::numeric_limits<decltype(directoryTree.fileSize)>::max() < std::numeric_limits<std::size_t>::max()) {
+              if (directoryTree.fileSize >= std::numeric_limits<std::size_t>::max()) {
+                throw COMError(E_OUTOFMEMORY);
+              }
+            }
             extractCurrentFileToMemory = true;
           }
         }

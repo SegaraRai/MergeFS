@@ -1,9 +1,12 @@
+#define NOMINMAX
+
 #include <7z/CPP/Common/Common.h>
 
 #include "MemoryArchiveExtractCallback.hpp"
 
 #include <cstddef>
 #include <functional>
+#include <limits>
 #include <optional>
 #include <string>
 
@@ -25,9 +28,19 @@ std::size_t MemoryArchiveExtractCallback::CalcMemorySize(const std::vector<UInt6
   std::size_t totalMemorySize = MemoryAlignment;
   
   for (const auto& filesize : filesizes) {
+    if constexpr (std::numeric_limits<UInt64>::max() >= std::numeric_limits<std::size_t>::max() - ExtraMemorySize) {
+      if (filesize > std::numeric_limits<std::size_t>::max() - ExtraMemorySize) {
+        throw std::runtime_error(u8"too large file");
+      }
+    }
+
     std::size_t memorySize = filesize + ExtraMemorySize;
     if constexpr (MemoryAlignment > 1) {
       memorySize = (memorySize + MemoryAlignment - 1) / MemoryAlignment * MemoryAlignment;
+    }
+
+    if (totalMemorySize > std::numeric_limits<std::size_t>::max() - filesize) {
+      throw std::runtime_error(u8"no memory");
     }
 
     totalMemorySize += memorySize;
