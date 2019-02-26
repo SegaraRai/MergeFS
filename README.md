@@ -177,10 +177,6 @@ Microsoft Visual Studio 2017 (15.9.7) でのコンパイルを確認していま
      インクルードファイルはDokanyをインストールしたあと、C:\Program Files\Dokan\Dokan Library-1.2.1\include等に存在します。  
      /dokan/dokan/dokan.hが存在すれば大丈夫です。
 
-   - libFLAC、libFLAC++の追加（MFPSCue用）  
-     /MFPSCue/Vendor以下にflacディレクトリを作成し、[FLACのダウンロードページ](https://xiph.org/flac/download.html)からダウンロードしたFLACのソースコード（flac-1.3.2.tar.xzなど）をそこに展開してください。  
-     /MFPSCue/Vendor/flac/READMEが存在すれば大丈夫です。
-
 2. /MergeFS.slnを開き、ビルドします。
 
 ## 未対応・未完成なもの

@@ -7,7 +7,6 @@ experiments
 
 # TODO: use submodule
 dokan
-flac
 
 # User-specific files
 *.suo

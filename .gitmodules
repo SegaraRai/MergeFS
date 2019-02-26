@@ -2,3 +2,6 @@
 	path = MFPSArchive/Vendor/7z
 	url = https://github.com/SegaraRai/7-Zip.git
 	branch = 7z
+[submodule "MFPSCue/Vendor/flac"]
+	path = MFPSCue/Vendor/flac
+	url = https://github.com/xiph/flac.git
