@@ -370,6 +370,13 @@ namespace {
       COMError::CheckHRESULT(directoryTree.inArchive->Extract(extractToMemoryIndices.data(), static_cast<UInt32>(extractToMemoryIndices.size()), FALSE, memoryArchiveExtractCallback.get()));
 
       for (const auto& [index, contentDirectoryTree, contentFilepath] : extractToMemoryObjects) {
+        if (!memoryArchiveExtractCallback->Succeeded(index)) {
+          contentDirectoryTree.contentAvailable = false;
+          contentDirectoryTree.inStream.attach(new InMemoryStream(nullptr, 0));
+          contentDirectoryTree.streamMutex = std::make_shared<std::mutex>();
+          continue;
+        }
+
         const std::size_t fileSize = contentDirectoryTree.fileSize;
 
         winrt::com_ptr<InMemoryStream> contentInStream;
