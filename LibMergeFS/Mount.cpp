@@ -82,10 +82,10 @@ namespace {
   }
 
 
-  std::vector<std::size_t> CalcFileIndexBases(std::size_t numMounts) {
+  std::vector<ULONGLONG> CalcFileIndexBases(std::size_t numMounts) {
     const ULONGLONG diff = std::numeric_limits<ULONGLONG>::max() / numMounts;
 
-    std::vector<std::size_t> fileIndexBases(numMounts);
+    std::vector<ULONGLONG> fileIndexBases(numMounts);
 
     ULONGLONG base = 0;
     for (auto& fileIndexBase : fileIndexBases) {
