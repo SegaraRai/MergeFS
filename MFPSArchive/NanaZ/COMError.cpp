@@ -15,7 +15,7 @@ namespace {
   std::string UInt32ToHexString(std::uint_fast32_t value) {
     constexpr auto Hex = u8"0123456789ABCDEF";
 
-    const char hexString[] = {
+    return std::string({
       Hex[(value >> 28) & 0x0F],
       Hex[(value >> 24) & 0x0F],
       Hex[(value >> 20) & 0x0F],
@@ -24,8 +24,7 @@ namespace {
       Hex[(value >>  8) & 0x0F],
       Hex[(value >>  4) & 0x0F],
       Hex[(value >>  0) & 0x0F],
-    };
-    return std::string(hexString, 8);
+    });
   }
 }
 
