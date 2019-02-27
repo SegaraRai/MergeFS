@@ -11,6 +11,7 @@
 #include "Archive.hpp"
 #include "ArchiveOpenCallback.hpp"
 #include "COMError.hpp"
+#include "COMPtr.hpp"
 #include "MemoryArchiveExtractCallback.hpp"
 #include "MemoryStream.hpp"
 #include "PropVariantUtil.hpp"
@@ -148,13 +149,12 @@ namespace {
   winrt::com_ptr<IInArchive> CreateInArchiveFromInStream(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, UInt64 maxCheckStartPosition, PasswordCallback passwordCallback) {
     auto formatIndices = nanaZ.FindFormatByStream(inStream);
     for (const auto& formatIndex : formatIndices) {
-      winrt::com_ptr<IInArchive> inArchive;
-
       const CLSID formatClsid = nanaZ.GetFormat(formatIndex).clsid;
+
+      winrt::com_ptr<IInArchive> inArchive;
       COMError::CheckHRESULT(nanaZ.CreateObject(&formatClsid, &IID_IInArchive, inArchive.put_void()));
 
-      winrt::com_ptr<IArchiveOpenCallback> archiveOpenCallback;
-      archiveOpenCallback.attach(new ArchiveOpenCallback(passwordCallback));
+      auto archiveOpenCallback = CreateCOMPtr(new ArchiveOpenCallback(passwordCallback));
 
       if (FAILED(inArchive->Open(inStream.get(), &maxCheckStartPosition, archiveOpenCallback.get()))) {
         continue;
@@ -278,6 +278,7 @@ namespace {
 
         if (!extractCurrentFileToMemory && contentDirectoryTree.type == DirectoryTree::Type::File) {
           winrt::com_ptr<IInStream> contentInStream;
+
           do {
             if (!inArchiveGetStream) {
               break;
@@ -293,10 +294,7 @@ namespace {
           } while (false);
 
           if (contentInStream) {
-            winrt::com_ptr<InSeekFilterStream> contentInSeekFilterStream;
-            contentInSeekFilterStream.attach(new InSeekFilterStream(contentInStream, directoryTree.inStream));
-
-            contentDirectoryTree.inStream = contentInSeekFilterStream;
+            contentDirectoryTree.inStream = CreateCOMPtr(new InSeekFilterStream(contentInStream, directoryTree.inStream));
           } else {
             if (extractToMemory == DirectoryTree::ExtractToMemory::Never) {
               throw COMError(E_FAIL);
@@ -325,7 +323,7 @@ namespace {
         if (extractCurrentFileToMemory) {
           if (!insertedDirectoryTree.contentAvailable) {
             assert(!insertedDirectoryTree.inStream);
-            insertedDirectoryTree.inStream.attach(new InMemoryStream(nullptr, 0));
+            insertedDirectoryTree.inStream = CreateCOMPtr(new InMemoryStream(nullptr, 0));
           } else {
             insertedDirectoryTree.onMemory = true;
             extractToMemoryIndices.emplace_back(index);
@@ -372,7 +370,7 @@ namespace {
       for (const auto& [index, contentDirectoryTree, contentFilepath] : extractToMemoryObjects) {
         if (!memoryArchiveExtractCallback->Succeeded(index)) {
           contentDirectoryTree.contentAvailable = false;
-          contentDirectoryTree.inStream.attach(new InMemoryStream(nullptr, 0));
+          contentDirectoryTree.inStream = CreateCOMPtr(new InMemoryStream(nullptr, 0));
           contentDirectoryTree.streamMutex = std::make_shared<std::mutex>();
           continue;
         }
@@ -381,12 +379,7 @@ namespace {
         assert(fileSize == contentDirectoryTree.fileSize);
 
         contentDirectoryTree.fileSize = fileSize;
-
-        winrt::com_ptr<InMemoryStream> contentInStream;
-        contentInStream.attach(new InMemoryStream(memoryArchiveExtractCallback->GetData(index), fileSize));
-
-        contentDirectoryTree.inStream = contentInStream;
-
+        contentDirectoryTree.inStream = CreateCOMPtr(new InMemoryStream(memoryArchiveExtractCallback->GetData(index), fileSize));
         contentDirectoryTree.streamMutex = std::make_shared<std::mutex>();
       }
     }
@@ -413,9 +406,7 @@ namespace {
 
 
       auto originalContentInStream = contentDirectoryTree.inStream;
-
-      winrt::com_ptr<InSeekFilterStream> cloneContentInStream;
-      cloneContentInStream.attach(new InSeekFilterStream(originalContentInStream));
+      auto cloneContentInStream = CreateCOMPtr(new InSeekFilterStream(originalContentInStream));
 
       auto contentInArchive = CreateInArchiveFromInStream(nanaZ, cloneContentInStream, maxCheckStartPosition, contentPasswordCallback);
       if (!contentInArchive) {
@@ -446,7 +437,7 @@ namespace {
       };
 
       // modify source inStream in order to completely separate seek positions
-      contentDirectoryTree.inStream.attach(new InSeekFilterStream(originalContentInStream));
+      contentDirectoryTree.inStream = CreateCOMPtr(new InSeekFilterStream(originalContentInStream));
 
       // filename collision will not occur
       auto ptrInsertedCloneContentDirectoryTree = Insert(directoryTree, asArchiveFilepath, std::move(cloneContentDirectoryTree), fileIndexCount, DirectoryTree::OnExisting::Replace, extractToMemory);

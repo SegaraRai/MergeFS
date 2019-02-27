@@ -8,6 +8,7 @@
 
 #include "Util.hpp"
 #include "ArchiveSourceMount.hpp"
+#include "NanaZ/COMPtr.hpp"
 #include "NanaZ/NanaZ.hpp"
 #include "NanaZ/FileStream.hpp"
 
@@ -103,9 +104,7 @@ BOOL SIsSupportedImpl(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo) n
     if (!archiveFilepathN) {
       return FALSE;
     }
-    winrt::com_ptr<InFileStream> inFileStream;
-    inFileStream.attach(new InFileStream(archiveFilepathN.value().c_str()));
-    return !NanaZ.FindFormatByStream(inFileStream).empty() ? TRUE : FALSE;
+    return !NanaZ.FindFormatByStream(CreateCOMPtr(new InFileStream(archiveFilepathN.value().c_str()))).empty() ? TRUE : FALSE;
   } catch (...) {
     return FALSE;
   }

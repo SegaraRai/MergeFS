@@ -183,6 +183,7 @@
     <ClInclude Include="NanaZ\Archive.hpp" />
     <ClInclude Include="NanaZ\ArchiveOpenCallback.hpp" />
     <ClInclude Include="NanaZ\COMError.hpp" />
+    <ClInclude Include="NanaZ\COMPtr.hpp" />
     <ClInclude Include="NanaZ\DLL.hpp" />
     <ClInclude Include="NanaZ\FileStream.hpp" />
     <ClInclude Include="NanaZ\MemoryArchiveExtractCallback.hpp" />

@@ -93,6 +93,9 @@
     <ClInclude Include="NanaZ\SeekFilterStream.hpp">
       <Filter>Header Files\NanaZ</Filter>
     </ClInclude>
+    <ClInclude Include="NanaZ\COMPtr.hpp">
+      <Filter>Header Files\NanaZ</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Util.cpp">

@@ -6,6 +6,7 @@
 #include "ArchiveSourceMountFile.hpp"
 #include "Util.hpp"
 #include "NanaZ/COMError.hpp"
+#include "NanaZ/COMPtr.hpp"
 #include "NanaZ/FileStream.hpp"
 #include "NanaZ/NanaZ.hpp"
 
@@ -149,9 +150,7 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
     fileSystemName = L"ARCHIVE"s;
 
     // open archive
-    winrt::com_ptr<InFileStream> inFileStream;
-    inFileStream.attach(new InFileStream(archiveFileHandle));
-    archiveN.emplace(nanaZ, inFileStream, archiveFileInfo, DefaultFilepath, pathPrefixWb, caseSensitive, MaxCheckStartPosition, OnExisting, ExtractToMemory, [](const std::wstring& originalFilepath, std::size_t count) -> std::optional<std::pair<std::wstring, bool>> {
+    archiveN.emplace(nanaZ, CreateCOMPtr(new InFileStream(archiveFileHandle)), archiveFileInfo, DefaultFilepath, pathPrefixWb, caseSensitive, MaxCheckStartPosition, OnExisting, ExtractToMemory, [](const std::wstring& originalFilepath, std::size_t count) -> std::optional<std::pair<std::wstring, bool>> {
       const auto lastDelimiterPos = originalFilepath.find_last_of(Archive::DirectorySeparatorFromLibrary);
       const auto parentDirectoryPath = lastDelimiterPos == std::wstring::npos ? L""s : originalFilepath.substr(0, lastDelimiterPos + 1);
       const auto baseFilename = lastDelimiterPos == std::wstring::npos ? originalFilepath : originalFilepath.substr(lastDelimiterPos + 1);

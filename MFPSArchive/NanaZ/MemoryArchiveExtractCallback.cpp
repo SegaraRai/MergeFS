@@ -3,6 +3,7 @@
 #include <7z/CPP/Common/Common.h>
 
 #include "MemoryArchiveExtractCallback.hpp"
+#include "COMPtr.hpp"
 
 #include <cstddef>
 #include <functional>
@@ -103,8 +104,7 @@ MemoryArchiveExtractCallback::MemoryArchiveExtractCallback(std::byte* storageBuf
     const std::size_t availableMemorySize = alignedMemorySize / MemoryAlignment * MemoryAlignment;
     assert(availableMemorySize >= filesize + ExtraMemorySize);
 
-    winrt::com_ptr<OutFixedMemoryStream> outFixedMemoryStream;
-    outFixedMemoryStream.attach(new OutFixedMemoryStream(static_cast<std::byte*>(alignedFileDataBuffer), availableMemorySize));
+    auto outFixedMemoryStream = CreateCOMPtr(new OutFixedMemoryStream(static_cast<std::byte*>(alignedFileDataBuffer), availableMemorySize));
 
     indexToInfoMap.emplace(index, ObjectInfo{
       currentFileDataBuffer,
