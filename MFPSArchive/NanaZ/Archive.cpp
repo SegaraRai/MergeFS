@@ -377,7 +377,10 @@ namespace {
           continue;
         }
 
-        const std::size_t fileSize = contentDirectoryTree.fileSize;
+        const std::size_t fileSize = memoryArchiveExtractCallback->GetSize(index);
+        assert(fileSize == contentDirectoryTree.fileSize);
+
+        contentDirectoryTree.fileSize = fileSize;
 
         winrt::com_ptr<InMemoryStream> contentInStream;
         contentInStream.attach(new InMemoryStream(memoryArchiveExtractCallback->GetData(index), fileSize));
