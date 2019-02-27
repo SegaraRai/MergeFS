@@ -351,7 +351,7 @@ namespace {
         };
       }
 
-      std::vector<std::size_t> filesizes(extractToMemoryIndices.size());
+      std::vector<UInt64> filesizes(extractToMemoryIndices.size());
       std::vector<std::pair<UInt32, UInt64>> indexAndFilesizes(extractToMemoryIndices.size());
       for (std::size_t i = 0; i < extractToMemoryIndices.size(); i++) {
         const auto& [index, contentDirectoryTree, contentFilepath] = extractToMemoryObjects.at(i);
