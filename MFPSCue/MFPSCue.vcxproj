@@ -96,7 +96,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>FLAC__NO_DLL;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;FLAC__NO_DLL;_WINDLL;WIN32;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
@@ -116,7 +116,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>FLAC__NO_DLL;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;FLAC__NO_DLL;_WINDLL;WIN32;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
@@ -143,7 +143,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>FLAC__NO_DLL;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;FLAC__NO_DLL;_WINDLL;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
@@ -173,7 +173,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>FLAC__NO_DLL;_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;FLAC__NO_DLL;_WINDLL;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>

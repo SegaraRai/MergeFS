@@ -97,6 +97,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;_WINDLL;WIN32;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>..\SDK\Plugin\Source.def</ModuleDefinitionFile>
@@ -114,6 +115,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;_WINDLL;WIN32;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>..\SDK\Plugin\Source.def</ModuleDefinitionFile>
@@ -137,6 +139,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;_WINDLL;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -163,6 +166,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/source-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;_WINDLL;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

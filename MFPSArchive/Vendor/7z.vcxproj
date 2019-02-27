@@ -98,7 +98,7 @@
       <PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PreprocessorDefinitions>EXTERNAL_CODECS;_WINDLL;_7ZIP_LARGE_PAGES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;EXTERNAL_CODECS;_WINDLL;WIN32;_7ZIP_LARGE_PAGES;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CallingConvention>FastCall</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -116,7 +116,7 @@
       <PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PreprocessorDefinitions>EXTERNAL_CODECS;_WINDLL;_7ZIP_LARGE_PAGES;_LZMA_DEC_OPT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;EXTERNAL_CODECS;_WINDLL;WIN32;_7ZIP_LARGE_PAGES;_LZMA_DEC_OPT;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CallingConvention>FastCall</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
@@ -140,7 +140,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <DebugInformationFormat>None</DebugInformationFormat>
-      <PreprocessorDefinitions>EXTERNAL_CODECS;_WINDLL;_7ZIP_LARGE_PAGES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;EXTERNAL_CODECS;_WINDLL;WIN32;_7ZIP_LARGE_PAGES;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CallingConvention>FastCall</CallingConvention>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
@@ -170,7 +170,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <DebugInformationFormat>None</DebugInformationFormat>
-      <PreprocessorDefinitions>EXTERNAL_CODECS;_WINDLL;_7ZIP_LARGE_PAGES;_LZMA_DEC_OPT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;EXTERNAL_CODECS;_WINDLL;WIN32;_7ZIP_LARGE_PAGES;_LZMA_DEC_OPT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CallingConvention>FastCall</CallingConvention>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
