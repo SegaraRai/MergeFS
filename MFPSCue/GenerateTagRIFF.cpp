@@ -39,8 +39,8 @@ namespace {
     return
       ((static_cast<std::uint_fast32_t>(signatureString[0]) & 0xFF) << 24) |
       ((static_cast<std::uint_fast32_t>(signatureString[1]) & 0xFF) << 16) |
-      ((static_cast<std::uint_fast32_t>(signatureString[2]) & 0xFF) << 8) |
-      ((static_cast<std::uint_fast32_t>(signatureString[3]) & 0xFF) << 0);
+      ((static_cast<std::uint_fast32_t>(signatureString[2]) & 0xFF) <<  8) |
+      ((static_cast<std::uint_fast32_t>(signatureString[3]) & 0xFF) <<  0);
   }
 
 
@@ -74,7 +74,7 @@ std::vector<std::byte> GenerateTagRIFF(const CueSheet& cueSheet, CueSheet::File:
   const auto& file = cueSheet.files.at(fileIndex);
   const auto& track = file.tracks.at(trackIndex);
 
-  // use chunk id in BIG ENDIAN form in order to sort correctly
+  // store chunk id in BIG ENDIAN form to make chunks sorted
   std::map<std::uint_fast32_t, std::wstring> wstringChunks;
 
   wstringChunks.emplace(SigBeISFT, L"MFPSCue"s);
