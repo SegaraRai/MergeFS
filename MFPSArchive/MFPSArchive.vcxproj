@@ -193,6 +193,7 @@
     <ClInclude Include="NanaZ\MemoryArchiveExtractCallback.hpp" />
     <ClInclude Include="NanaZ\MemoryStream.hpp" />
     <ClInclude Include="NanaZ\NanaZ.hpp" />
+    <ClInclude Include="NanaZ\NullStream.hpp" />
     <ClInclude Include="NanaZ\PropVariantUtil.hpp" />
     <ClInclude Include="NanaZ\PropVariantWrapper.hpp" />
     <ClInclude Include="NanaZ\SeekFilterStream.hpp" />

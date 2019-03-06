@@ -16,6 +16,7 @@
 
 
 InMemoryStream::InMemoryStream(std::byte* data, std::size_t dataSize) :
+  mutex(),
   data(data),
   dataSize(dataSize),
   seekOffset(0)
@@ -92,6 +93,7 @@ STDMETHODIMP InMemoryStream::GetSize(UInt64* size) {
 
 
 OutFixedMemoryStream::OutFixedMemoryStream(std::byte* data, std::size_t maxDataSize) :
+  mutex(),
   data(data),
   maxDataSize(maxDataSize),
   dataSize(0),
