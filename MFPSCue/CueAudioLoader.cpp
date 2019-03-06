@@ -82,7 +82,7 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory
     }
 
     if (extractToMemory == ExtractToMemory::Always || (extractToMemory == ExtractToMemory::Compressed && audioSource->IsCompressed())) {
-      audioSource = std::make_shared<AudioSourceWrapper>(std::make_shared<OnMemorySourceWrapper>(audioSource), audioSource, false);
+      audioSource = std::make_shared<AudioSourceWrapper>(std::make_shared<OnMemorySourceWrapper>(audioSource), *audioSource, false);
     }
 
     mAudioFileSources.emplace_back(audioFileSource);
@@ -163,7 +163,7 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory
 
       auto currentAudioSource = mAudioSources.at(additionalTrackInfo.fileIndex);
 
-      additionalTrackInfo.partialAudioSources.emplace(offsetNumber, std::make_shared<AudioSourceWrapper>(std::make_shared<PartialSource>(currentAudioSource, currentTrackOffset * CDBytesPerFrame, (nextTrackOffset - currentTrackOffset) * CDBytesPerFrame), currentAudioSource));
+      additionalTrackInfo.partialAudioSources.emplace(offsetNumber, std::make_shared<AudioSourceWrapper>(std::make_shared<PartialSource>(currentAudioSource, currentTrackOffset * CDBytesPerFrame, (nextTrackOffset - currentTrackOffset) * CDBytesPerFrame), *currentAudioSource));
     }
   }
 }

@@ -21,8 +21,8 @@ class AudioSourceWrapper : public AudioSource {
 
 public:
   AudioSourceWrapper(std::shared_ptr<Source> source, bool compressed, unsigned long samplingRate, const std::vector<ChannelInfo>& channelInfo, DataType dataType);
-  AudioSourceWrapper(std::shared_ptr<Source> source, std::shared_ptr<AudioSource> audioSource, bool compressed);
-  AudioSourceWrapper(std::shared_ptr<Source> source, std::shared_ptr<AudioSource> audioSource);
+  AudioSourceWrapper(std::shared_ptr<Source> source, const AudioSource& audioSource, bool compressed);
+  AudioSourceWrapper(std::shared_ptr<Source> source, const AudioSource& audioSource);
   virtual ~AudioSourceWrapper() = default;
 
   bool IsCompressed() const override;

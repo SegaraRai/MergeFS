@@ -24,15 +24,16 @@ AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, bool comp
 }
 
 
-AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, std::shared_ptr<AudioSource> audioSource, bool compressed) :
+AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, const AudioSource& audioSource, bool compressed) :
   mSource(source),
   mSize(source->GetSize()),
   mCompressed(compressed),
-  mSamplingRate(audioSource->GetSamplingRate()),
-  mChannelInfo(audioSource->GetChannels()),
-  mDataType(audioSource->GetDataType()) {
+  mSamplingRate(audioSource.GetSamplingRate()),
+  mChannelInfo(audioSource.GetChannels()),
+  mDataType(audioSource.GetDataType())
+{
   for (std::size_t channelIndex = 0; channelIndex < mChannelInfo.size(); channelIndex++) {
-    mChannelInfo[channelIndex] = audioSource->GetChannelInfo(channelIndex);
+    mChannelInfo[channelIndex] = audioSource.GetChannelInfo(channelIndex);
   }
   if (mSize % mChannelInfo.size()) {
     throw std::runtime_error(u8"invalid source size");
@@ -40,8 +41,8 @@ AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, std::shar
 }
 
 
-AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, std::shared_ptr<AudioSource> audioSource) :
-  AudioSourceWrapper(source, audioSource, audioSource->IsCompressed())
+AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, const AudioSource& audioSource) :
+  AudioSourceWrapper(source, audioSource, audioSource.IsCompressed())
 {}
 
 
