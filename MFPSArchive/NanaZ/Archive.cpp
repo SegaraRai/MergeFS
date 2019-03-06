@@ -370,6 +370,7 @@ namespace {
       for (const auto& [index, contentDirectoryTree, contentFilepath] : extractToMemoryObjects) {
         if (!memoryArchiveExtractCallback->Succeeded(index)) {
           contentDirectoryTree.contentAvailable = false;
+          contentDirectoryTree.fileSize = 0;
           contentDirectoryTree.inStream = CreateCOMPtr(new InMemoryStream(nullptr, 0));
           contentDirectoryTree.streamMutex = std::make_shared<std::mutex>();
           continue;
@@ -386,7 +387,13 @@ namespace {
 
     // open as archive
     for (const auto& [index, contentDirectoryTree, contentFilepath] : openAsArchiveObjects) {
-      assert(contentDirectoryTree.contentAvailable);
+      assert(contentDirectoryTree.valid);
+      assert(contentDirectoryTree.type == DirectoryTree::Type::File);
+      assert(contentDirectoryTree.inStream);
+
+      if (!contentDirectoryTree.contentAvailable) {
+        continue;
+      }
 
       std::optional<std::pair<std::wstring, bool>> asArchiveFilepathOption;
       std::size_t count = 0;
