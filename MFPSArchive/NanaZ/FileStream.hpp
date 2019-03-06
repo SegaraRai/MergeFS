@@ -15,7 +15,7 @@
 #define FILESTREAM_MANAGE_SEEK
 
 
-class InFileStream : public winrt::implements<InFileStream, IInStream, ISequentialInStream, IStreamGetSize> {
+class InFileStream final : public winrt::implements<InFileStream, IInStream, ISequentialInStream, IStreamGetSize> {
   bool needClose;
   HANDLE fileHandle;
   BY_HANDLE_FILE_INFORMATION byHandleFileInformation;
@@ -31,7 +31,7 @@ public:
   InFileStream(LPCWSTR filepath);
   InFileStream(HANDLE hFile);
 
-  virtual ~InFileStream();
+  ~InFileStream();
 
   InFileStream(const InFileStream&) = delete;
   InFileStream& operator=(const InFileStream&) = delete;

@@ -3,7 +3,7 @@
 #include <Windows.h>
 
 
-class DLL {
+class DLL final {
   HMODULE hModule;
 
 public:
@@ -11,7 +11,7 @@ public:
   DLL& operator=(const DLL&) = delete;
 
   DLL(LPCWSTR FileName);
-  virtual ~DLL();
+  ~DLL();
 
   FARPROC GetProc(LPCSTR ProcName) const;
 };

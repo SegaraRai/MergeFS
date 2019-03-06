@@ -12,7 +12,7 @@
 #include <winrt/base.h>
 
 
-class InMemoryStream : public winrt::implements<InMemoryStream, IInStream, ISequentialInStream, IStreamGetSize> {
+class InMemoryStream final : public winrt::implements<InMemoryStream, IInStream, ISequentialInStream, IStreamGetSize> {
   std::mutex mutex;
   std::byte* data;
   std::size_t dataSize;
@@ -20,7 +20,6 @@ class InMemoryStream : public winrt::implements<InMemoryStream, IInStream, ISequ
 
 public:
   InMemoryStream(std::byte* data, std::size_t dataSize);
-  virtual ~InMemoryStream() = default;
 
   // IInStream
   STDMETHOD(Read)(void* data, UInt32 size, UInt32* processedSize);
@@ -31,7 +30,7 @@ public:
 };
 
 
-class OutFixedMemoryStream : public winrt::implements<OutFixedMemoryStream, IOutStream, ISequentialOutStream, IStreamGetSize> {
+class OutFixedMemoryStream final : public winrt::implements<OutFixedMemoryStream, IOutStream, ISequentialOutStream, IStreamGetSize> {
   std::mutex mutex;
   std::byte* data;
   std::size_t maxDataSize;
@@ -40,8 +39,6 @@ class OutFixedMemoryStream : public winrt::implements<OutFixedMemoryStream, IOut
 
 public:
   OutFixedMemoryStream(std::byte* data, std::size_t maxDataSize);
-
-  virtual ~OutFixedMemoryStream() = default;
 
   OutFixedMemoryStream(const OutFixedMemoryStream&) = delete;
   OutFixedMemoryStream& operator=(const OutFixedMemoryStream&) = delete;
