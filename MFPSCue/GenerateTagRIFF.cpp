@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -66,7 +67,7 @@ namespace {
 std::vector<std::byte> GenerateTagRIFF(const CueSheet& cueSheet, CueSheet::File::Track::TrackNumber trackNumber) {
   const auto indexPairN = cueSheet.FindTrack(trackNumber);
   if (!indexPairN) {
-    return {};
+    throw std::runtime_error("track not found in cue sheet");
   }
 
   const auto [fileIndex, trackIndex] = indexPairN.value();
