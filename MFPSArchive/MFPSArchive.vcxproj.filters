@@ -99,6 +99,9 @@
     <ClInclude Include="NanaZ\NullStream.hpp">
       <Filter>Header Files\NanaZ</Filter>
     </ClInclude>
+    <ClInclude Include="..\SDK\CaseSensitivity.hpp">
+      <Filter>Header Files\../SDK</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Util.cpp">

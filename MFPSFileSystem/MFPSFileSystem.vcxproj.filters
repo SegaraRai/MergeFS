@@ -48,6 +48,9 @@
     <ClInclude Include="FilesystemSourceMountFile.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\SDK\CaseSensitivity.hpp">
+      <Filter>Header Files\../SDK</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
