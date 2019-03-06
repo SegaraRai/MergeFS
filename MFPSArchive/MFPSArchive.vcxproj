@@ -214,6 +214,7 @@
     <ClCompile Include="NanaZ\MemoryArchiveExtractCallback.cpp" />
     <ClCompile Include="NanaZ\MemoryStream.cpp" />
     <ClCompile Include="NanaZ\NanaZ.cpp" />
+    <ClCompile Include="NanaZ\NullStream.cpp" />
     <ClCompile Include="NanaZ\PropVariantWrapper.cpp" />
     <ClCompile Include="NanaZ\SeekFilterStream.cpp" />
     <ClCompile Include="Util.cpp" />

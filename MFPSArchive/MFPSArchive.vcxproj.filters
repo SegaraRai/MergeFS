@@ -152,6 +152,9 @@
     <ClCompile Include="..\SDK\Plugin\SourceCppReadonly.cpp">
       <Filter>Source Files\../SDK\Plugin</Filter>
     </ClCompile>
+    <ClCompile Include="NanaZ\NullStream.cpp">
+      <Filter>Source Files\NanaZ</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\SDK\Plugin\Source.def">
