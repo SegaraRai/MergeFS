@@ -187,6 +187,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\SDK\CaseSensitivity.hpp" />
+    <ClInclude Include="..\SDK\FileNaming.hpp" />
     <ClInclude Include="..\SDK\LibMergeFS.h" />
     <ClInclude Include="..\SDK\Plugin\Common.h" />
     <ClInclude Include="..\SDK\Plugin\Source.h" />

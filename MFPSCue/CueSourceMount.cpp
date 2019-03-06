@@ -9,6 +9,7 @@
 #include "Util.hpp"
 
 #include "../SDK/CaseSensitivity.hpp"
+#include "../SDK/FileNaming.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -222,7 +223,7 @@ CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMou
         }
 
         // TODO: make customizable
-        const auto audioFilename = GetTwoDigit(trackNumber) + L" "s + track->title.value_or(L"Unkown Title"s) + L".wav"s;
+        const auto audioFilename = GetTwoDigit(trackNumber) + L" "s + FileNaming::ReplaceInvalidCharacters<L'_'>(track->title.value_or(L"Unkown Title"s)) + L".wav"s;
 
         auto trackAudioSource = cueAudioLoader.GetTrackAudioSource(trackNumber, offsetNumber);
 

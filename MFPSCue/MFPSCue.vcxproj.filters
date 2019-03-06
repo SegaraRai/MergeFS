@@ -117,6 +117,9 @@
     <ClInclude Include="..\SDK\CaseSensitivity.hpp">
       <Filter>Header Files\../SDK</Filter>
     </ClInclude>
+    <ClInclude Include="..\SDK\FileNaming.hpp">
+      <Filter>Header Files\../SDK</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
