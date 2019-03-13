@@ -36,6 +36,11 @@ std::wstring ConvertFileContentToWString(const std::byte* data, std::size_t size
     throw std::runtime_error(u8"UTF-16 BE not supported");
   }
   // not unicode with BOM; assume OEM codepage
+
+  if (!size) {
+    return {};
+  }
+
   int wideCharLength = MultiByteToWideChar(codePage, MB_PRECOMPOSED | MB_ERR_INVALID_CHARS, reinterpret_cast<const char*>(data), static_cast<int>(size), NULL, 0);
   if (!wideCharLength) {
     throw std::runtime_error(u8"MultiByteToWideChar failed");
@@ -50,6 +55,10 @@ std::wstring ConvertFileContentToWString(const std::byte* data, std::size_t size
 
 
 std::string ConvertWStringToCodePage(std::wstring_view data, UINT codePage) {
+  if (data.empty()) {
+    return {};
+  }
+
   int utf8ByteLength = WideCharToMultiByte(codePage, 0, data.data(), static_cast<int>(data.size()), NULL, 0, NULL, NULL);
   if (!utf8ByteLength) {
     throw std::runtime_error(u8"WideCharToMultiByte failed");
