@@ -223,7 +223,11 @@ CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMou
         }
 
         // TODO: make customizable
-        const auto audioFilename = GetTwoDigit(trackNumber) + L" "s + FileNaming::ReplaceInvalidCharacters<L'_'>(track->title.value_or(L"Unkown Title"s)) + L".wav"s;
+        std::wstring basename = track->title.value_or(L""s);
+        if (basename.empty()) {
+          basename = L"Unkown Title"s;
+        }
+        const auto audioFilename = GetTwoDigit(trackNumber) + L" "s + FileNaming::ReplaceInvalidCharacters<L'_'>(basename) + L".wav"s;
 
         auto trackAudioSource = cueAudioLoader.GetTrackAudioSource(trackNumber, offsetNumber);
 
