@@ -1,5 +1,3 @@
-#define INITGUID
-
 #include <7z/CPP/Common/Common.h>
 
 #include <Windows.h>

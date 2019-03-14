@@ -1,5 +1,3 @@
-#define INITGUID
-
 #include <dokan/dokan.h>
 
 #include <7z/CPP/Common/Common.h>

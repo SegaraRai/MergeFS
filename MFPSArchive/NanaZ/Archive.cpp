@@ -1,3 +1,4 @@
+#define INITGUID
 #define NOMINMAX
 
 #include <dokan/dokan.h>
