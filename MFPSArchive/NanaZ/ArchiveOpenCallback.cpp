@@ -2,9 +2,9 @@
 
 #include <7z/CPP/Common/Common.h>
 
-#include "ArchiveOpenCallback.hpp"
-
 #include <Windows.h>
+
+#include "ArchiveOpenCallback.hpp"
 
 
 

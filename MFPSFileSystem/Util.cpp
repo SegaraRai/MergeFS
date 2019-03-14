@@ -1,8 +1,10 @@
-#include "Util.hpp"
+#include <dokan/dokan.h>
+
+#include <cassert>
 
 #include <Windows.h>
 
-#include <cassert>
+#include "Util.hpp"
 
 
 namespace {

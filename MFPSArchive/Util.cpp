@@ -1,6 +1,4 @@
-#include "Util.hpp"
-
-#include <Windows.h>
+#include <dokan/dokan.h>
 
 #include <cassert>
 #include <memory>
@@ -8,6 +6,10 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+
+#include <Windows.h>
+
+#include "Util.hpp"
 
 using namespace std::literals;
 

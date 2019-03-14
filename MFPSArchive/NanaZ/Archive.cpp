@@ -6,6 +6,17 @@
 #include <7z/CPP/7zip/IPassword.h>
 #include <7z/CPP/7zip/Archive/IArchive.h>
 
+#include <cassert>
+#include <cstddef>
+#include <limits>
+#include <memory>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <utility>
+
+#include <winrt/base.h>
+
 #include "../SDK/CaseSensitivity.hpp"
 
 #include "Archive.hpp"
@@ -17,17 +28,6 @@
 #include "PropVariantUtil.hpp"
 #include "PropVariantWrapper.hpp"
 #include "SeekFilterStream.hpp"
-
-#include <cassert>
-#include <cstddef>
-#include <limits>
-#include <memory>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <utility>
-
-#include <winrt/base.h>
 
 using namespace std::literals;
 
@@ -96,7 +96,7 @@ namespace {
 
     if (firstDelimiterPos == std::wstring_view::npos) {
       // leaf
-      auto filename = rootDirectoryName;      
+      auto filename = rootDirectoryName;
       if (onExisting != DirectoryTree::OnExisting::Replace) {
         const auto& baseFilename = rootDirectoryName;
         std::size_t count = 2;
@@ -192,7 +192,7 @@ namespace {
 
     std::vector<UInt32> extractToMemoryIndices;
     std::vector<std::tuple<UInt32, DirectoryTree&, std::wstring>> extractToMemoryObjects;
-    
+
     std::vector<std::tuple<UInt32, DirectoryTree&, std::wstring>> openAsArchiveObjects;
 
     for (UInt32 index = 0; index < numItems; index++) {

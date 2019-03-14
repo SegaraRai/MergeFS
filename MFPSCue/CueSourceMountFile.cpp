@@ -2,10 +2,6 @@
 
 #include <dokan/dokan.h>
 
-#include "CueSourceMount.hpp"
-#include "CueSourceMountFile.hpp"
-#include "Util.hpp"
-
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
@@ -15,6 +11,10 @@
 #include <string>
 
 #include <Windows.h>
+
+#include "CueSourceMountFile.hpp"
+#include "CueSourceMount.hpp"
+#include "Util.hpp"
 
 using namespace std::literals;
 

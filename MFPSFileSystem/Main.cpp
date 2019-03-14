@@ -6,11 +6,11 @@
 
 #include "../SDK/Plugin/SourceCpp.hpp"
 
-#include "Util.hpp"
-#include "FilesystemSourceMount.hpp"
-
 #include <Windows.h>
 #include <shlwapi.h>
+
+#include "Util.hpp"
+#include "FilesystemSourceMount.hpp"
 
 using namespace std::literals;
 

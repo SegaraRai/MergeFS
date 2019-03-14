@@ -2,16 +2,16 @@
 
 #include <dokan/dokan.h>
 
+#include <memory>
+
+#include <Windows.h>
+#include <winrt/base.h>
+
 #include "../SDK/Plugin/SourceCpp.hpp"
 
 #include "CueSourceMount.hpp"
 #include "Source.hpp"
 #include "Util.hpp"
-
-#include <memory>
-
-#include <Windows.h>
-#include <winrt/base.h>
 
 using namespace std::literals;
 

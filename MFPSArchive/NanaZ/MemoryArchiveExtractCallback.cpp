@@ -2,9 +2,6 @@
 
 #include <7z/CPP/Common/Common.h>
 
-#include "MemoryArchiveExtractCallback.hpp"
-#include "COMPtr.hpp"
-
 #include <cstddef>
 #include <functional>
 #include <limits>
@@ -13,6 +10,9 @@
 
 #include <Windows.h>
 #include <winrt/base.h>
+
+#include "MemoryArchiveExtractCallback.hpp"
+#include "COMPtr.hpp"
 
 using namespace std::literals;
 
@@ -27,7 +27,7 @@ namespace {
 
 std::size_t MemoryArchiveExtractCallback::CalcMemorySize(const std::vector<UInt64>& filesizes) {
   std::size_t totalMemorySize = MemoryAlignment;
-  
+
   for (const auto& filesize : filesizes) {
     if constexpr (std::numeric_limits<UInt64>::max() >= std::numeric_limits<std::size_t>::max() - ExtraMemorySize) {
       if (filesize > std::numeric_limits<std::size_t>::max() - ExtraMemorySize) {

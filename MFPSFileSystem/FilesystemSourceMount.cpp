@@ -1,6 +1,4 @@
-#include "FilesystemSourceMount.hpp"
-#include "FilesystemSourceMountFile.hpp"
-#include "Util.hpp"
+#include <dokan/dokan.h>
 
 #include <algorithm>
 #include <cassert>
@@ -11,6 +9,10 @@
 
 #include <Windows.h>
 #include <Shlwapi.h>
+
+#include "FilesystemSourceMount.hpp"
+#include "FilesystemSourceMountFile.hpp"
+#include "Util.hpp"
 
 using namespace std::literals;
 

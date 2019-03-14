@@ -184,7 +184,7 @@ std::vector<std::size_t> NanaZ::FormatStore::FindFormatByStream(winrt::com_ptr<I
 
   UInt32 readSize = 0;
   COMError::CheckHRESULT(inStream->Read(buffer.get(), static_cast<UInt32>(bufferSize), &readSize));
-  
+
   COMError::CheckHRESULT(inStream->Seek(0, STREAM_SEEK_SET, nullptr));
 
   std::vector<std::size_t> formatIndices;

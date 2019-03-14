@@ -1,16 +1,5 @@
 #include <dokan/dokan.h>
 
-#include "CueSourceMount.hpp"
-#include "CueSourceMountFile.hpp"
-#include "AudioSourceToSourceWAV.hpp"
-#include "GeneratePlaylistCue.hpp"
-#include "GeneratePlaylistM3U8.hpp"
-#include "MemorySource.hpp"
-#include "Util.hpp"
-
-#include "../SDK/CaseSensitivity.hpp"
-#include "../SDK/FileNaming.hpp"
-
 #include <algorithm>
 #include <cassert>
 #include <memory>
@@ -20,6 +9,17 @@
 
 #include <Windows.h>
 #include <winrt/base.h>
+
+#include "../SDK/CaseSensitivity.hpp"
+#include "../SDK/FileNaming.hpp"
+
+#include "CueSourceMount.hpp"
+#include "CueSourceMountFile.hpp"
+#include "AudioSourceToSourceWAV.hpp"
+#include "GeneratePlaylistCue.hpp"
+#include "GeneratePlaylistM3U8.hpp"
+#include "MemorySource.hpp"
+#include "Util.hpp"
 
 using namespace std::literals;
 
@@ -89,7 +89,7 @@ CueSourceMount::ExportPortation::ExportPortation(CueSourceMount& sourceMount, PO
     throw NtstatusError(sourceMount.ReturnPathOrNameNotFoundError(portationInfo->filepath));
   }
 
-  
+
   // allocate buffer
   if (!ptrDirectoryTree->directory) {
     buffer = std::make_unique<std::byte[]>(BufferSize);
@@ -213,7 +213,7 @@ CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMou
     for (const auto& offsetNumber : cueAudioLoader.GetOffsetNumberSet()) {
       // TODO: make customizable
       std::wstring directoryPrefix = L"INDEX "s + GetTwoDigit(offsetNumber) + L"\\"s;
-      
+
       std::vector<std::wstring> audioFilenames;
       std::vector<unsigned long long> audioSizes;
       for (auto trackNumber = firstTrackNumber; trackNumber <= lastTrackNumber; trackNumber++) {

@@ -2,11 +2,6 @@
 
 #include <dokan/dokan.h>
 
-#include "ArchiveSourceMount.hpp"
-#include "ArchiveSourceMountFile.hpp"
-#include "Util.hpp"
-#include "NanaZ/COMError.hpp"
-
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
@@ -16,6 +11,11 @@
 #include <string>
 
 #include <Windows.h>
+
+#include "ArchiveSourceMountFile.hpp"
+#include "ArchiveSourceMount.hpp"
+#include "Util.hpp"
+#include "NanaZ/COMError.hpp"
 
 using namespace std::literals;
 
