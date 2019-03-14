@@ -204,8 +204,8 @@ int CommandMount(const std::deque<std::wstring>& args) {
     mountSources.data(),
   };
   MOUNT_ID mountId;
-  if (!Mount(&mountInitializeInfo, [](int dokanMainResult) noexcept -> void {
-    std::wcout << L"info: dokanMainResult = "sv << dokanMainResult << std::endl;
+  if (!Mount(&mountInitializeInfo, [](MOUNT_ID mountId, int dokanMainResult) noexcept -> void {
+    std::wcout << L"info: dokanMainResult = "sv << dokanMainResult << L" at mountId "sv << mountId << std::endl;
   }, &mountId)) {
     std::wcout << L"error: failed to mount"sv << std::endl;
     return 0;

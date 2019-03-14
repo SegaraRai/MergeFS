@@ -91,7 +91,7 @@ typedef tagPLUGIN_TYPE PLUGIN_TYPE;
 #endif
 
 
-typedef void(WINAPI *PMountCallback)(int dokanMainResult) MFNOEXCEPT;
+typedef void(WINAPI *PMountCallback)(MOUNT_ID mountId, int dokanMainResult) MFNOEXCEPT;
 
 
 #pragma pack(push, 1)
