@@ -31,14 +31,63 @@ public:
   static constexpr MOUNT_ID MountIdStart = MOUNT_ID_NULL + 1;
 
 private:
-  std::unordered_map<MOUNT_ID, std::unique_ptr<Mount>> m_mountMap;
+  struct MountData {
+    class MountInfoWrapper {
+      class MountSourceInfoWrapper {
+        std::wstring mountSource;
+        PLUGIN_ID sourcePluginId;
+        std::string sourcePluginOptionsJSON;
+        MOUNT_SOURCE_INFO mountSourceInfo;
+
+        void Update();
+
+      public:
+        MountSourceInfoWrapper(const MountSourceInfoWrapper& other);
+        MountSourceInfoWrapper(MountSourceInfoWrapper&& other);
+        MountSourceInfoWrapper& operator=(const MountSourceInfoWrapper& other);
+        MountSourceInfoWrapper& operator=(MountSourceInfoWrapper&& other);
+
+        MountSourceInfoWrapper() = default;
+        MountSourceInfoWrapper(std::wstring_view mountSource, PLUGIN_ID sourcePluginId, std::string_view sourcePluginOptionsJSON);
+
+        const MOUNT_SOURCE_INFO& Get() const;
+      };
+
+      std::wstring mountPoint;
+      bool writable;
+      std::wstring metadataFileName;
+      bool deferCopyEnabled;
+      bool caseSensitive;
+      std::vector<MountSourceInfoWrapper> wrappedSources;
+      std::vector<MOUNT_SOURCE_INFO> sources;
+      MOUNT_INFO mountInfo;
+
+      void Update();
+
+    public:
+      MountInfoWrapper(const MountInfoWrapper& other);
+      MountInfoWrapper(MountInfoWrapper&& other);
+      MountInfoWrapper& operator=(const MountInfoWrapper& other);
+      MountInfoWrapper& operator=(MountInfoWrapper&& other);
+
+      MountInfoWrapper(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources);
+
+      const MOUNT_INFO& Get() const;
+    };
+
+    std::unique_ptr<Mount> mount;
+    MountInfoWrapper wrappedMountInfo;
+  };
+
+  std::unordered_map<MOUNT_ID, MountData> m_mountMap;
   MOUNT_ID m_minimumUnusedMountId = MountIdStart;
 
 public:
-  MOUNT_ID Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(MOUNT_ID, int)> callback);
+  MOUNT_ID Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(MOUNT_ID, const MOUNT_INFO&, int)> callback);
   bool HasMount(MOUNT_ID mountId) const;
   std::size_t CountMounts() const;
   std::vector<MOUNT_ID> ListMounts() const;
+  const MOUNT_INFO& GetMountInfo(MOUNT_ID mountId) const;
   bool SafeUnmount(MOUNT_ID mountId);
   bool Unmount(MOUNT_ID mountId);
   void SafeUnmountAll();

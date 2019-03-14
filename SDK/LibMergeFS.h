@@ -91,9 +91,6 @@ typedef tagPLUGIN_TYPE PLUGIN_TYPE;
 #endif
 
 
-typedef void(WINAPI *PMountCallback)(MOUNT_ID mountId, int dokanMainResult) MFNOEXCEPT;
-
-
 #pragma pack(push, 1)
 
 
@@ -112,12 +109,6 @@ typedef struct {
   LPCWSTR filename;
   PLUGIN_INFO pluginInfo;
 } PLUGIN_INFO_EX;
-
-
-// TODO
-typedef struct {
-  
-} MOUNT_INFO;
 
 
 typedef struct {
@@ -139,16 +130,37 @@ typedef struct {
 } MOUNT_INITIALIZE_INFO;
 
 
+typedef struct {
+  LPCWSTR mountSource;
+  PLUGIN_ID sourcePluginId;
+  LPCSTR sourcePluginOptionsJSON;
+} MOUNT_SOURCE_INFO;
+
+
+typedef struct {
+  LPCWSTR mountPoint;
+  BOOL writable;
+  LPCWSTR metadataFileName;
+  BOOL deferCopyEnabled;
+  BOOL caseSensitive;
+  DWORD numSources;
+  MOUNT_SOURCE_INFO* sources;
+} MOUNT_INFO;
+
+
 #ifdef FROMLIBMERGEFS
 static_assert(sizeof(PLUGIN_INFO) == 3 * 4 + 1 * 16 + 3 * sizeof(void*));
 static_assert(sizeof(PLUGIN_INFO_EX) == sizeof(PLUGIN_INFO) + 1 * sizeof(void*));
-// TODO: static_assert(sizeof(MOUNT_INFO) == ...);
 static_assert(sizeof(MOUNT_SOURCE_INITIALIZE_INFO) == 1 * 16 + 3 * sizeof(void*));
 static_assert(sizeof(MOUNT_INITIALIZE_INFO) == 4 * 4 + 3 * sizeof(void*));
+static_assert(sizeof(MOUNT_INFO) == sizeof(MOUNT_INITIALIZE_INFO));
 #endif
 
 
 #pragma pack(pop)
+
+
+typedef void(WINAPI *PMountCallback)(MOUNT_ID mountId, const MOUNT_INFO* mountInfo, int dokanMainResult) MFNOEXCEPT;
 
 
 #ifndef FROMPLUGIN
@@ -166,8 +178,8 @@ MFEXTERNC MFCIMPORT BOOL WINAPI GetSourcePlugins(DWORD* outNumPluginIds, PLUGIN_
 MFEXTERNC MFCIMPORT BOOL WINAPI SetSourcePluginOrder(const PLUGIN_ID* pluginIds, DWORD numPluginIds) MFNOEXCEPT;
 MFEXTERNC MFCIMPORT BOOL WINAPI GetSourcePluginInfo(PLUGIN_ID pluginId, PLUGIN_INFO_EX* pluginInfoEx) MFNOEXCEPT;
 MFEXTERNC MFCIMPORT BOOL WINAPI Mount(const MOUNT_INITIALIZE_INFO* mountInitializeInfo, PMountCallback callback, MOUNT_ID* outMountId) MFNOEXCEPT;
-MFEXTERNC MFCIMPORT BOOL WINAPI GetMounts(DWORD* outNum, PLUGIN_ID* outMountIds, DWORD maxMountIds) MFNOEXCEPT;
-MFEXTERNC MFCIMPORT BOOL WINAPI GetMountInfo(MOUNT_ID id, MOUNT_INFO* outMountInfo) MFNOEXCEPT;
+MFEXTERNC MFCIMPORT BOOL WINAPI GetMounts(DWORD* outNumMountIds, MOUNT_ID* outMountIds, DWORD maxMountIds) MFNOEXCEPT;
+MFEXTERNC MFCIMPORT BOOL WINAPI GetMountInfo(MOUNT_ID mountId, MOUNT_INFO* outMountInfo) MFNOEXCEPT;
 MFEXTERNC MFCIMPORT BOOL WINAPI SafeUnmount(MOUNT_ID mountId) MFNOEXCEPT;
 MFEXTERNC MFCIMPORT BOOL WINAPI Unmount(MOUNT_ID mountId) MFNOEXCEPT;
 MFEXTERNC MFCIMPORT BOOL WINAPI SafeUnmountAll() MFNOEXCEPT;

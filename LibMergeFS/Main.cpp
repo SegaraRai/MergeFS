@@ -153,12 +153,12 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI GetSourcePlugins(DWORD* outNum, PLUGIN_ID* outPluginIds, DWORD maxPluginIds) MFNOEXCEPT {
+  BOOL WINAPI GetSourcePlugins(DWORD* outNumPluginIds, PLUGIN_ID* outPluginIds, DWORD maxPluginIds) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
       const std::size_t count = gMountStore.CountSourcePlugins();
 
-      if (outNum) {
-        *outNum = static_cast<DWORD>(count);
+      if (outNumPluginIds) {
+        *outNumPluginIds = static_cast<DWORD>(count);
       }
 
       if (outPluginIds) {
@@ -244,7 +244,9 @@ namespace Exports {
         });
       }
 
-      const auto mountId = gMountStore.Mount(mountInitializeInfo->mountPoint, mountInitializeInfo->writable, mountInitializeInfo->metadataFileName, mountInitializeInfo->deferCopyEnabled, mountInitializeInfo->caseSensitive, sources, callback);
+      const auto mountId = gMountStore.Mount(mountInitializeInfo->mountPoint, mountInitializeInfo->writable, mountInitializeInfo->metadataFileName, mountInitializeInfo->deferCopyEnabled, mountInitializeInfo->caseSensitive, sources, [callback](MOUNT_ID mountId, const MOUNT_INFO& mountInfo, int dokanMainResult) {
+        callback(mountId, &mountInfo, dokanMainResult);
+      });
 
       if (outMountId) {
         *outMountId = mountId;
@@ -255,12 +257,12 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI GetMounts(DWORD* outNum, PLUGIN_ID* outMountIds, DWORD maxMountIds) MFNOEXCEPT {
+  BOOL WINAPI GetMounts(DWORD* outNumMountIds, MOUNT_ID* outMountIds, DWORD maxMountIds) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
       const std::size_t count = gMountStore.CountMounts();
 
-      if (outNum) {
-        *outNum = static_cast<DWORD>(count);
+      if (outNumMountIds) {
+        *outNumMountIds = static_cast<DWORD>(count);
       }
 
       if (outMountIds) {
@@ -281,9 +283,15 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI GetMountInfo(MOUNT_ID id, MOUNT_INFO* outMountInfo) MFNOEXCEPT {
-    return WrapExceptionV([=]() {
-      // TODO
+  BOOL WINAPI GetMountInfo(MOUNT_ID mountId, MOUNT_INFO* outMountInfo) MFNOEXCEPT {
+    return WrapException([=]() {
+      if (!gMountStore.HasMount(mountId)) {
+        return MERGEFS_ERROR_INVALID_MOUNT_ID;
+      }
+      if (outMountInfo) {
+        *outMountInfo = gMountStore.GetMountInfo(mountId);
+      }
+      return MERGEFS_ERROR_SUCCESS;
     });
   }
 

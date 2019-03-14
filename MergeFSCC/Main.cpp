@@ -23,6 +23,7 @@ using namespace std::literals;
 
 using CONFIG_ID = DWORD;
 
+
 IdGenerator<CONFIG_ID> gConfigIdGenerator(1);
 std::unordered_map<CONFIG_ID, std::deque<std::wstring>> gConfigMap;
 std::optional<CONFIG_ID> gCurrentConfigId;
@@ -204,7 +205,7 @@ int CommandMount(const std::deque<std::wstring>& args) {
     mountSources.data(),
   };
   MOUNT_ID mountId;
-  if (!Mount(&mountInitializeInfo, [](MOUNT_ID mountId, int dokanMainResult) noexcept -> void {
+  if (!Mount(&mountInitializeInfo, [](MOUNT_ID mountId, const MOUNT_INFO* mountInfo, int dokanMainResult) noexcept -> void {
     std::wcout << L"info: dokanMainResult = "sv << dokanMainResult << L" at mountId "sv << mountId << std::endl;
   }, &mountId)) {
     std::wcout << L"error: failed to mount"sv << std::endl;

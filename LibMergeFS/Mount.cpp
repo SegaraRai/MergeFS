@@ -312,6 +312,11 @@ Mount::~Mount() {
 }
 
 
+bool Mount::IsWritable() const {
+  return m_writable;
+}
+
+
 bool Mount::SafeUnmount() {
   if (!m_mounted) {
     return true;
