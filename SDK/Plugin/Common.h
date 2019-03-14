@@ -70,13 +70,14 @@ typedef struct {
 typedef struct {
   LPCWSTR FileName;
   BOOL CaseSensitive;
+  LPCSTR OptionsJSON;
 } PLUGIN_INITIALIZE_MOUNT_INFO;
 
 
 #ifdef FROMLIBMERGEFS
 static_assert(sizeof(PLUGIN_DOKANFUNCS) == 6 * sizeof(void*));
 static_assert(sizeof(PLUGIN_INITIALIZE_INFO) == 4 * 4 + sizeof(PLUGIN_DOKANFUNCS));
-static_assert(sizeof(PLUGIN_INITIALIZE_MOUNT_INFO) == 1 * 4 + 1 * sizeof(void*));
+static_assert(sizeof(PLUGIN_INITIALIZE_MOUNT_INFO) == 1 * 4 + 2 * sizeof(void*));
 #endif
 
 

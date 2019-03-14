@@ -240,6 +240,7 @@ namespace Exports {
         sources[i] = std::make_pair(pluginId, PLUGIN_INITIALIZE_MOUNT_INFO{
           mountSourceInitializeInfo.mountSource,
           mountInitializeInfo->caseSensitive,
+          mountSourceInitializeInfo.sourcePluginOptionsJSON,
         });
       }
 

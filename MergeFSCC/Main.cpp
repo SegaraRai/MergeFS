@@ -190,6 +190,7 @@ int CommandMount(const std::deque<std::wstring>& args) {
       config.at(i).c_str(),
       {},
       nullptr,
+      nullptr,
     };
   }
 

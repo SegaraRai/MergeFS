@@ -20,7 +20,7 @@
 
 
 #define MERGEFS_VERSION                         ((DWORD) 0x00000001)
-#define MERGEFS_PLUGIN_INTERFACE_VERSION        ((DWORD) 0x00000002)
+#define MERGEFS_PLUGIN_INTERFACE_VERSION        ((DWORD) 0x00000003)
 
 #define MERGEFS_PLUGIN_TYPE_SOURCE        ((DWORD) 1)
 
@@ -122,8 +122,9 @@ typedef struct {
 
 typedef struct {
   LPCWSTR mountSource;
-  GUID sourcePluginGUID;          // set {00000000-0000-0000-0000-000000000000} if unused
-  LPCWSTR sourcePluginFilename;   // set nullptr or "" if unused
+  GUID sourcePluginGUID;            // set {00000000-0000-0000-0000-000000000000} if unused
+  LPCWSTR sourcePluginFilename;     // set nullptr or L"" if unused
+  LPCSTR sourcePluginOptionsJSON;   // set nullptr or "" if unused
 } MOUNT_SOURCE_INITIALIZE_INFO;
 
 
@@ -142,7 +143,7 @@ typedef struct {
 static_assert(sizeof(PLUGIN_INFO) == 3 * 4 + 1 * 16 + 3 * sizeof(void*));
 static_assert(sizeof(PLUGIN_INFO_EX) == sizeof(PLUGIN_INFO) + 1 * sizeof(void*));
 // TODO: static_assert(sizeof(MOUNT_INFO) == ...);
-static_assert(sizeof(MOUNT_SOURCE_INITIALIZE_INFO) == 1 * 16 + 2 * sizeof(void*));
+static_assert(sizeof(MOUNT_SOURCE_INITIALIZE_INFO) == 1 * 16 + 3 * sizeof(void*));
 static_assert(sizeof(MOUNT_INITIALIZE_INFO) == 4 * 4 + 3 * sizeof(void*));
 #endif
 
