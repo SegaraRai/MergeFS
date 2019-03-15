@@ -237,7 +237,10 @@ bool MountStore::SafeUnmount(MOUNT_ID mountId) {
   if (!m_mountMap.count(mountId)) {
     return false;
   }
-  return m_mountMap.at(mountId).mount->SafeUnmount();
+  if (!m_mountMap.at(mountId).mount->SafeUnmount()) {
+    return false;
+  }
+  return Unmount(mountId);
 }
 
 
@@ -245,6 +248,7 @@ void MountStore::SafeUnmountAll() {
   for (auto& [mountId, mountData] : m_mountMap) {
     mountData.mount->SafeUnmount();
   }
+  UnmountAll();
 }
 
 
