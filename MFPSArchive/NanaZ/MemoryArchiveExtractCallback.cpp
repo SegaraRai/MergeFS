@@ -35,7 +35,7 @@ std::size_t MemoryArchiveExtractCallback::CalcMemorySize(const std::vector<UInt6
       }
     }
 
-    std::size_t memorySize = filesize + ExtraMemorySize;
+    std::size_t memorySize = static_cast<std::size_t>(filesize + ExtraMemorySize);
     if constexpr (MemoryAlignment > 1) {
       memorySize = (memorySize + MemoryAlignment - 1) / MemoryAlignment * MemoryAlignment;
     }
@@ -74,7 +74,7 @@ MemoryArchiveExtractCallback::MemoryArchiveExtractCallback(std::byte* storageBuf
   for (std::size_t i = 0; i < indexAndFilesizes.size(); i++) {
     const auto& [index, filesize] = indexAndFilesizes[i];
 
-    std::size_t memorySize = filesize + ExtraMemorySize;
+    std::size_t memorySize = static_cast<std::size_t>(filesize + ExtraMemorySize);
     if constexpr (MemoryAlignment > 1) {
       memorySize = (memorySize + MemoryAlignment - 1) / MemoryAlignment * MemoryAlignment;
     }
@@ -86,7 +86,7 @@ MemoryArchiveExtractCallback::MemoryArchiveExtractCallback(std::byte* storageBuf
         alignedMemorySize += MemoryAlignment;
         extraMemorySpaceForFirstTime = false;
       }
-      if (!std::align(MemoryAlignment, filesize, alignedFileDataBuffer, alignedMemorySize)) {
+      if (!std::align(MemoryAlignment, static_cast<std::size_t>(filesize), alignedFileDataBuffer, alignedMemorySize)) {
 #ifdef _DEBUG
         const std::wstring debugStr = L"no aligned memory space for "s + std::to_wstring(i) + L"; offset: "s + std::to_wstring(currentFileDataBuffer - storageBuffer) + L", filesize: "s + std::to_wstring(filesize) + L", memsize: "s + std::to_wstring(memorySize) + L"\n"s;
         OutputDebugStringW(debugStr.c_str());
@@ -173,7 +173,7 @@ STDMETHODIMP MemoryArchiveExtractCallback::SetOperationResult(Int32 opRes) {
   info.operationResult = opRes;
   UInt64 streamSize;
   info.outFixedMemoryStream->GetSize(&streamSize);
-  info.extractedSize = streamSize;
+  info.extractedSize = static_cast<std::size_t>(streamSize);
   return S_OK;
 }
 

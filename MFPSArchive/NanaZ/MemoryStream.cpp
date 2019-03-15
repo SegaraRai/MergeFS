@@ -77,7 +77,7 @@ STDMETHODIMP InMemoryStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64* newPo
   if (newPosition) {
     *newPosition = newOffset;
   }
-  seekOffset = newOffset;
+  seekOffset = static_cast<std::size_t>(newOffset);
   return S_OK;
 }
 
@@ -158,7 +158,7 @@ STDMETHODIMP OutFixedMemoryStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64*
   if (newPosition) {
     *newPosition = newOffset;
   }
-  seekOffset = newOffset;
+  seekOffset = static_cast<std::size_t>(newOffset);
   return S_OK;
 }
 
@@ -170,7 +170,7 @@ STDMETHODIMP OutFixedMemoryStream::SetSize(UInt64 newSize) {
   std::lock_guard lock(mutex);
   // TODO: zero fill?
   // TODO: set seekOffset?
-  dataSize = newSize;
+  dataSize = static_cast<std::size_t>(newSize);
   return S_OK;
 }
 

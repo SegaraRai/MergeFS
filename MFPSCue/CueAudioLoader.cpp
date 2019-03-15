@@ -45,15 +45,15 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory
   const auto baseDirectoryPath = GetParentPath(fullCueFilepath);
 
   mCueFileSource = std::make_shared<FileSource>(fullCueFilepath.c_str());
-  auto rawCueSheetData = std::make_unique<std::byte[]>(mCueFileSource->GetSize());
+  auto rawCueSheetData = std::make_unique<std::byte[]>(static_cast<std::size_t>(mCueFileSource->GetSize()));
   std::size_t readSize = 0;
-  if (mCueFileSource->Read(0, rawCueSheetData.get(), mCueFileSource->GetSize(), &readSize) != STATUS_SUCCESS) {
+  if (mCueFileSource->Read(0, rawCueSheetData.get(), static_cast<std::size_t>(mCueFileSource->GetSize()), &readSize) != STATUS_SUCCESS) {
     throw std::runtime_error(u8"failed to read cue file");
   }
   if (readSize != mCueFileSource->GetSize()) {
     throw std::runtime_error(u8"failed to read cue file");
   }
-  auto wCueSheetData = ConvertFileContentToWString(rawCueSheetData.get(), mCueFileSource->GetSize());
+  auto wCueSheetData = ConvertFileContentToWString(rawCueSheetData.get(), static_cast<std::size_t>(mCueFileSource->GetSize()));
   mCueSheet = CueSheet::ParseCueSheet(wCueSheetData);
   
   const std::wstring directoryPrefix = std::wstring(baseDirectoryPath) + L"\\"s;
