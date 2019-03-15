@@ -86,7 +86,7 @@ BEGIN
         BLOCK "000904b0"
         BEGIN
             VALUE "CompanyName", "MergeFS"
-            VALUE "FileDescription", "a LibMergeFS client with minimal GUI"
+            VALUE "FileDescription", "MergeFSMC : Minimal LibMergeFS Client"
             VALUE "FileVersion", "1.0.0.1"
             VALUE "InternalName", "MergeFSMC.exe"
             VALUE "LegalCopyright", "Copyright (C) 2019 SegaraRai"
