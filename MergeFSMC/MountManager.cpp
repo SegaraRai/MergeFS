@@ -64,6 +64,7 @@ void WINAPI MountManager::MountCallback(MOUNT_ID mountId, const MOUNT_INFO* ptrM
     auto& mountManager = GetInstance();
     MountData& mountData = mountManager.mMountDataMap.at(mountId);
     mountData.callback(mountId, dokanMainResult, mountData, *ptrMountInfo);
+    mountManager.mMountDataMap.erase(mountId);
   } catch (...) {}
 }
 
