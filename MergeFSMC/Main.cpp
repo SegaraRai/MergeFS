@@ -37,15 +37,14 @@ namespace {
   constexpr std::size_t PathBufferSize = 65600;
   constexpr std::size_t MenuPathLength = 32;
   constexpr auto ClassName = L"MergeFSMC.CLS";
-  constexpr auto MessageName = L"MergeFSMC.MSG";
   constexpr auto MutexName = L"MergeFSMC.MTX";
   constexpr auto WindowName = L"MergeFSMC.WND";
+  constexpr auto ReadyWindowName = L"MergeFSMC.WNDRDY";
   constexpr UINT NotifyIconId = 6;
   constexpr UINT ProcessQueueMessageId = WM_APP + 0x1001;
   constexpr UINT NotifyIconCallbackMessageId = WM_APP + 0x1002;
 
   std::mutex gMutex;
-  const auto gFindFirstInstanceMessageId = RegisterWindowMessageW(MessageName);
   std::list<std::vector<std::wstring>> gSecondInstanceArgsQueue;
   std::list<MountError> gMountErrorQueue;
   auto& gMountManager = MountManager::GetInstance();
@@ -74,12 +73,6 @@ namespace {
 
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-  if (uMsg == gFindFirstInstanceMessageId) {
-    // IPC
-    // because gFindFirstInstanceMessageId is not constexpr
-    return reinterpret_cast<LRESULT>(hwnd);
-  }
-
   switch (uMsg) {
     // IPC
     case WM_COPYDATA:
@@ -589,29 +582,38 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     return 1;
   }
 
+
   HWND hWnd = CreateWindowExW(0, ClassName, WindowName, WS_OVERLAPPED, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, HWND_MESSAGE, NULL, hInstance, NULL);
   if (hWnd == NULL) {
     const std::wstring message = L"Initialization error: CreateWindowExW failed with code "s + std::to_wstring(GetLastError());
     MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
     return 1;
   }
+
      
+  SetLastError(ERROR_SUCCESS);
   const auto hMutex = CreateMutexW(NULL, TRUE, MutexName);
   if (GetLastError() != ERROR_SUCCESS) {
     // second instance
 
     if (GetLastError() != ERROR_ALREADY_EXISTS) {
-      DestroyWindow(hWnd);
+      if (hMutex != NULL) {
+        ReleaseMutex(hMutex);
+      }
       const std::wstring message = L"Initialization error: CreateMutexW failed with code "s + std::to_wstring(GetLastError());
       MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+      DestroyWindow(hWnd);
       return 1;
     }
 
-    const auto hWndFirstInstance = reinterpret_cast<HWND>(SendMessageW(HWND_BROADCAST, gFindFirstInstanceMessageId, 0, 0));
-    if (GetLastError() != ERROR_SUCCESS) {
-      DestroyWindow(hWnd);
-      const std::wstring message = L"Initialization error: SendMessageW [1] failed with code "s + std::to_wstring(GetLastError());
+    const auto hWndFirstInstance = FindWindowExW(HWND_MESSAGE, NULL, ClassName, ReadyWindowName);
+    if (hWndFirstInstance == NULL) {
+      if (hMutex != NULL) {
+        ReleaseMutex(hMutex);
+      }
+      const std::wstring message = L"Initialization error: FindWindowExW failed with code "s + std::to_wstring(GetLastError());
       MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+      DestroyWindow(hWnd);
       return 1;
     }
 
@@ -622,23 +624,33 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
       static_cast<DWORD>(strArgsJson.size()),
       const_cast<PVOID>(reinterpret_cast<LPCVOID>(strArgsJson.c_str())),
     };
+    SetLastError(ERROR_SUCCESS);
     SendMessageW(hWndFirstInstance, WM_COPYDATA, reinterpret_cast<WPARAM>(hWnd), reinterpret_cast<LPARAM>(&copyDataStruct));
     if (GetLastError() != ERROR_SUCCESS) {
-      DestroyWindow(hWnd);
-      const std::wstring message = L"Initialization error: SendMessageW [2] failed with code "s + std::to_wstring(GetLastError());
+      if (hMutex != NULL) {
+        ReleaseMutex(hMutex);
+      }
+      const std::wstring message = L"Initialization error: SendMessageW failed with code "s + std::to_wstring(GetLastError());
       MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+      DestroyWindow(hWnd);
       return 1;
     }
 
+    if (hMutex != NULL) {
+      ReleaseMutex(hMutex);
+    }
     DestroyWindow(hWnd);
+
     return 0;
   }
+
 
   // process arguments
   gSecondInstanceArgsQueue.emplace_back(sourceFilepaths);
   if (!PostMessageW(hWnd, ProcessQueueMessageId, 0, 0)) {
     MessageBoxW(NULL, L"PostMessageW failed during initialization process; your mounts will not be activated for a while", L"MergeFSMC", MB_ICONWARNING | MB_OK);
   }
+
 
   // register notify icon
   const NOTIFYICONDATAW commonNotifyIconData{
@@ -665,9 +677,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     NOTIFYICONDATAW notifyIconData = commonNotifyIconData;
     if (!Shell_NotifyIconW(NIM_ADD, &notifyIconData)) {
       ReleaseMutex(hMutex);
-      DestroyWindow(hWnd);
       const std::wstring message = L"Initialization error: Shell_NotifyIconW [1] failed with code "s + std::to_wstring(GetLastError());
       MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+      DestroyWindow(hWnd);
       return 1;
     }
   }
@@ -676,12 +688,22 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     NOTIFYICONDATAW notifyIconData = commonNotifyIconData;
     if (!Shell_NotifyIconW(NIM_SETVERSION, &notifyIconData)) {
       ReleaseMutex(hMutex);
-      DestroyWindow(hWnd);
       const std::wstring message = L"Initialization error: Shell_NotifyIconW [2] failed with code "s + std::to_wstring(GetLastError());
       MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+      DestroyWindow(hWnd);
       return 1;
     }
   }
+
+
+  if (!SetWindowTextW(hWnd, ReadyWindowName)) {
+    ReleaseMutex(hMutex);
+    const std::wstring message = L"Initialization error: SetWindowTextW failed with code "s + std::to_wstring(GetLastError());
+    MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+    DestroyWindow(hWnd);
+    return 1;
+  }
+
 
   // message loop
   MSG msg;
@@ -695,15 +717,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     DispatchMessageW(&msg);
   }
 
+
   // remove notify icon
   {
     NOTIFYICONDATAW notifyIconData = commonNotifyIconData;
     Shell_NotifyIconW(NIM_DELETE, &notifyIconData);
   }
 
+
   ReleaseMutex(hMutex);
 
   gMountManager.UnmountAll(true);
+
 
   if (gmResult == -1) {
     //return 1;
