@@ -9,6 +9,7 @@
 #include "GUIDUtil.hpp"
 
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -16,7 +17,7 @@
 
 
 class PluginBase {
-  static std::unordered_set<GUID, GUIDHash> gPluginGuidSet;
+  static std::shared_ptr<std::unordered_set<GUID, GUIDHash>> gPtrPluginGuidSet;
 
   class DLL {
     const HMODULE hModule;
@@ -62,6 +63,9 @@ public:
 
     operator PluginBase::PLUGIN_INITCODE() const noexcept;
   };
+
+private:
+  std::shared_ptr<std::unordered_set<GUID, GUIDHash>> ptrPluginGuidSet;
 
 public:
   const std::wstring pluginFilePath;

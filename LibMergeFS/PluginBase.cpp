@@ -1,5 +1,6 @@
 #include "PluginBase.hpp"
 
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -8,7 +9,7 @@ using namespace std::literals;
 
 
 
-std::unordered_set<GUID, GUIDHash> PluginBase::gPluginGuidSet{};
+std::shared_ptr<std::unordered_set<GUID, GUIDHash>> PluginBase::gPtrPluginGuidSet = std::make_shared<std::unordered_set<GUID, GUIDHash>>();
 
 
 
@@ -85,6 +86,7 @@ PluginBase::PluginInitError::operator PluginBase::PLUGIN_INITCODE() const noexce
 
 
 PluginBase::PluginBase(std::wstring_view pluginFilePath, PLUGIN_TYPE pluginType) :
+  ptrPluginGuidSet(gPtrPluginGuidSet),
   pluginFilePath(pluginFilePath),
   pluginType(pluginType),
   initializeInfo({
@@ -106,7 +108,7 @@ PluginBase::PluginBase(std::wstring_view pluginFilePath, PLUGIN_TYPE pluginType)
   SInitialize(dll.GetProc<PSInitialize>(u8"SInitialize")),
   pluginInfo(*SGetPluginInfo())
 {
-  if (gPluginGuidSet.count(pluginInfo.guid)) {
+  if (gPtrPluginGuidSet->count(pluginInfo.guid)) {
     throw PluginInitError(PLUGIN_INITCODE::AlreadyExists);
   }
   if (pluginInfo.pluginType != pluginType) {
@@ -114,7 +116,7 @@ PluginBase::PluginBase(std::wstring_view pluginFilePath, PLUGIN_TYPE pluginType)
   }
   try {
     try {
-      gPluginGuidSet.emplace(pluginInfo.guid);
+      gPtrPluginGuidSet->emplace(pluginInfo.guid);
     } catch (...) {
       throw PluginInitError(PLUGIN_INITCODE::AllocationFailed);
     }
@@ -122,12 +124,12 @@ PluginBase::PluginBase(std::wstring_view pluginFilePath, PLUGIN_TYPE pluginType)
       throw PluginInitError(ret);
     }
   } catch (...) {
-    gPluginGuidSet.erase(pluginInfo.guid);
+    gPtrPluginGuidSet->erase(pluginInfo.guid);
     throw;
   }
 }
 
 
 PluginBase::~PluginBase() {
-  gPluginGuidSet.erase(pluginInfo.guid);
+  gPtrPluginGuidSet->erase(pluginInfo.guid);
 }
