@@ -417,18 +417,18 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
                 const UINT baseId = IDMB_CTX_MOUNT_BEGIN + IDMK_CTX_MOUNT_COEF * mountId;
 
-                constexpr std::array<std::pair<UINT, UINT>, 3> IndexToIdMap{{
-                  {0, IDMB_CTX_MOUNT_OPEN},
-                  {1, IDMB_CTX_MOUNT_OPENCONFIG},
-                  {3, IDMB_CTX_MOUNT_UNMOUNT},
+                constexpr std::array<std::pair<UINT, UINT>, 3> IdToIdDiffMap{{
+                  {IDM_DUMMY_CTX_MOUNT_OPEN,        IDMB_CTX_MOUNT_OPEN},
+                  {IDM_DUMMY_CTX_MOUNT_OPENCONFIG,  IDMB_CTX_MOUNT_OPENCONFIG},
+                  {IDM_DUMMY_CTX_MOUNT_UNMOUNT,     IDMB_CTX_MOUNT_UNMOUNT},
                 }};
-                for (const auto& [index, id] : IndexToIdMap) {
+                for (const auto& [originalId, idDiff] : IdToIdDiffMap) {
                   const MENUITEMINFOW menuItemInfo{
                     sizeof(menuItemInfo),
                     MIIM_ID,
                     MFT_STRING,
                     MFS_ENABLED,
-                    baseId + id,
+                    baseId + idDiff,
                     NULL,
                     NULL,
                     NULL,
@@ -437,7 +437,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     0,
                     NULL,
                   };
-                  SetMenuItemInfoW(hMountSubMenu, static_cast<DWORD>(index), TRUE, &menuItemInfo);
+                  SetMenuItemInfoW(hMountSubMenu, originalId, FALSE, &menuItemInfo);
                 }
 
                 wchar_t menuString[MenuPathLength];
@@ -457,7 +457,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                   0,
                   NULL,
                 };
-                InsertMenuItemW(hMountsMenu, static_cast<DWORD>(i), TRUE, &menuItemInfo);
+                InsertMenuItemW(hMountsMenu, static_cast<UINT>(i), TRUE, &menuItemInfo);
               }
             }
 
@@ -487,7 +487,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                   0,
                   NULL,
                 };
-                InsertMenuItemW(hPluginsMenu, static_cast<DWORD>(i), TRUE, &menuItemInfo);
+                InsertMenuItemW(hPluginsMenu, static_cast<UINT>(i), TRUE, &menuItemInfo);
               }
             }
 
