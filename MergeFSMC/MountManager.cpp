@@ -15,6 +15,7 @@ using namespace std::literals;
 using json = nlohmann::json;
 
 
+
 namespace {
 #if defined(_M_X64)
   const auto gFilterSuffix = L"\\MFP*_x64.dll"s;

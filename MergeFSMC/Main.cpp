@@ -597,7 +597,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   }
      
   const auto hMutex = CreateMutexW(NULL, TRUE, MutexName);
-  if (hMutex == NULL) {
+  if (GetLastError() != ERROR_SUCCESS) {
     // second instance
 
     if (GetLastError() != ERROR_ALREADY_EXISTS) {
@@ -619,7 +619,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     const auto strArgsJson = argsJson.dump();
     COPYDATASTRUCT copyDataStruct{
       static_cast<ULONG_PTR>(CopyDataMessageId::SecondInstanceLaunched),
-      strArgsJson.size(),
+      static_cast<DWORD>(strArgsJson.size()),
       const_cast<PVOID>(reinterpret_cast<LPCVOID>(strArgsJson.c_str())),
     };
     SendMessageW(hWndFirstInstance, WM_COPYDATA, reinterpret_cast<WPARAM>(hWnd), reinterpret_cast<LPARAM>(&copyDataStruct));
@@ -710,5 +710,5 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     return 0;
   }
 
-  return msg.message == WM_QUIT ? msg.wParam : 0;
+  return msg.message == WM_QUIT ? static_cast<int>(msg.wParam) : 0;
 }
