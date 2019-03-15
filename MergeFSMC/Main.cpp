@@ -1,7 +1,10 @@
+#include "../dokan/dokan/dokan.h"
+
 #include <yaml-cpp/yaml.h>
 #include <nlohmann/json.hpp>
 
 #include <array>
+#include <atomic>
 #include <cassert>
 #include <cstddef>
 #include <list>
@@ -45,6 +48,7 @@ namespace {
   constexpr UINT NotifyIconCallbackMessageId = WM_APP + 0x1002;
 
   std::mutex gMutex;
+  std::atomic<bool> gUnmountAll = false;
   std::list<std::vector<std::wstring>> gSecondInstanceArgsQueue;
   std::list<MountError> gMountErrorQueue;
   auto& gMountManager = MountManager::GetInstance();
@@ -68,6 +72,30 @@ namespace {
       buffer[--size2] = L'\0';
     }
     return std::wstring(buffer.get(), size2);
+  }
+
+
+  enum class SystemSound {
+    DeviceConnect,
+    DeviceDisconnect,
+  };
+
+  void PlaySystemSound(SystemSound systemSound) {
+    LPCWSTR soundName = nullptr;
+    switch (systemSound) {
+      case SystemSound::DeviceConnect:
+        soundName = L"DeviceConnect";
+        break;
+
+      case SystemSound::DeviceDisconnect:
+        soundName = L"DeviceDisconnect";
+        break;
+    }
+    assert(soundName != nullptr);
+    if (!soundName) {
+      return;
+    }
+    PlaySoundW(soundName, NULL, SND_ALIAS | SND_NODEFAULT | SND_SYNC);
   }
 }
 
@@ -102,25 +130,31 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     // internal
     case ProcessQueueMessageId:
     {
+      bool mounted = false;
+
       for (const auto& args : gSecondInstanceArgsQueue) {
         if (args.empty()) {
           continue;
         }
+
         for (std::size_t i = 1; i < args.size(); i++) {
           // skip first argument because it is a filename of executable
           const auto& arg = args[i];
 
           try {
             gMountManager.AddMount(arg, [arg](MOUNT_ID mountId, int dokanMainResult, const MountManager::MountData& mountData, const MOUNT_INFO& mountInfo) -> void {
-              if (dokanMainResult != 0) {
+              if (dokanMainResult != DOKAN_SUCCESS) {
                 std::lock_guard lock(gMutex);
                 gMountErrorQueue.emplace_back(MountError{
                   arg,
                   mountInfo.mountPoint,
                   L"DokanMain returned code "s + std::to_wstring(dokanMainResult),
                 });
+              } else if (!gUnmountAll) {
+                PlaySystemSound(SystemSound::DeviceDisconnect);
               }
             });
+            mounted = true;
           } catch (const MountManager::MountError& mountError) {
             std::lock_guard lock(gMutex);
             gMountErrorQueue.emplace_back(MountError{
@@ -146,6 +180,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         }
       }
       gSecondInstanceArgsQueue.clear();
+
+      if (mounted) {
+        PlaySystemSound(SystemSound::DeviceConnect);
+      }
 
       {
         std::unique_lock lock(gMutex);
@@ -322,7 +360,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         }
 
         case IDM_CTX_MOUNTS_UNMOUNTALL:
-          gMountManager.UnmountAll(true);
+          if (gMountManager.CountMounts()) {
+            gUnmountAll = true;
+            gMountManager.UnmountAll(true);
+            gUnmountAll = false;
+            PlaySystemSound(SystemSound::DeviceDisconnect);
+          }
           return 0;
 
         case IDM_CTX_PLUGINS_OPENDIR:
@@ -518,8 +561,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
       return 0;
 
     case WM_DESTROY:
+      if (gMountManager.CountMounts()) {
+        PlaySystemSound(SystemSound::DeviceDisconnect);
+      }
+      gUnmountAll = true;
       gMountManager.UnmountAll(true);
+      gUnmountAll = false;
+
       PostQuitMessage(0);
+
       return 0;
   }
 
@@ -727,7 +777,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
   ReleaseMutex(hMutex);
 
+  if (gMountManager.CountMounts()) {
+    PlaySystemSound(SystemSound::DeviceDisconnect);
+  }
+  gUnmountAll = true;
   gMountManager.UnmountAll(true);
+  gUnmountAll = false;
 
 
   if (gmResult == -1) {
