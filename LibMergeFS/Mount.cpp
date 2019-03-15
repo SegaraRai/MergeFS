@@ -282,10 +282,8 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
     m_mounted = true;
     const auto ret = DokanMain(&config, &operations);
     m_mounted = false;
-    if (ret != DOKAN_SUCCESS) {
-      if (callback) {
-        callback(ret);
-      }
+    if (callback) {
+      callback(ret);
     }
   })
 {}
