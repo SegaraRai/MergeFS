@@ -5,3 +5,6 @@
 [submodule "MFPSCue/Vendor/flac"]
 	path = MFPSCue/Vendor/flac
 	url = https://github.com/xiph/flac.git
+[submodule "MergeFSMC/Vendor/yaml-cpp"]
+	path = MergeFSMC/Vendor/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git
