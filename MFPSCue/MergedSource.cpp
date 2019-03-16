@@ -38,7 +38,7 @@ NTSTATUS MergedSource::Read(SourceOffset offset, std::byte* buffer, std::size_t 
     return STATUS_SUCCESS;
   }
   if (offset + size > mTotalSourceSize) {
-    size = mTotalSourceSize - offset;
+    size = static_cast<std::size_t>(mTotalSourceSize - offset);
   }
   if (!size) {
     if (readSize) {
@@ -59,7 +59,7 @@ NTSTATUS MergedSource::Read(SourceOffset offset, std::byte* buffer, std::size_t 
     auto& currentSource = *mSources[sourceIndex];
 
     SourceOffset currentOffset = offset + tempReadSize - mSourceOffsets[sourceIndex];
-    std::size_t sizeToRead = std::min<SourceSize>(size - tempReadSize, mSourceSizes[sourceIndex] - currentOffset);
+    const std::size_t sizeToRead = static_cast<std::size_t>(std::min<SourceSize>(size - tempReadSize, mSourceSizes[sourceIndex] - currentOffset));
     std::size_t currentReadSize = 0;
     if (const auto status = currentSource.Read(currentOffset, buffer + tempReadSize, sizeToRead, &currentReadSize);  status != STATUS_SUCCESS) {
       return status;

@@ -12,12 +12,12 @@
 OnMemorySourceWrapper::OnMemorySourceWrapper(std::shared_ptr<Source> source) :
   mSize(source->GetSize())
 {
-  auto upData = std::make_unique<std::byte[]>(mSize);
+  auto upData = std::make_unique<std::byte[]>(static_cast<std::size_t>(mSize));
   std::size_t readSize = 0;
-  if (source->Read(0, upData.get(), mSize, &readSize) != STATUS_SUCCESS || readSize != mSize) {
+  if (source->Read(0, upData.get(), static_cast<std::size_t>(mSize), &readSize) != STATUS_SUCCESS || readSize != mSize) {
     throw std::runtime_error("failed to read from source");
   }
-  mMemorySource = std::make_shared<MemorySource>(std::move(upData), mSize);
+  mMemorySource = std::make_shared<MemorySource>(std::move(upData), static_cast<std::size_t>(mSize));
 }
 
 

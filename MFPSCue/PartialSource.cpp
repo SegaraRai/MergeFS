@@ -1,5 +1,6 @@
 #include <dokan/dokan.h>
 
+#include <cstddef>
 #include <memory>
 #include <stdexcept>
 
@@ -37,7 +38,7 @@ NTSTATUS PartialSource::Read(SourceOffset offset, std::byte* buffer, std::size_t
     return STATUS_SUCCESS;
   }
   if (offset + size > mSize) {
-    size = mSize - offset;
+    size = static_cast<std::size_t>(mSize - offset);
   }
   if (!size) {
     if (readSize) {

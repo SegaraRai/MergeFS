@@ -36,7 +36,7 @@ NTSTATUS MemorySource::Read(SourceOffset offset, std::byte* buffer, std::size_t 
     return STATUS_SUCCESS;
   }
   if (offset + size > mSize) {
-    size = mSize - offset;
+    size = static_cast<std::size_t>(mSize - offset);
   }
   if (buffer && size) {
     std::memcpy(buffer, mData.get() + offset, size);

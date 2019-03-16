@@ -207,9 +207,9 @@ namespace {
     const auto currentFirstSampleForBuffer = currentByteOffset / Alignment;
     const auto copyStartSampleOffset = currentFirstSampleForBuffer - firstSampleIndex;
     const auto copySize = std::min(lastSampleIndex * Alignment - currentByteOffset, requestedByteEnd - currentByteOffset);
-    CopyAudioData(destinationBuffer, copySize, currentByteOffset % Alignment, sourceBuffer[0] + copyStartSampleOffset, sourceBuffer[1] + copyStartSampleOffset);
+    CopyAudioData(destinationBuffer, static_cast<std::size_t>(copySize), currentByteOffset % Alignment, sourceBuffer[0] + copyStartSampleOffset, sourceBuffer[1] + copyStartSampleOffset);
 
-    return copySize;
+    return static_cast<std::size_t>(copySize);
   }
 }
 
@@ -442,7 +442,7 @@ NTSTATUS SourceToAudioSourceFLAC::Read(SourceOffset offset, std::byte* buffer, s
   };
 
   if (readSize) {
-    *readSize = currentByteOffset - offset;
+    *readSize = static_cast<std::size_t>(currentByteOffset - offset);
   }
 
   return STATUS_SUCCESS;
