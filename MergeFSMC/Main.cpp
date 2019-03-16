@@ -45,8 +45,9 @@ namespace {
   constexpr auto WindowName = L"MergeFSMC.WND";
   constexpr auto ReadyWindowName = L"MergeFSMC.WNDRDY";
   constexpr UINT NotifyIconId = 6;
-  constexpr UINT ProcessQueueMessageId = WM_APP + 0x1001;
-  constexpr UINT NotifyIconCallbackMessageId = WM_APP + 0x1002;
+  constexpr UINT ProcessArgQueueMessageId = WM_APP + 0x1101;
+  constexpr UINT ProcessErrorQueueMessageId = WM_APP + 0x1102;
+  constexpr UINT NotifyIconCallbackMessageId = WM_APP + 0x2101;
 
   std::mutex gMutex;
   std::atomic<bool> gUnmountAll = false;
@@ -119,7 +120,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             }
 
             gSecondInstanceArgsQueue.emplace_back(args);
-            PostMessageW(hwnd, ProcessQueueMessageId, 0, 0);
+            PostMessageW(hwnd, ProcessArgQueueMessageId, 0, 0);
 
             return TRUE;
           } catch (...) {}
@@ -129,7 +130,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     }
 
     // internal
-    case ProcessQueueMessageId:
+    case ProcessArgQueueMessageId:
     {
       bool mounted = false;
 
@@ -152,7 +153,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                   L"DokanMain returned code "s + std::to_wstring(dokanMainResult),
                   true,
                 });
-                PostMessageW(hwnd, ProcessQueueMessageId, 0, 0);
+                PostMessageW(hwnd, ProcessErrorQueueMessageId, 0, 0);
               } else if (!gUnmountAll) {
                 PlaySystemSound(SystemSound::DeviceDisconnect);
               }
@@ -191,28 +192,33 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         PlaySystemSound(SystemSound::DeviceConnect);
       }
 
-      {
-        std::unique_lock lock(gMutex);
-        std::vector<MountError> mountErrorQueueCopy(gMountErrorQueue.cbegin(), gMountErrorQueue.cend());
-        gMountErrorQueue.clear();
-        lock.unlock();
+      PostMessageW(hwnd, ProcessErrorQueueMessageId, 0, 0);
 
-        const bool playDeviceDisconnectSound = std::any_of(mountErrorQueueCopy.cbegin(), mountErrorQueueCopy.cend(), [](const MountError& mountError) {
-          return mountError.fromCallback;
-        });
+      return TRUE;
+    }
 
-        if (playDeviceDisconnectSound) {
-          PlaySystemSound(SystemSound::DeviceDisconnect);
+    case ProcessErrorQueueMessageId:
+    {
+      std::unique_lock lock(gMutex);
+      std::vector<MountError> mountErrorQueueCopy(gMountErrorQueue.cbegin(), gMountErrorQueue.cend());
+      gMountErrorQueue.clear();
+      lock.unlock();
+
+      const bool playDeviceDisconnectSound = std::any_of(mountErrorQueueCopy.cbegin(), mountErrorQueueCopy.cend(), [](const MountError& mountError) {
+        return mountError.fromCallback;
+      });
+
+      if (playDeviceDisconnectSound) {
+        PlaySystemSound(SystemSound::DeviceDisconnect);
+      }
+
+      for (const auto& mountError : mountErrorQueueCopy) {
+        std::wstring message = L"Failed to mount \""s + mountError.configFilepath + L"\""s;
+        if (!mountError.mountPoint.empty()) {
+          message += L" into \""s + mountError.mountPoint + L"\\"s;
         }
-
-        for (const auto& mountError : mountErrorQueueCopy) {
-          std::wstring message = L"Failed to mount \""s + mountError.configFilepath + L"\""s;
-          if (!mountError.mountPoint.empty()) {
-            message += L" into \""s + mountError.mountPoint + L"\\"s;
-          }
-          message += L":\n  "s + mountError.reason;
-          MessageBoxW(NULL, message.c_str(), L"MergeFSMC Mount Error", MB_ICONERROR | MB_OK);
-        }
+        message += L":\n  "s + mountError.reason;
+        MessageBoxW(NULL, message.c_str(), L"MergeFSMC Mount Error", MB_ICONERROR | MB_OK);
       }
 
       return TRUE;
@@ -369,7 +375,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
           };
           if (GetOpenFileNameW(&openFilename)) {
             gSecondInstanceArgsQueue.emplace_back(std::vector<std::wstring>{L""s, sStrFile});
-            PostMessageW(hwnd, ProcessQueueMessageId, 0, 0);
+            PostMessageW(hwnd, ProcessArgQueueMessageId, 0, 0);
           }
           return 0;
         }
@@ -713,7 +719,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
   // process arguments
   gSecondInstanceArgsQueue.emplace_back(sourceFilepaths);
-  if (!PostMessageW(hWnd, ProcessQueueMessageId, 0, 0)) {
+  if (!PostMessageW(hWnd, ProcessArgQueueMessageId, 0, 0)) {
     MessageBoxW(NULL, L"PostMessageW failed during initialization process; your mounts will not be activated for a while", L"MergeFSMC", MB_ICONWARNING | MB_OK);
   }
 
