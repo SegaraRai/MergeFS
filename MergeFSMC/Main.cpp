@@ -218,7 +218,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
           message += L" into \""s + mountError.mountPoint + L"\\"s;
         }
         message += L":\n  "s + mountError.reason;
-        MessageBoxW(NULL, message.c_str(), L"MergeFSMC Mount Error", MB_ICONERROR | MB_OK);
+        MessageBoxW(NULL, message.c_str(), L"MergeFSMC Mount Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND | MB_SYSTEMMODAL);
       }
 
       return TRUE;
@@ -295,11 +295,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
               return 0;
           }
         } catch (const MountManager::MergeFSError& mergefsError) {
-          MessageBoxW(NULL, mergefsError.errorMessage.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+          MessageBoxW(NULL, mergefsError.errorMessage.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
         } catch (const std::exception& exception) {
-          MessageBoxW(NULL, LocaleStringtoWString(exception.what()).c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+          MessageBoxW(NULL, LocaleStringtoWString(exception.what()).c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
         } catch (...) {
-          MessageBoxW(NULL, L"an unknown error occurred", L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+          MessageBoxW(NULL, L"an unknown error occurred", L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
         }
         break;
       }
@@ -324,17 +324,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 pluginBasename + L"\n"s +
                 pluginInfo.pluginInfo.name + L" ver. " + pluginInfo.pluginInfo.versionString + L" ("s + std::to_wstring(pluginInfo.pluginInfo.version) + L")\n"s +
                 pluginInfo.pluginInfo.description;
-              MessageBoxW(NULL, message.c_str(), L"MergeFSMC Source Plugin", MB_ICONINFORMATION | MB_OK);
+              MessageBoxW(NULL, message.c_str(), L"MergeFSMC Source Plugin", MB_OK | MB_ICONINFORMATION | MB_SETFOREGROUND);
 
               return 0;
             }
           }
         } catch (const MountManager::MergeFSError& mergefsError) {
-          MessageBoxW(NULL, mergefsError.errorMessage.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+          MessageBoxW(NULL, mergefsError.errorMessage.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
         } catch (const std::exception& exception) {
-          MessageBoxW(NULL, LocaleStringtoWString(exception.what()).c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+          MessageBoxW(NULL, LocaleStringtoWString(exception.what()).c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
         } catch (...) {
-          MessageBoxW(NULL, L"an unknown error occurred", L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+          MessageBoxW(NULL, L"an unknown error occurred", L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
         }
         break;
       }
@@ -577,7 +577,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
     // on exit
     case WM_CLOSE:
-      if (gMountManager.CountMounts() == 0 || MessageBoxW(NULL, L"Are you sure you want to exit MergeFSMC?\nAll mounts will be unmounted.", L"MergeFSMC", MB_ICONQUESTION | MB_OKCANCEL) == IDOK) {
+      if (gMountManager.CountMounts() == 0 || MessageBoxW(NULL, L"Are you sure you want to exit MergeFSMC?\nAll mounts will be unmounted.", L"MergeFSMC", MB_OKCANCEL | MB_ICONQUESTION | MB_SETFOREGROUND | MB_TASKMODAL) == IDOK) {
         DestroyWindow(hwnd);
       }
       return 0;
@@ -616,7 +616,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     GetModuleFileNameW(hInstance, buffer, PathBufferSize);
     if (GetLastError() != ERROR_SUCCESS) {
       const std::wstring message = L"Initialization error: GetModuleFileNameW failed with code "s + std::to_wstring(GetLastError());
-      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
       return 1;
     }
 
@@ -629,7 +629,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   const auto hIcon = LoadIconW(hInstance, MAKEINTRESOURCEW(IDI_ICON1));
   if (hIcon == NULL) {
     const std::wstring message = L"Initialization error: LoadIconW failed with code "s + std::to_wstring(GetLastError());
-    MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+    MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
     return 1;
   }
 
@@ -650,7 +650,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   };
   if (!RegisterClassExW(&wndClassExW)) {
     const std::wstring message = L"Initialization error: RegisterClassExW failed with code "s + std::to_wstring(GetLastError());
-    MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+    MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
     return 1;
   }
 
@@ -658,7 +658,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   HWND hWnd = CreateWindowExW(0, ClassName, WindowName, WS_OVERLAPPED, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, HWND_MESSAGE, NULL, hInstance, NULL);
   if (hWnd == NULL) {
     const std::wstring message = L"Initialization error: CreateWindowExW failed with code "s + std::to_wstring(GetLastError());
-    MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+    MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
     return 1;
   }
 
@@ -673,7 +673,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         ReleaseMutex(hMutex);
       }
       const std::wstring message = L"Initialization error: CreateMutexW failed with code "s + std::to_wstring(GetLastError());
-      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
       DestroyWindow(hWnd);
       return 1;
     }
@@ -684,7 +684,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         ReleaseMutex(hMutex);
       }
       const std::wstring message = L"Initialization error: FindWindowExW failed with code "s + std::to_wstring(GetLastError());
-      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
       DestroyWindow(hWnd);
       return 1;
     }
@@ -703,7 +703,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
         ReleaseMutex(hMutex);
       }
       const std::wstring message = L"Initialization error: SendMessageW failed with code "s + std::to_wstring(GetLastError());
-      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
       DestroyWindow(hWnd);
       return 1;
     }
@@ -720,7 +720,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   // process arguments
   gSecondInstanceArgsQueue.emplace_back(sourceFilepaths);
   if (!PostMessageW(hWnd, ProcessArgQueueMessageId, 0, 0)) {
-    MessageBoxW(NULL, L"PostMessageW failed during initialization process; your mounts will not be activated for a while", L"MergeFSMC", MB_ICONWARNING | MB_OK);
+    MessageBoxW(NULL, L"PostMessageW failed during initialization process; your mounts will not be activated for a while", L"MergeFSMC", MB_OK | MB_ICONWARNING | MB_SETFOREGROUND);
   }
 
 
@@ -750,7 +750,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     if (!Shell_NotifyIconW(NIM_ADD, &notifyIconData)) {
       ReleaseMutex(hMutex);
       const std::wstring message = L"Initialization error: Shell_NotifyIconW [1] failed with code "s + std::to_wstring(GetLastError());
-      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
       DestroyWindow(hWnd);
       return 1;
     }
@@ -761,7 +761,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     if (!Shell_NotifyIconW(NIM_SETVERSION, &notifyIconData)) {
       ReleaseMutex(hMutex);
       const std::wstring message = L"Initialization error: Shell_NotifyIconW [2] failed with code "s + std::to_wstring(GetLastError());
-      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
       DestroyWindow(hWnd);
       return 1;
     }
@@ -771,7 +771,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   if (!SetWindowTextW(hWnd, ReadyWindowName)) {
     ReleaseMutex(hMutex);
     const std::wstring message = L"Initialization error: SetWindowTextW failed with code "s + std::to_wstring(GetLastError());
-    MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_ICONERROR | MB_OK);
+    MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
     DestroyWindow(hWnd);
     return 1;
   }
