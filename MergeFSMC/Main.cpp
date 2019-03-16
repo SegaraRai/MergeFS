@@ -31,6 +31,7 @@ namespace {
     std::wstring configFilepath;
     std::wstring mountPoint;
     std::wstring reason;
+    bool fromCallback;
   };
 
   enum class CopyDataMessageId : ULONG_PTR {
@@ -149,6 +150,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                   arg,
                   mountInfo.mountPoint,
                   L"DokanMain returned code "s + std::to_wstring(dokanMainResult),
+                  true,
                 });
               } else if (!gUnmountAll) {
                 PlaySystemSound(SystemSound::DeviceDisconnect);
@@ -161,6 +163,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
               arg,
               mountError.mountPoint,
               mountError.errorMessage,
+              false,
             });
           } catch (const std::exception& exception) {
             std::lock_guard lock(gMutex);
@@ -168,6 +171,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
               arg,
               L""s,
               LocaleStringtoWString(exception.what()),
+              false,
             });
           } catch (...) {
             std::lock_guard lock(gMutex);
@@ -175,6 +179,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
               arg,
               L""s,
               L"an unknown error occurred"s,
+              false,
             });
           }
         }
@@ -190,6 +195,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         std::vector<MountError> mountErrorQueueCopy(gMountErrorQueue.cbegin(), gMountErrorQueue.cend());
         gMountErrorQueue.clear();
         lock.unlock();
+
+        const bool playDeviceDisconnectSound = std::any_of(mountErrorQueueCopy.cbegin(), mountErrorQueueCopy.cend(), [](const MountError& mountError) {
+          return mountError.fromCallback;
+        });
+
+        if (playDeviceDisconnectSound) {
+          PlaySystemSound(SystemSound::DeviceDisconnect);
+        }
 
         for (const auto& mountError : mountErrorQueueCopy) {
           std::wstring message = L"Failed to mount \""s + mountError.configFilepath + L"\""s;
