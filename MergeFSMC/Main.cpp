@@ -143,7 +143,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
           const auto& arg = args[i];
 
           try {
-            gMountManager.AddMount(arg, [arg](MOUNT_ID mountId, int dokanMainResult, const MountManager::MountData& mountData, const MOUNT_INFO& mountInfo) -> void {
+            gMountManager.AddMount(arg, [hwnd, arg](MOUNT_ID mountId, int dokanMainResult, const MountManager::MountData& mountData, const MOUNT_INFO& mountInfo) -> void {
               if (dokanMainResult != DOKAN_SUCCESS) {
                 std::lock_guard lock(gMutex);
                 gMountErrorQueue.emplace_back(MountError{
@@ -152,6 +152,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                   L"DokanMain returned code "s + std::to_wstring(dokanMainResult),
                   true,
                 });
+                PostMessageW(hwnd, ProcessQueueMessageId, 0, 0);
               } else if (!gUnmountAll) {
                 PlaySystemSound(SystemSound::DeviceDisconnect);
               }
