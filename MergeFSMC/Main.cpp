@@ -50,6 +50,7 @@ namespace {
   constexpr UINT NotifyIconCallbackMessageId = WM_APP + 0x2101;
 
   std::mutex gMutex;
+  std::atomic<bool> gDisableUserControls = false;
   std::atomic<bool> gUnmountAll = false;
   std::list<std::vector<std::wstring>> gSecondInstanceArgsQueue;
   std::list<MountError> gMountErrorQueue;
@@ -324,7 +325,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 pluginBasename + L"\n"s +
                 pluginInfo.pluginInfo.name + L" ver. " + pluginInfo.pluginInfo.versionString + L" ("s + std::to_wstring(pluginInfo.pluginInfo.version) + L")\n"s +
                 pluginInfo.pluginInfo.description;
-              MessageBoxW(NULL, message.c_str(), L"MergeFSMC Source Plugin", MB_OK | MB_ICONINFORMATION | MB_SETFOREGROUND);
+
+              gDisableUserControls = true;
+              MessageBoxW(NULL, message.c_str(), L"MergeFSMC Source Plugin", MB_OK | MB_ICONINFORMATION | MB_SETFOREGROUND | MB_TASKMODAL);
+              gDisableUserControls = false;
 
               return 0;
             }
@@ -419,6 +423,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     // notify icon
     case NotifyIconCallbackMessageId:
     {
+      if (gDisableUserControls) {
+        break;
+      }
+
       if (HIWORD(lParam) != NotifyIconId) {
         break;
       }
@@ -577,10 +585,29 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
     // on exit
     case WM_CLOSE:
-      if (gMountManager.CountMounts() == 0 || MessageBoxW(NULL, L"Are you sure you want to exit MergeFSMC?\nAll mounts will be unmounted.", L"MergeFSMC", MB_OKCANCEL | MB_ICONQUESTION | MB_SETFOREGROUND | MB_TASKMODAL) == IDOK) {
+    {
+      if (gDisableUserControls) {
+        return 0;
+      }
+
+      bool close = false;
+
+      const bool needsConfirm = gMountManager.CountMounts() != 0;
+      if (needsConfirm) {
+        gDisableUserControls = true;
+        const auto ret = MessageBoxW(NULL, L"Are you sure you want to exit MergeFSMC?\nAll mounts will be unmounted.", L"MergeFSMC", MB_OKCANCEL | MB_ICONQUESTION | MB_SETFOREGROUND | MB_TASKMODAL);
+        gDisableUserControls = false;
+        close = ret == IDOK;
+      } else {
+        close = true;
+      }
+
+      if (close) {
         DestroyWindow(hwnd);
       }
+
       return 0;
+    }
 
     case WM_DESTROY:
       if (gMountManager.CountMounts()) {
