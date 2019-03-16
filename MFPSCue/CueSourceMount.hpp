@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -45,7 +46,7 @@ class CueSourceMount : public ReadonlySourceMountBase {
 
   std::mutex subMutex;
   std::unordered_map<ExportPortation*, std::unique_ptr<ExportPortation>> portationMap;
-  CueAudioLoader cueAudioLoader;
+  std::optional<CueAudioLoader> cueAudioLoaderN;
   DirectoryTree directoryTree;
   BY_HANDLE_FILE_INFORMATION cueFileInfo;
   std::wstring baseVolumeName;

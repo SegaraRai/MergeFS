@@ -20,3 +20,4 @@ NTSTATUS NtstatusFromWin32(DWORD win32ErrorCode = GetLastError()) noexcept;
 NTSTATUS NtstatusFromWin32Api(BOOL Result) noexcept;
 std::wstring_view GetParentPath(std::wstring_view filename);
 std::wstring ToAbsoluteFilepath(LPCWSTR filepath);
+std::string ToLowerString(std::string_view string);

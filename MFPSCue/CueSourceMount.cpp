@@ -1,5 +1,7 @@
 #include <dokan/dokan.h>
 
+#include <nlohmann/json.hpp>
+
 #include <algorithm>
 #include <cassert>
 #include <memory>
@@ -22,14 +24,11 @@
 #include "Util.hpp"
 
 using namespace std::literals;
+using json = nlohmann::json;
 
 
 
 namespace {
-  constexpr CueAudioLoader::ExtractToMemory ExtractToMemory = CueAudioLoader::ExtractToMemory::Never;
-
-
-
   std::wstring GetTwoDigit(unsigned int number) {
     if (number < 10) {
       return L"0"s + std::to_wstring(number);
@@ -141,11 +140,11 @@ NTSTATUS CueSourceMount::ExportPortation::Finish(PORTATION_INFO* portationInfo, 
 
 
 
-CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) :
-  ReadonlySourceMountBase(InitializeMountInfo, sourceContextId),
+CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* initializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) :
+  ReadonlySourceMountBase(initializeMountInfo, sourceContextId),
   subMutex(),
   portationMap(),
-  cueAudioLoader(InitializeMountInfo->FileName, ExtractToMemory),
+  cueAudioLoaderN(),
   directoryTree{
     caseSensitive,
     true,
@@ -159,7 +158,32 @@ CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMou
   HANDLE cueFileHandle = NULL;
 
   try {
-    const auto cueFilePath = ToAbsoluteFilepath(InitializeMountInfo->FileName);
+    // parse options
+    CueAudioLoader::ExtractToMemory optExtractToMemory = CueAudioLoader::ExtractToMemory::Never;
+
+    if (initializeMountInfo->OptionsJSON && initializeMountInfo->OptionsJSON[0] == '{') {
+      try {
+        const auto jsonOptions = json::parse(initializeMountInfo->OptionsJSON);
+
+        try {
+          const auto& strJsonExtractToMemory = ToLowerString(jsonOptions.at("extractToMemory"s).dump());
+          if (strJsonExtractToMemory == "true" || strJsonExtractToMemory == "\"always\"") {
+            optExtractToMemory = CueAudioLoader::ExtractToMemory::Always;
+          } else if (strJsonExtractToMemory == "\"compressed\"") {
+            optExtractToMemory = CueAudioLoader::ExtractToMemory::Compressed;
+          } else if (strJsonExtractToMemory == "false" || strJsonExtractToMemory == "\"never\"") {
+            optExtractToMemory = CueAudioLoader::ExtractToMemory::Always;
+          }
+        } catch (json::type_error) {
+        } catch (json::out_of_range) {}
+
+        //
+      } catch (json::type_error) {
+      } catch (json::out_of_range) {}
+    }
+
+
+    const auto cueFilePath = ToAbsoluteFilepath(initializeMountInfo->FileName);
 
     cueFileHandle = CreateFileW(cueFilePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (!IsValidHandle(cueFileHandle)) {
@@ -191,6 +215,9 @@ CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMou
     fileSystemFlags = FILE_CASE_PRESERVED_NAMES | FILE_UNICODE_ON_DISK;
     fileSystemName = L"CUESHEET"s;
 
+    // prepare CueAudioLoader
+    cueAudioLoaderN.emplace(initializeMountInfo->FileName, optExtractToMemory);
+    auto& cueAudioLoader = cueAudioLoaderN.value();
 
     // add files
     const auto firstTrackNumber = cueAudioLoader.GetFirstTrackNumber();
@@ -357,6 +384,7 @@ NTSTATUS CueSourceMount::DGetDiskFreeSpace(PULONGLONG FreeBytesAvailable, PULONG
   }
   if (TotalNumberOfBytes) {
     // sloppy
+    auto& cueAudioLoader = cueAudioLoaderN.value();
     *TotalNumberOfBytes = cueAudioLoader.GetFullAudioSource()->GetSize();
   }
   if (TotalNumberOfFreeBytes) {
