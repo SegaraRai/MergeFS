@@ -247,13 +247,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             case IDMB_CTX_MOUNT_OPENCONFIG:
             {
               const auto& mountData = gMountManager.GetMountData(mountId);
+              const std::wstring explorerArg = L"/select,\""s + mountData.configFilepath + L"\""s;
               SHELLEXECUTEINFOW shellExecuteInfo{
                 sizeof(shellExecuteInfo),
-                SEE_MASK_DEFAULT,
+                SEE_MASK_DOENVSUBST,
                 NULL,
-                L"open",//L"edit",
-                mountData.configFilepath.c_str(),
-                NULL,
+                L"open",
+                L"%SystemRoot%\\explorer.exe",
+                explorerArg.c_str(),
                 NULL,
                 SW_SHOWDEFAULT,
                 NULL,

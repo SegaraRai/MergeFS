@@ -128,7 +128,7 @@ BEGIN
     POPUP "Context Menu / Mounts"
     BEGIN
         MENUITEM "Open (&O)",                   IDM_DUMMY_CTX_MOUNT_OPEN
-        MENUITEM "Open Configuration File (&C)", IDM_DUMMY_CTX_MOUNT_OPENCONFIG
+        MENUITEM "Browse Configuration File (&C)", IDM_DUMMY_CTX_MOUNT_OPENCONFIG
         MENUITEM SEPARATOR
         MENUITEM "Unmount (&U)",                IDM_DUMMY_CTX_MOUNT_UNMOUNT
     END
