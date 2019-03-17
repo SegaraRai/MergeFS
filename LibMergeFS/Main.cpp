@@ -81,7 +81,7 @@ namespace {
       gLastError = MERGEFS_ERROR_WINDOWS_ERROR;
       SetLastError(w32error);
     } else {
-      gLastError = w32error;
+      gLastError = mergefsError;
     }
     return mergefsError == MERGEFS_ERROR_SUCCESS ? TRUE : FALSE;
   }
