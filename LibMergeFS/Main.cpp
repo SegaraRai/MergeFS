@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -29,7 +30,7 @@ namespace {
   constexpr GUID EmptyGUID{};
 
   
-  MountStore gMountStore;
+  std::optional<MountStore> gMountStoreN;
   DWORD gLastError = MERGEFS_ERROR_SUCCESS;
 
 
@@ -101,7 +102,10 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
   switch (fdwReason) {
     case DLL_PROCESS_DETACH:
       try {
-        gMountStore.UnmountAll();
+        if (gMountStoreN) {
+          gMountStoreN.value().UnmountAll();
+          gMountStoreN.reset();
+        }
       } catch (...) {}
       break;
   }
@@ -123,21 +127,37 @@ namespace Exports {
 
   BOOL WINAPI Init() MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
+      if (gMountStoreN) {
+        return MERGEFS_ERROR_SUCCESS;
+      }
+      gMountStoreN.emplace();
       return MERGEFS_ERROR_SUCCESS;
     });
   }
 
 
   BOOL WINAPI Uninit() MFNOEXCEPT {
-    return WrapExceptionV([=]() {
-      gMountStore.UnmountAll();
+    return WrapException([=]() {
+      if (!gMountStoreN) {
+        return MERGEFS_ERROR_NOT_INITIALIZED;
+      }
+      {
+        auto& mountStore = gMountStoreN.value();
+        mountStore.UnmountAll();
+      }
+      gMountStoreN.reset();
+      return MERGEFS_ERROR_SUCCESS;
     });
   }
 
 
   BOOL WINAPI AddSourcePlugin(LPCWSTR filename, BOOL front, PLUGIN_ID* outPluginId) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
-      const auto pluginId = gMountStore.AddSourcePlugin(filename, front);
+      if (!gMountStoreN) {
+        return MERGEFS_ERROR_NOT_INITIALIZED;
+      }
+      auto& mountStore = gMountStoreN.value();
+      const auto pluginId = mountStore.AddSourcePlugin(filename, front);
       if (outPluginId) {
         *outPluginId = pluginId;
       }
@@ -148,21 +168,31 @@ namespace Exports {
 
   BOOL WINAPI RemoveSourcePlugin(PLUGIN_ID pluginId) noexcept {
     return WrapException([=]() -> DWORD {
-      return gMountStore.RemoveSourcePlugin(pluginId) ? MERGEFS_ERROR_SUCCESS : MERGEFS_ERROR_INVALID_PLUGIN_ID;
+      if (!gMountStoreN) {
+        return MERGEFS_ERROR_NOT_INITIALIZED;
+      }
+      auto& mountStore = gMountStoreN.value();
+      return mountStore.RemoveSourcePlugin(pluginId) ? MERGEFS_ERROR_SUCCESS : MERGEFS_ERROR_INVALID_PLUGIN_ID;
     });
   }
 
 
   BOOL WINAPI GetSourcePlugins(DWORD* outNumPluginIds, PLUGIN_ID* outPluginIds, DWORD maxPluginIds) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
-      const std::size_t count = gMountStore.CountSourcePlugins();
+      if (!gMountStoreN) {
+        return MERGEFS_ERROR_NOT_INITIALIZED;
+      }
+
+      auto& mountStore = gMountStoreN.value();
+
+      const std::size_t count = mountStore.CountSourcePlugins();
 
       if (outNumPluginIds) {
         *outNumPluginIds = static_cast<DWORD>(count);
       }
 
       if (outPluginIds) {
-        const auto pluginIds = gMountStore.ListSourcePlugins();
+        const auto pluginIds = mountStore.ListSourcePlugins();
 
         const std::size_t maxEntries = std::min<std::size_t>(count, maxPluginIds);
         for (std::size_t i = 0; i < maxEntries; i++) {
@@ -181,30 +211,42 @@ namespace Exports {
 
   BOOL WINAPI SetSourcePluginOrder(const PLUGIN_ID* pluginIds, DWORD numPluginIds) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
-      if (numPluginIds != gMountStore.CountSourcePlugins()) {
+      if (!gMountStoreN) {
+        return MERGEFS_ERROR_NOT_INITIALIZED;
+      }
+
+      auto& mountStore = gMountStoreN.value();
+
+      if (numPluginIds != mountStore.CountSourcePlugins()) {
         return MERGEFS_ERROR_INVALID_PARAMETER;
       }
 
       for (DWORD i = 0; i < numPluginIds; i++) {
         const auto pluginId = pluginIds[i];
-        if (!gMountStore.HasSourcePlugin(pluginId)) {
+        if (!mountStore.HasSourcePlugin(pluginId)) {
           return MERGEFS_ERROR_INVALID_PLUGIN_ID;
         }
       }
 
       // TODO: handle error code by MountStore (SourcePluginStore)
-      return gMountStore.SetSourcePluginOrder(pluginIds, numPluginIds) ? MERGEFS_ERROR_SUCCESS : MERGEFS_ERROR_GENERIC_FAILURE;
+      return mountStore.SetSourcePluginOrder(pluginIds, numPluginIds) ? MERGEFS_ERROR_SUCCESS : MERGEFS_ERROR_GENERIC_FAILURE;
     });
   }
 
 
   BOOL WINAPI GetSourcePluginInfo(PLUGIN_ID pluginId, PLUGIN_INFO_EX* pluginInfoEx) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
-      if (!gMountStore.HasSourcePlugin(pluginId)) {
+      if (!gMountStoreN) {
+        return MERGEFS_ERROR_NOT_INITIALIZED;
+      }
+
+      auto& mountStore = gMountStoreN.value();
+
+      if (!mountStore.HasSourcePlugin(pluginId)) {
         return MERGEFS_ERROR_INVALID_PLUGIN_ID;
       }
 
-      const auto& sourcePlugin = gMountStore.GetSourcePlugin(pluginId);
+      const auto& sourcePlugin = mountStore.GetSourcePlugin(pluginId);
 
       if (pluginInfoEx) {
         pluginInfoEx->filename = sourcePlugin.pluginFilePath.c_str();
@@ -218,6 +260,12 @@ namespace Exports {
 
   BOOL WINAPI Mount(const MOUNT_INITIALIZE_INFO* mountInitializeInfo, PMountCallback callback, MOUNT_ID* outMountId) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
+      if (!gMountStoreN) {
+        return MERGEFS_ERROR_NOT_INITIALIZED;
+      }
+
+      auto& mountStore = gMountStoreN.value();
+
       if (!mountInitializeInfo) {
         return MERGEFS_ERROR_INVALID_PARAMETER;
       }
@@ -227,12 +275,12 @@ namespace Exports {
         const auto& mountSourceInitializeInfo = mountInitializeInfo->sources[i];
         PLUGIN_ID pluginId = PLUGIN_ID_NULL;
         if (memcmp(&mountSourceInitializeInfo.sourcePluginGUID, &EmptyGUID, sizeof(GUID))) {
-          pluginId = gMountStore.GetSourcePluginIdFromGUID(mountSourceInitializeInfo.sourcePluginGUID).value_or(PLUGIN_ID_NULL);
+          pluginId = mountStore.GetSourcePluginIdFromGUID(mountSourceInitializeInfo.sourcePluginGUID).value_or(PLUGIN_ID_NULL);
           if (pluginId == PLUGIN_ID_NULL) {
             return MERGEFS_ERROR_INEXISTENT_PLUGIN;
           }
         } else if (mountSourceInitializeInfo.sourcePluginFilename && mountSourceInitializeInfo.sourcePluginFilename[0] != L'\0') {
-          pluginId = gMountStore.GetSourcePluginIdFromFilename(mountSourceInitializeInfo.sourcePluginFilename).value_or(PLUGIN_ID_NULL);
+          pluginId = mountStore.GetSourcePluginIdFromFilename(mountSourceInitializeInfo.sourcePluginFilename).value_or(PLUGIN_ID_NULL);
           if (pluginId == PLUGIN_ID_NULL) {
             return MERGEFS_ERROR_INEXISTENT_PLUGIN;
           }
@@ -244,7 +292,7 @@ namespace Exports {
         });
       }
 
-      const auto mountId = gMountStore.Mount(mountInitializeInfo->mountPoint, mountInitializeInfo->writable, mountInitializeInfo->metadataFileName, mountInitializeInfo->deferCopyEnabled, mountInitializeInfo->caseSensitive, sources, [callback](MOUNT_ID mountId, const MOUNT_INFO& mountInfo, int dokanMainResult) {
+      const auto mountId = mountStore.Mount(mountInitializeInfo->mountPoint, mountInitializeInfo->writable, mountInitializeInfo->metadataFileName, mountInitializeInfo->deferCopyEnabled, mountInitializeInfo->caseSensitive, sources, [callback](MOUNT_ID mountId, const MOUNT_INFO& mountInfo, int dokanMainResult) {
         callback(mountId, &mountInfo, dokanMainResult);
       });
 
@@ -259,14 +307,20 @@ namespace Exports {
 
   BOOL WINAPI GetMounts(DWORD* outNumMountIds, MOUNT_ID* outMountIds, DWORD maxMountIds) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
-      const std::size_t count = gMountStore.CountMounts();
+      if (!gMountStoreN) {
+        return MERGEFS_ERROR_NOT_INITIALIZED;
+      }
+
+      auto& mountStore = gMountStoreN.value();
+
+      const std::size_t count = mountStore.CountMounts();
 
       if (outNumMountIds) {
         *outNumMountIds = static_cast<DWORD>(count);
       }
 
       if (outMountIds) {
-        const auto mountIds = gMountStore.ListMounts();
+        const auto mountIds = mountStore.ListMounts();
 
         const std::size_t maxEntries = std::min<std::size_t>(count, maxMountIds);
         for (std::size_t i = 0; i < maxEntries; i++) {
@@ -285,12 +339,20 @@ namespace Exports {
 
   BOOL WINAPI GetMountInfo(MOUNT_ID mountId, MOUNT_INFO* outMountInfo) MFNOEXCEPT {
     return WrapException([=]() {
-      if (!gMountStore.HasMount(mountId)) {
+      if (!gMountStoreN) {
+        return MERGEFS_ERROR_NOT_INITIALIZED;
+      }
+
+      auto& mountStore = gMountStoreN.value();
+
+      if (!mountStore.HasMount(mountId)) {
         return MERGEFS_ERROR_INVALID_MOUNT_ID;
       }
+
       if (outMountInfo) {
-        *outMountInfo = gMountStore.GetMountInfo(mountId);
+        *outMountInfo = mountStore.GetMountInfo(mountId);
       }
+
       return MERGEFS_ERROR_SUCCESS;
     });
   }
@@ -298,31 +360,51 @@ namespace Exports {
 
   BOOL WINAPI SafeUnmount(MOUNT_ID mountId) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
-      if (!gMountStore.HasMount(mountId)) {
+      if (!gMountStoreN) {
+        return MERGEFS_ERROR_NOT_INITIALIZED;
+      }
+
+      auto& mountStore = gMountStoreN.value();
+
+      if (!mountStore.HasMount(mountId)) {
         return MERGEFS_ERROR_INVALID_MOUNT_ID;
       }
-      return gMountStore.SafeUnmount(mountId) ? MERGEFS_ERROR_SUCCESS : MERGEFS_ERROR_GENERIC_FAILURE;
+      return mountStore.SafeUnmount(mountId) ? MERGEFS_ERROR_SUCCESS : MERGEFS_ERROR_GENERIC_FAILURE;
     });
   }
 
 
   BOOL WINAPI Unmount(MOUNT_ID mountId) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
-      return gMountStore.Unmount(mountId) ? MERGEFS_ERROR_SUCCESS : MERGEFS_ERROR_INVALID_MOUNT_ID;
+      if (!gMountStoreN) {
+        return MERGEFS_ERROR_NOT_INITIALIZED;
+      }
+      auto& mountStore = gMountStoreN.value();
+      return mountStore.Unmount(mountId) ? MERGEFS_ERROR_SUCCESS : MERGEFS_ERROR_INVALID_MOUNT_ID;
     });
   }
 
 
   BOOL WINAPI SafeUnmountAll() MFNOEXCEPT {
-    return WrapExceptionV([=]() {
-      gMountStore.SafeUnmountAll();
+    return WrapException([=]() {
+      if (!gMountStoreN) {
+        return MERGEFS_ERROR_NOT_INITIALIZED;
+      }
+      auto& mountStore = gMountStoreN.value();
+      mountStore.SafeUnmountAll();
+      return MERGEFS_ERROR_SUCCESS;
     });
   }
 
 
   BOOL WINAPI UnmountAll() MFNOEXCEPT {
-    return WrapExceptionV([=]() {
-      gMountStore.UnmountAll();
+    return WrapException([=]() {
+      if (!gMountStoreN) {
+        return MERGEFS_ERROR_NOT_INITIALIZED;
+      }
+      auto& mountStore = gMountStoreN.value();
+      mountStore.UnmountAll();
+      return MERGEFS_ERROR_SUCCESS;
     });
   }
 }
