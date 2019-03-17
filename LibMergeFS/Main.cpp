@@ -41,6 +41,9 @@ namespace {
     try {
       *mergefsError = func();
       return ERROR_SUCCESS;
+    } catch (Mount::DokanMainError&) {
+      *mergefsError = MERGEFS_ERROR_DOKAN_MAIN_ERROR;
+      return ERROR_SUCCESS;
     } catch (std::invalid_argument&) {
       return ERROR_INVALID_PARAMETER;
     } catch (std::domain_error&) {

@@ -26,6 +26,7 @@
 
 #define MERGEFS_ERROR_SUCCESS                           ((DWORD) 0)
 #define MERGEFS_ERROR_WINDOWS_ERROR                     ((DWORD) 0x00000001)
+#define MERGEFS_ERROR_DOKAN_MAIN_ERROR                  ((DWORD) 0x00000101)
 #define MERGEFS_ERROR_GENERIC_FAILURE                   ((DWORD) 0x00010000)
 #define MERGEFS_ERROR_MORE_DATA                         ((DWORD) 0x00010001)
 #define MERGEFS_ERROR_NOT_INITIALIZED                   ((DWORD) 0x00010101)
