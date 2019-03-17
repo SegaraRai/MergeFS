@@ -1,6 +1,7 @@
 LIBRARY LibMergeFS
 EXPORTS
   GetError
+  GetLastErrorInfo
   Init
   Uninit
   AddSourcePlugin

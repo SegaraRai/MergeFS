@@ -98,6 +98,15 @@ typedef tagPLUGIN_TYPE PLUGIN_TYPE;
 
 
 typedef struct {
+  DWORD errorCode;
+  union {
+    DWORD windowsErrorCode;
+    int dokanMainResult;
+  } vendorError;
+} MERGEFS_ERROR_INFO;
+
+
+typedef struct {
   DWORD interfaceVersion;
   PLUGIN_TYPE pluginType;
   GUID guid;
@@ -173,6 +182,7 @@ namespace Exports {
 #endif
 
 MFEXTERNC MFCIMPORT DWORD WINAPI GetError(BOOL* win32error) MFNOEXCEPT;
+MFEXTERNC MFCIMPORT BOOL WINAPI GetLastErrorInfo(MERGEFS_ERROR_INFO* ptrErrorInfo) MFNOEXCEPT;
 MFEXTERNC MFCIMPORT BOOL WINAPI Init() MFNOEXCEPT;
 MFEXTERNC MFCIMPORT BOOL WINAPI Uninit() MFNOEXCEPT;
 MFEXTERNC MFCIMPORT BOOL WINAPI AddSourcePlugin(LPCWSTR filename, BOOL front, PLUGIN_ID* outPluginId) MFNOEXCEPT;

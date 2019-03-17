@@ -12,6 +12,7 @@
 #include <Windows.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -33,63 +34,86 @@ namespace {
   
   std::optional<MountStore> gMountStoreN;
   std::shared_mutex gMutex;
-  DWORD gLastError = MERGEFS_ERROR_SUCCESS;
+  MERGEFS_ERROR_INFO gLastErrorInfo{
+    MERGEFS_ERROR_SUCCESS,
+  };
 
 
-  template<typename T>
-  DWORD WrapExceptionImpl(const T& func, DWORD* mergefsError) noexcept {
-    static_assert(std::is_same_v<decltype(func()), DWORD>);
+  namespace SetError {
+    void SetSuccessError() {
+      gLastErrorInfo.errorCode = MERGEFS_ERROR_SUCCESS;
+    }
 
-    try {
-      *mergefsError = func();
-      return ERROR_SUCCESS;
-    } catch (Mount::DokanMainError&) {
-      *mergefsError = MERGEFS_ERROR_DOKAN_MAIN_ERROR;
-      return ERROR_SUCCESS;
-    } catch (std::invalid_argument&) {
-      return ERROR_INVALID_PARAMETER;
-    } catch (std::domain_error&) {
-      return ERROR_INVALID_PARAMETER;
-    } catch (std::length_error&) {
-      return ERROR_INVALID_PARAMETER;
-    } catch (std::out_of_range&) {
-      return ERROR_NOACCESS;
-    } catch (std::bad_optional_access&) {
-      return ERROR_NOACCESS;
-    } catch (std::range_error&) {
-      return ERROR_INVALID_PARAMETER;
-    } catch (std::ios_base::failure&) {
-      return ERROR_IO_DEVICE;
-    } catch (std::bad_typeid&) {
-      return ERROR_NOACCESS;
-    } catch (std::bad_cast&) {
-      return ERROR_NOACCESS;
-    } catch (std::bad_weak_ptr&) {
-      return ERROR_NOACCESS;
-    } catch (std::bad_function_call&) {
-      return ERROR_NOACCESS;
-    } catch (std::bad_alloc&) {
-      return ERROR_NOT_ENOUGH_MEMORY;
-    } catch (...) {
-      *mergefsError = MERGEFS_ERROR_GENERIC_FAILURE;
-      return ERROR_SUCCESS;
+    void SetGenericFailureError() {
+      gLastErrorInfo.errorCode = MERGEFS_ERROR_GENERIC_FAILURE;
+    }
+
+    void SetMergeFSError(DWORD errorCode) {
+      assert(errorCode != MERGEFS_ERROR_WINDOWS_ERROR);
+      assert(errorCode != MERGEFS_ERROR_DOKAN_MAIN_ERROR);
+      gLastErrorInfo.errorCode = errorCode;
+    }
+
+    void SetWindowsError(DWORD windowsErrorCode = GetLastError()) {
+      assert(windowsErrorCode != ERROR_SUCCESS);
+      gLastErrorInfo.errorCode = MERGEFS_ERROR_WINDOWS_ERROR;
+      gLastErrorInfo.vendorError.windowsErrorCode = windowsErrorCode;
+    }
+
+    void SetDokanMainError(int dokanMainResult) {
+      assert(dokanMainResult != DOKAN_SUCCESS);
+      gLastErrorInfo.errorCode = MERGEFS_ERROR_DOKAN_MAIN_ERROR;
+      gLastErrorInfo.vendorError.dokanMainResult = dokanMainResult;
     }
   }
+
 
   template<typename T>
   BOOL WrapException(const T& func) noexcept {
+    using namespace SetError;
+
     static_assert(std::is_same_v<decltype(func()), DWORD>);
 
-    DWORD mergefsError;
-    const DWORD w32error = WrapExceptionImpl(func, &mergefsError);
-    if (w32error != ERROR_SUCCESS) {
-      gLastError = MERGEFS_ERROR_WINDOWS_ERROR;
-      SetLastError(w32error);
-    } else {
-      gLastError = mergefsError;
+    try {
+      const auto error = func();
+      if (error == MERGEFS_ERROR_SUCCESS) {
+        SetSuccessError();
+        return TRUE;
+      }
+      SetMergeFSError(error);
+    } catch (Mount::DokanMainError& dokanMainError) {
+      SetDokanMainError(dokanMainError.GetError());
+    } catch (std::invalid_argument&) {
+      SetWindowsError(ERROR_INVALID_PARAMETER);
+    } catch (std::domain_error&) {
+      SetWindowsError(ERROR_INVALID_PARAMETER);
+    } catch (std::length_error&) {
+      SetWindowsError(ERROR_INVALID_PARAMETER);
+    } catch (std::out_of_range&) {
+      SetWindowsError(ERROR_NOACCESS);
+    } catch (std::bad_optional_access&) {
+      SetWindowsError(ERROR_NOACCESS);
+    } catch (std::range_error&) {
+      SetWindowsError(ERROR_INVALID_PARAMETER);
+    } catch (std::ios_base::failure&) {
+      SetWindowsError(ERROR_IO_DEVICE);
+    } catch (std::bad_typeid&) {
+      SetWindowsError(ERROR_NOACCESS);
+    } catch (std::bad_cast&) {
+      SetWindowsError(ERROR_NOACCESS);
+    } catch (std::bad_weak_ptr&) {
+      SetWindowsError(ERROR_NOACCESS);
+    } catch (std::bad_function_call&) {
+      SetWindowsError(ERROR_NOACCESS);
+    } catch (std::bad_alloc&) {
+      SetWindowsError(ERROR_NOT_ENOUGH_MEMORY);
+    } catch (...) {
+      SetGenericFailureError();
     }
-    return mergefsError == MERGEFS_ERROR_SUCCESS ? TRUE : FALSE;
+
+    return FALSE;
   }
+
 
   template<typename T>
   BOOL WrapExceptionV(const T& func) noexcept {
@@ -121,14 +145,27 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 
 namespace Exports {
   DWORD WINAPI GetError(BOOL* win32error) MFNOEXCEPT {
-    std::shared_lock lock(gMutex);
-    const DWORD lastError = gLastError;
-    if (win32error) {
-      const bool isWin32Error = lastError == MERGEFS_ERROR_WINDOWS_ERROR;
-      *win32error = isWin32Error ? TRUE : FALSE;
-      return isWin32Error ? ::GetLastError() : lastError;
-    }
-    return lastError;
+    try {
+      std::shared_lock lock(gMutex);
+      const DWORD lastError = gLastErrorInfo.errorCode;
+      if (win32error) {
+        const bool isWin32Error = lastError == MERGEFS_ERROR_WINDOWS_ERROR;
+        *win32error = isWin32Error ? TRUE : FALSE;
+        return isWin32Error ? GetLastError() : lastError;
+      }
+      return lastError;
+    } catch (...) {}
+    return MERGEFS_ERROR_GENERIC_FAILURE;
+  }
+
+
+  BOOL WINAPI GetLastErrorInfo(MERGEFS_ERROR_INFO* ptrErrorInfo) MFNOEXCEPT {
+    return WrapExceptionV([=]() {
+      std::shared_lock lock(gMutex);
+      if (ptrErrorInfo) {
+        *ptrErrorInfo = gLastErrorInfo;
+      }
+    });
   }
 
 
