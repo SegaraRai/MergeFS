@@ -8,11 +8,13 @@
 #include "MetadataStore.hpp"
 
 #include <atomic>
+#include <condition_variable>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -22,6 +24,17 @@
 
 
 class Mount {
+public:
+  class DokanMainError : std::runtime_error {
+    int result;
+
+  public:
+    DokanMainError(int dokanMainResult);
+
+    int GetError() const;
+  };
+
+private:
   using FILE_CONTEXT_ID = MountSource::FILE_CONTEXT_ID;
   using PORTATION_INFO = MountSource::PORTATION_INFO;
   using FileType = MountSource::FileType;
@@ -30,6 +43,12 @@ class Mount {
 
   static constexpr std::size_t TopSourceIndex = 0;
   static constexpr FILE_CONTEXT_ID FileContextIdStart = FILE_CONTEXT_ID_NULL + 1;
+
+  enum class ImdState {
+    Pending,
+    Mounting,
+    Finished,
+  };
 
   struct FileContext {
     std::shared_mutex mutex;
@@ -60,6 +79,10 @@ class Mount {
   static std::shared_mutex gFileContextMapMutex;
   static std::unordered_map<Mount::FileContext*, std::shared_ptr<Mount::FileContext>> gFileContextPtrToSharedPtrMap;
 
+  std::mutex m_imdMutex;
+  std::condition_variable m_imdCv;
+  ImdState m_imdState;
+  int m_imdResult;
   std::mutex m_mutex;
   std::shared_mutex m_metadataMutex;
   const std::wstring m_mountPoint;

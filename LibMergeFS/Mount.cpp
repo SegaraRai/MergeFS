@@ -19,6 +19,7 @@
 #include <shared_mutex>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -95,6 +96,18 @@ namespace {
 
     return fileIndexBases;
   }
+}
+
+
+
+Mount::DokanMainError::DokanMainError(int dokanMainResult) :
+  std::runtime_error("DokanMain returned code "s + std::to_string(dokanMainResult)),
+  result(dokanMainResult)
+{}
+
+
+int Mount::DokanMainError::GetError() const {
+  return result;
 }
 
 
@@ -244,6 +257,10 @@ std::wstring Mount::FilenameToKey(std::wstring_view filename) const {
 
 
 Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, std::vector<std::unique_ptr<MountSource>>&& sources, std::function<void(int)> callback) :
+  m_imdMutex(),
+  m_imdCv(),
+  m_imdState(ImdState::Pending),
+  m_imdResult(DOKAN_SUCCESS),
   m_mutex(),
   m_metadataMutex(),
   m_mountPoint(mountPoint),
@@ -282,11 +299,29 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
     m_mounted = true;
     const auto ret = DokanMain(&config, &operations);
     m_mounted = false;
-    if (callback) {
-      callback(ret);
+    {
+      std::lock_guard lock(m_imdMutex);
+      if (m_imdState == ImdState::Mounting) {
+        if (callback) {
+          callback(ret);
+        }
+      }
+      m_imdState = ImdState::Finished;
+      m_imdResult = ret;
     }
+    m_imdCv.notify_one();
   })
-{}
+{
+  std::unique_lock lock(m_imdMutex);
+  m_imdCv.wait(lock, [this]() {
+    return m_imdState != ImdState::Pending;
+  });
+  if (m_imdState == ImdState::Finished) {
+    assert(m_imdResult != DOKAN_SUCCESS);
+    m_thread.join();
+    throw DokanMainError(m_imdResult);
+  }
+}
 
 
 Mount::~Mount() {
@@ -306,7 +341,17 @@ Mount::~Mount() {
     m_thread.join();
   }
   */
-  m_thread.join();
+  try {
+    if (m_thread.joinable()) {
+      m_thread.join();
+    } else {
+      m_thread.detach();
+    }
+  } catch (std::system_error&) {
+    try {
+      m_thread.detach();
+    } catch (std::system_error&) {}
+  }
 }
 
 
@@ -1625,6 +1670,13 @@ Called when Dokan successfully mounts the volume.
 */
 NTSTATUS Mount::DMounted(PDOKAN_FILE_INFO DokanFileInfo) noexcept {
   return WrapException([=]() -> NTSTATUS {
+    // notify mounted
+    {
+      std::lock_guard lock(m_imdMutex);
+      m_imdState = ImdState::Mounting;
+    }
+    m_imdCv.notify_one();
+    
     return STATUS_SUCCESS;
   });
 }
