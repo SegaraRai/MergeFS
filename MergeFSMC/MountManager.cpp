@@ -9,6 +9,7 @@
 
 #include "MountManager.hpp"
 #include "JsonYamlInterop.hpp"
+#include "Util.hpp"
 #include "YamlWstring.hpp"
 
 using namespace std::literals;
@@ -82,6 +83,22 @@ void MountManager::CheckLibMergeFSResult(BOOL ret) {
   if (!ret) {
     throw MergeFSError();
   }
+}
+
+
+std::wstring MountManager::ResolveMountPoint(const std::wstring& mountPoint) {
+  constexpr auto IsAlpha = [](wchar_t c) constexpr {
+    return (c >= L'A' && c <= L'Z') || (c >= L'a' && c <= L'z');
+  };
+
+  const auto csMountPoint = mountPoint.c_str();
+  if (IsAlpha(csMountPoint[0]) && (csMountPoint[1] == L'\0' || csMountPoint[1] == L':')) {
+    // skip converting because GetFullPathName returns current directory
+    // see Remarks of https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-getfullpathnamew
+    return mountPoint;
+  }
+
+  return ToAbsoluteFilepath(mountPoint);
 }
 
 
@@ -255,8 +272,14 @@ MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::functio
     };
   }
 
+  // TODO: error handling, restore current directory
+  const std::wstring configFileDirectory = configFilepath + L"\\.."s;
+  SetCurrentDirectoryW(configFileDirectory.c_str());
+
+  const std::wstring resolvedMountPoint = ResolveMountPoint(mountPoint);
+
   MOUNT_INITIALIZE_INFO mountInitializeInfo{
-    mountPoint.c_str(),
+    resolvedMountPoint.c_str(),
     writable,
     metadataFileName.c_str(),
     deferCopyEnabled,
@@ -265,16 +288,12 @@ MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::functio
     sourceInitializeInfos.data(),
   };
 
-  // TODO: error handling, restore current directory
-  const std::wstring configFileDirectory = configFilepath + L"\\.."s;
-  SetCurrentDirectoryW(configFileDirectory.c_str());
-
   MOUNT_ID mountId = MOUNT_ID_NULL;
   if (!LMF_Mount(&mountInitializeInfo, MountCallback, &mountId)) {
     throw MountError{
       MergeFSError(),
       configFilepath,
-      mountPoint,
+      resolvedMountPoint,
     };
   }
 

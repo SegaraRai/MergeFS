@@ -43,6 +43,7 @@ private:
   std::unordered_map<MOUNT_ID, MountData> mMountDataMap;
 
   static void CheckLibMergeFSResult(BOOL ret);
+  static std::wstring ResolveMountPoint(const std::wstring& mountPoint);
 
   static void WINAPI MountCallback(MOUNT_ID mountId, const MOUNT_INFO* ptrMountInfo, int dokanMainResult) noexcept;
 
