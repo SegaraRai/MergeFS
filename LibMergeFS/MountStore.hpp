@@ -80,9 +80,11 @@ private:
   };
 
   std::unordered_map<MOUNT_ID, MountData> m_mountMap;
-  MOUNT_ID m_minimumUnusedMountId = MountIdStart;
+  MOUNT_ID m_minimumUnusedMountId;
 
 public:
+  MountStore();
+
   MOUNT_ID Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(MOUNT_ID, const MOUNT_INFO&, int)> callback);
   bool HasMount(MOUNT_ID mountId) const;
   std::size_t CountMounts() const;

@@ -170,10 +170,17 @@ const MOUNT_INFO& MountStore::MountData::MountInfoWrapper::Get() const {
 
 
 
+MountStore::MountStore() :
+  m_mountMap(),
+  m_minimumUnusedMountId(MountIdStart)
+{}
+
+
 MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(MOUNT_ID, const MOUNT_INFO&, int)> callback) {
   if (sources.empty()) {
     throw NoSourceError();
   }
+
   const std::size_t sourceCount = sources.size();
   std::vector<std::unique_ptr<MountSource>> mountSources(sourceCount);
   for (std::size_t i = 0; i < sourceCount; i++) {
@@ -188,18 +195,27 @@ MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writab
     auto& sourcePlugin = GetSourcePlugin(sourcePluginId);
     mountSources[i] = std::make_unique<MountSource>(initializeMountInfo, sourcePlugin);
   }
+
   const MOUNT_ID mountId = m_minimumUnusedMountId;
   do {
     m_minimumUnusedMountId++;
   } while (m_mountMap.count(m_minimumUnusedMountId));
+
   auto mount = std::make_unique<::Mount>(mountPoint, writable, metadataFileName, deferCopyEnabled, caseSensitive, std::move(mountSources), [this, callback, mountId](int dokanMainResult) {
     callback(mountId, m_mountMap.at(mountId).wrappedMountInfo.Get(), dokanMainResult);
+
+    m_mountMap.erase(mountId);
+    if (mountId < m_minimumUnusedMountId) {
+      m_minimumUnusedMountId = mountId;
+    }
   });
+
   const auto sourceWritable = mount->IsWritable();
   m_mountMap.emplace(mountId, MountData{
     std::move(mount),
     MountData::MountInfoWrapper(mountPoint, sourceWritable, metadataFileName, deferCopyEnabled, caseSensitive, sources),
   });
+
   return mountId;
 }
 
@@ -240,7 +256,7 @@ bool MountStore::SafeUnmount(MOUNT_ID mountId) {
   if (!m_mountMap.at(mountId).mount->SafeUnmount()) {
     return false;
   }
-  return Unmount(mountId);
+  return true;
 }
 
 
@@ -248,7 +264,6 @@ void MountStore::SafeUnmountAll() {
   for (auto& [mountId, mountData] : m_mountMap) {
     mountData.mount->SafeUnmount();
   }
-  UnmountAll();
 }
 
 
@@ -256,15 +271,13 @@ bool MountStore::Unmount(MOUNT_ID mountId) {
   if (!m_mountMap.count(mountId)) {
     return false;
   }
-  m_mountMap.erase(mountId);
-  if (mountId < m_minimumUnusedMountId) {
-    m_minimumUnusedMountId = mountId;
-  }
+  m_mountMap.at(mountId).mount.reset();
   return true;
 }
 
 
 void MountStore::UnmountAll() {
-  m_mountMap.clear();
-  m_minimumUnusedMountId = MountIdStart;
+  for (auto&[mountId, mountData] : m_mountMap) {
+    mountData.mount.reset();
+  }
 }
