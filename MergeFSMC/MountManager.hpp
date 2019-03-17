@@ -19,12 +19,14 @@ public:
     std::function<void(MOUNT_ID, int, MountData&, const MOUNT_INFO&)> callback;
   };
 
-  struct MergeFSError {
-    DWORD mergefsErrorCode;
-    DWORD win32ErrorCode;
+  struct MergeFSError : MERGEFS_ERROR_INFO {
+  private:
+    static MERGEFS_ERROR_INFO GetLastErrorInfo();
+
+  public:
     std::wstring errorMessage;
 
-    MergeFSError(DWORD mergefsErrorCode, DWORD win32ErrorCode);
+    MergeFSError(const MERGEFS_ERROR_INFO& errorInfo);
     MergeFSError();
   };
 

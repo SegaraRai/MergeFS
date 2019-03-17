@@ -28,26 +28,52 @@ namespace {
 
 
 
-MountManager::MergeFSError::MergeFSError(DWORD mergefsErrorCode, DWORD win32ErrorCode) :
-  mergefsErrorCode(mergefsErrorCode),
-  win32ErrorCode(win32ErrorCode)
+MERGEFS_ERROR_INFO MountManager::MergeFSError::GetLastErrorInfo() {
+  MERGEFS_ERROR_INFO errorInfo{};
+  if (!LMF_GetLastErrorInfo(&errorInfo)) {
+    errorInfo.errorCode = MERGEFS_ERROR_GENERIC_FAILURE;
+  }
+  return errorInfo;
+}
+
+
+MountManager::MergeFSError::MergeFSError(const MERGEFS_ERROR_INFO& errorInfo) :
+  MERGEFS_ERROR_INFO(errorInfo)
 {
-  if (mergefsErrorCode == MERGEFS_ERROR_WINDOWS_ERROR) {
-    errorMessage = L"MergeFS Error "s + std::to_wstring(mergefsErrorCode);
-  } else {
-    errorMessage = L"Win32 Error "s + std::to_wstring(win32ErrorCode);
+  switch (errorCode) {
+    case MERGEFS_ERROR_SUCCESS:
+      errorMessage = L"(Success)"s;
+      break;
+
+    case MERGEFS_ERROR_GENERIC_FAILURE:
+      errorMessage = L"Generic failure"s;
+      break;
+
+    case MERGEFS_ERROR_WINDOWS_ERROR:
+      errorMessage = L"Win32 Error: code "s + std::to_wstring(vendorError.windowsErrorCode);
+      break;
+
+    case MERGEFS_ERROR_DOKAN_MAIN_ERROR:
+      errorMessage = L"Dokan Error: DokanMain returned code "s + std::to_wstring(vendorError.dokanMainResult);
+      break;
+
+    default:
+      errorMessage = L"MergeFS Error: code "s + std::to_wstring(errorCode);
   }
 }
 
 
 MountManager::MergeFSError::MergeFSError() :
-  MergeFSError(LMF_GetLastError(NULL), GetLastError())
+  MergeFSError(GetLastErrorInfo())
 {}
 
 
 
 MountManager::Win32ApiError::Win32ApiError(DWORD error) :
-  MergeFSError(MERGEFS_ERROR_WINDOWS_ERROR, error)
+  MergeFSError(MERGEFS_ERROR_INFO{
+    MERGEFS_ERROR_WINDOWS_ERROR,
+    error,
+  })
 {}
 
 
