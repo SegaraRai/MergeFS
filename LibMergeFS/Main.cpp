@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <shared_mutex>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -31,6 +32,7 @@ namespace {
 
   
   std::optional<MountStore> gMountStoreN;
+  std::shared_mutex gMutex;
   DWORD gLastError = MERGEFS_ERROR_SUCCESS;
 
 
@@ -105,6 +107,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
   switch (fdwReason) {
     case DLL_PROCESS_DETACH:
       try {
+        std::lock_guard lock(gMutex);
         if (gMountStoreN) {
           gMountStoreN.value().UnmountAll();
           gMountStoreN.reset();
@@ -118,6 +121,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 
 namespace Exports {
   DWORD WINAPI GetError(BOOL* win32error) MFNOEXCEPT {
+    std::shared_lock lock(gMutex);
     const DWORD lastError = gLastError;
     if (win32error) {
       const bool isWin32Error = lastError == MERGEFS_ERROR_WINDOWS_ERROR;
@@ -130,6 +134,7 @@ namespace Exports {
 
   BOOL WINAPI Init() MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
+      std::lock_guard lock(gMutex);
       if (gMountStoreN) {
         return MERGEFS_ERROR_SUCCESS;
       }
@@ -141,6 +146,7 @@ namespace Exports {
 
   BOOL WINAPI Uninit() MFNOEXCEPT {
     return WrapException([=]() {
+      std::lock_guard lock(gMutex);
       if (!gMountStoreN) {
         return MERGEFS_ERROR_NOT_INITIALIZED;
       }
@@ -156,6 +162,7 @@ namespace Exports {
 
   BOOL WINAPI AddSourcePlugin(LPCWSTR filename, BOOL front, PLUGIN_ID* outPluginId) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
+      std::lock_guard lock(gMutex);
       if (!gMountStoreN) {
         return MERGEFS_ERROR_NOT_INITIALIZED;
       }
@@ -171,6 +178,7 @@ namespace Exports {
 
   BOOL WINAPI RemoveSourcePlugin(PLUGIN_ID pluginId) noexcept {
     return WrapException([=]() -> DWORD {
+      std::lock_guard lock(gMutex);
       if (!gMountStoreN) {
         return MERGEFS_ERROR_NOT_INITIALIZED;
       }
@@ -182,6 +190,8 @@ namespace Exports {
 
   BOOL WINAPI GetSourcePlugins(DWORD* outNumPluginIds, PLUGIN_ID* outPluginIds, DWORD maxPluginIds) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
+      std::shared_lock lock(gMutex);
+
       if (!gMountStoreN) {
         return MERGEFS_ERROR_NOT_INITIALIZED;
       }
@@ -214,6 +224,8 @@ namespace Exports {
 
   BOOL WINAPI SetSourcePluginOrder(const PLUGIN_ID* pluginIds, DWORD numPluginIds) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
+      std::lock_guard lock(gMutex);
+
       if (!gMountStoreN) {
         return MERGEFS_ERROR_NOT_INITIALIZED;
       }
@@ -239,6 +251,8 @@ namespace Exports {
 
   BOOL WINAPI GetSourcePluginInfo(PLUGIN_ID pluginId, PLUGIN_INFO_EX* pluginInfoEx) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
+      std::shared_lock lock(gMutex);
+
       if (!gMountStoreN) {
         return MERGEFS_ERROR_NOT_INITIALIZED;
       }
@@ -263,6 +277,8 @@ namespace Exports {
 
   BOOL WINAPI Mount(const MOUNT_INITIALIZE_INFO* mountInitializeInfo, PMountCallback callback, MOUNT_ID* outMountId) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
+      std::lock_guard lock(gMutex);
+
       if (!gMountStoreN) {
         return MERGEFS_ERROR_NOT_INITIALIZED;
       }
@@ -310,6 +326,8 @@ namespace Exports {
 
   BOOL WINAPI GetMounts(DWORD* outNumMountIds, MOUNT_ID* outMountIds, DWORD maxMountIds) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
+      std::shared_lock lock(gMutex);
+
       if (!gMountStoreN) {
         return MERGEFS_ERROR_NOT_INITIALIZED;
       }
@@ -342,6 +360,8 @@ namespace Exports {
 
   BOOL WINAPI GetMountInfo(MOUNT_ID mountId, MOUNT_INFO* outMountInfo) MFNOEXCEPT {
     return WrapException([=]() {
+      std::shared_lock lock(gMutex);
+
       if (!gMountStoreN) {
         return MERGEFS_ERROR_NOT_INITIALIZED;
       }
@@ -363,12 +383,11 @@ namespace Exports {
 
   BOOL WINAPI SafeUnmount(MOUNT_ID mountId) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
+      std::lock_guard lock(gMutex);
       if (!gMountStoreN) {
         return MERGEFS_ERROR_NOT_INITIALIZED;
       }
-
       auto& mountStore = gMountStoreN.value();
-
       if (!mountStore.HasMount(mountId)) {
         return MERGEFS_ERROR_INVALID_MOUNT_ID;
       }
@@ -379,6 +398,7 @@ namespace Exports {
 
   BOOL WINAPI Unmount(MOUNT_ID mountId) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
+      std::lock_guard lock(gMutex);
       if (!gMountStoreN) {
         return MERGEFS_ERROR_NOT_INITIALIZED;
       }
@@ -390,6 +410,7 @@ namespace Exports {
 
   BOOL WINAPI SafeUnmountAll() MFNOEXCEPT {
     return WrapException([=]() {
+      std::lock_guard lock(gMutex);
       if (!gMountStoreN) {
         return MERGEFS_ERROR_NOT_INITIALIZED;
       }
@@ -402,6 +423,7 @@ namespace Exports {
 
   BOOL WINAPI UnmountAll() MFNOEXCEPT {
     return WrapException([=]() {
+      std::lock_guard lock(gMutex);
       if (!gMountStoreN) {
         return MERGEFS_ERROR_NOT_INITIALIZED;
       }
