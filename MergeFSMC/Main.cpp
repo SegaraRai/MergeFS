@@ -216,7 +216,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
       for (const auto& mountError : mountErrorQueueCopy) {
         std::wstring message = L"Failed to mount \""s + mountError.configFilepath + L"\""s;
         if (!mountError.mountPoint.empty()) {
-          message += L" into \""s + mountError.mountPoint + L"\\"s;
+          message += L" into \""s + mountError.mountPoint + L"\""s;
         }
         message += L":\n  "s + mountError.reason;
         MessageBoxW(NULL, message.c_str(), L"MergeFSMC Mount Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND | MB_SYSTEMMODAL);
