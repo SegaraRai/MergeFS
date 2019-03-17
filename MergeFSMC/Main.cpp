@@ -830,7 +830,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     PlaySystemSound(SystemSound::DeviceDisconnect);
   }
   gUnmountAll = true;
-  gMountManager.UnmountAll(true);
+  gMountManager.Uninit(true);
   gUnmountAll = false;
 
 

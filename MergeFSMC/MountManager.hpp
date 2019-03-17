@@ -44,7 +44,7 @@ private:
 
   static void WINAPI MountCallback(MOUNT_ID mountId, const MOUNT_INFO* ptrMountInfo, int dokanMainResult) noexcept;
 
-  MountManager() = default;
+  MountManager();
 
 public:
   MountManager(const MountManager&) = delete;
@@ -72,4 +72,6 @@ public:
   std::vector<MOUNT_ID> ListMountIds() const;
   std::vector<std::pair<MOUNT_ID, MOUNT_INFO>> ListMounts() const;
   void UnmountAll(bool safe);
+
+  void Uninit(bool safe);
 };

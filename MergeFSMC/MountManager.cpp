@@ -75,6 +75,13 @@ MountManager& MountManager::GetInstance() {
 }
 
 
+MountManager::MountManager() :
+  mMountDataMap()
+{
+  CheckLibMergeFSResult(::Init());
+}
+
+
 void MountManager::AddPlugin(const std::wstring& filepath) {
   CheckLibMergeFSResult(::AddSourcePlugin(filepath.c_str(), FALSE, nullptr));
 }
@@ -313,4 +320,10 @@ void MountManager::UnmountAll(bool safe) {
   } else {
     CheckLibMergeFSResult(::UnmountAll());
   }
+}
+
+
+void MountManager::Uninit(bool safe) {
+  UnmountAll(safe);
+  ::Uninit();
 }
