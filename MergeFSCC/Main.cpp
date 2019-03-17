@@ -97,7 +97,7 @@ int CommandAdd(const std::deque<std::wstring>& args) {
 
   if (type == L"plugin"sv) {
     PLUGIN_ID pluginId;
-    const auto ret = AddSourcePlugin(value.c_str(), false, &pluginId);
+    const auto ret = LMF_AddSourcePlugin(value.c_str(), false, &pluginId);
     if (!ret) {
       std::wcout << L"error: failed to load source plugin"sv << std::endl;
       return 0;
@@ -205,7 +205,7 @@ int CommandMount(const std::deque<std::wstring>& args) {
     mountSources.data(),
   };
   MOUNT_ID mountId;
-  if (!Mount(&mountInitializeInfo, [](MOUNT_ID mountId, const MOUNT_INFO* mountInfo, int dokanMainResult) noexcept -> void {
+  if (!LMF_Mount(&mountInitializeInfo, [](MOUNT_ID mountId, const MOUNT_INFO* mountInfo, int dokanMainResult) noexcept -> void {
     std::wcout << L"info: dokanMainResult = "sv << dokanMainResult << L" at mountId "sv << mountId << std::endl;
   }, &mountId)) {
     std::wcout << L"error: failed to mount"sv << std::endl;
@@ -224,15 +224,17 @@ int CommandUnmount(const std::deque<std::wstring>& args) {
 
   const auto value = std::stoi(args[0]);
 
-  if (!SafeUnmount(value)) {
+  if (!LMF_SafeUnmount(value)) {
     std::wcout << L"error: failed to safe unmount "sv << value << std::endl;
     return 0;
   }
 
-  if (!Unmount(value)) {
+  /*
+  if (!LMF_Unmount(value)) {
     std::wcout << L"error: failed to unmount "sv << value << std::endl;
     return 0;
   }
+  //*/
 
   std::wcout << L"unmounted "sv << value << std::endl;
 
@@ -253,7 +255,7 @@ std::unordered_map<std::wstring, std::function<int(const std::deque<std::wstring
 
 
 int wmain(int argc, wchar_t* argv[]) {
-  Init();
+  LMF_Init();
 
   std::ios_base::sync_with_stdio(false);
   _setmode(_fileno(stdout), _O_U8TEXT);
@@ -277,6 +279,6 @@ int wmain(int argc, wchar_t* argv[]) {
     gCommandMap.at(command)(commands);
   }
 
-  UnmountAll();
-  Uninit();
+  LMF_SafeUnmountAll();
+  LMF_Uninit();
 }

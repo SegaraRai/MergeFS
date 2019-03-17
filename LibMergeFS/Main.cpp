@@ -144,7 +144,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 
 
 namespace Exports {
-  DWORD WINAPI GetError(BOOL* win32error) MFNOEXCEPT {
+  DWORD WINAPI LMF_GetLastError(BOOL* win32error) MFNOEXCEPT {
     try {
       std::shared_lock lock(gMutex);
       const DWORD lastError = gLastErrorInfo.errorCode;
@@ -159,7 +159,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI GetLastErrorInfo(MERGEFS_ERROR_INFO* ptrErrorInfo) MFNOEXCEPT {
+  BOOL WINAPI LMF_GetLastErrorInfo(MERGEFS_ERROR_INFO* ptrErrorInfo) MFNOEXCEPT {
     return WrapExceptionV([=]() {
       std::shared_lock lock(gMutex);
       if (ptrErrorInfo) {
@@ -169,7 +169,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI Init() MFNOEXCEPT {
+  BOOL WINAPI LMF_Init() MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
       std::lock_guard lock(gMutex);
       if (gMountStoreN) {
@@ -181,7 +181,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI Uninit() MFNOEXCEPT {
+  BOOL WINAPI LMF_Uninit() MFNOEXCEPT {
     return WrapException([=]() {
       std::lock_guard lock(gMutex);
       if (!gMountStoreN) {
@@ -197,7 +197,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI AddSourcePlugin(LPCWSTR filename, BOOL front, PLUGIN_ID* outPluginId) MFNOEXCEPT {
+  BOOL WINAPI LMF_AddSourcePlugin(LPCWSTR filename, BOOL front, PLUGIN_ID* outPluginId) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
       std::lock_guard lock(gMutex);
       if (!gMountStoreN) {
@@ -213,7 +213,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI RemoveSourcePlugin(PLUGIN_ID pluginId) noexcept {
+  BOOL WINAPI LMF_RemoveSourcePlugin(PLUGIN_ID pluginId) noexcept {
     return WrapException([=]() -> DWORD {
       std::lock_guard lock(gMutex);
       if (!gMountStoreN) {
@@ -225,7 +225,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI GetSourcePlugins(DWORD* outNumPluginIds, PLUGIN_ID* outPluginIds, DWORD maxPluginIds) MFNOEXCEPT {
+  BOOL WINAPI LMF_GetSourcePlugins(DWORD* outNumPluginIds, PLUGIN_ID* outPluginIds, DWORD maxPluginIds) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
       std::shared_lock lock(gMutex);
 
@@ -259,7 +259,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI SetSourcePluginOrder(const PLUGIN_ID* pluginIds, DWORD numPluginIds) MFNOEXCEPT {
+  BOOL WINAPI LMF_SetSourcePluginOrder(const PLUGIN_ID* pluginIds, DWORD numPluginIds) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
       std::lock_guard lock(gMutex);
 
@@ -286,7 +286,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI GetSourcePluginInfo(PLUGIN_ID pluginId, PLUGIN_INFO_EX* pluginInfoEx) MFNOEXCEPT {
+  BOOL WINAPI LMF_GetSourcePluginInfo(PLUGIN_ID pluginId, PLUGIN_INFO_EX* pluginInfoEx) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
       std::shared_lock lock(gMutex);
 
@@ -312,7 +312,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI Mount(const MOUNT_INITIALIZE_INFO* mountInitializeInfo, PMountCallback callback, MOUNT_ID* outMountId) MFNOEXCEPT {
+  BOOL WINAPI LMF_Mount(const MOUNT_INITIALIZE_INFO* mountInitializeInfo, PMountCallback callback, MOUNT_ID* outMountId) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
       std::lock_guard lock(gMutex);
 
@@ -361,7 +361,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI GetMounts(DWORD* outNumMountIds, MOUNT_ID* outMountIds, DWORD maxMountIds) MFNOEXCEPT {
+  BOOL WINAPI LMF_GetMounts(DWORD* outNumMountIds, MOUNT_ID* outMountIds, DWORD maxMountIds) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
       std::shared_lock lock(gMutex);
 
@@ -395,7 +395,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI GetMountInfo(MOUNT_ID mountId, MOUNT_INFO* outMountInfo) MFNOEXCEPT {
+  BOOL WINAPI LMF_GetMountInfo(MOUNT_ID mountId, MOUNT_INFO* outMountInfo) MFNOEXCEPT {
     return WrapException([=]() {
       std::shared_lock lock(gMutex);
 
@@ -418,7 +418,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI SafeUnmount(MOUNT_ID mountId) MFNOEXCEPT {
+  BOOL WINAPI LMF_SafeUnmount(MOUNT_ID mountId) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
       std::lock_guard lock(gMutex);
       if (!gMountStoreN) {
@@ -433,7 +433,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI Unmount(MOUNT_ID mountId) MFNOEXCEPT {
+  BOOL WINAPI LMF_Unmount(MOUNT_ID mountId) MFNOEXCEPT {
     return WrapException([=]() -> DWORD {
       std::lock_guard lock(gMutex);
       if (!gMountStoreN) {
@@ -445,7 +445,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI SafeUnmountAll() MFNOEXCEPT {
+  BOOL WINAPI LMF_SafeUnmountAll() MFNOEXCEPT {
     return WrapException([=]() {
       std::lock_guard lock(gMutex);
       if (!gMountStoreN) {
@@ -458,7 +458,7 @@ namespace Exports {
   }
 
 
-  BOOL WINAPI UnmountAll() MFNOEXCEPT {
+  BOOL WINAPI LMF_UnmountAll() MFNOEXCEPT {
     return WrapException([=]() {
       std::lock_guard lock(gMutex);
       if (!gMountStoreN) {

@@ -41,7 +41,7 @@ MountManager::MergeFSError::MergeFSError(DWORD mergefsErrorCode, DWORD win32Erro
 
 
 MountManager::MergeFSError::MergeFSError() :
-  MergeFSError(GetError(NULL), GetLastError())
+  MergeFSError(LMF_GetLastError(NULL), GetLastError())
 {}
 
 
@@ -78,12 +78,12 @@ MountManager& MountManager::GetInstance() {
 MountManager::MountManager() :
   mMountDataMap()
 {
-  CheckLibMergeFSResult(::Init());
+  CheckLibMergeFSResult(LMF_Init());
 }
 
 
 void MountManager::AddPlugin(const std::wstring& filepath) {
-  CheckLibMergeFSResult(::AddSourcePlugin(filepath.c_str(), FALSE, nullptr));
+  CheckLibMergeFSResult(LMF_AddSourcePlugin(filepath.c_str(), FALSE, nullptr));
 }
 
 
@@ -114,7 +114,7 @@ void MountManager::AddPluginsByDirectory(const std::wstring& directory) {
 
 
 void MountManager::GetPluginInfo(PLUGIN_ID pluginId, PLUGIN_INFO_EX& pluginInfoEx) const {
-  CheckLibMergeFSResult(::GetSourcePluginInfo(pluginId, &pluginInfoEx));
+  CheckLibMergeFSResult(LMF_GetSourcePluginInfo(pluginId, &pluginInfoEx));
 }
 
 
@@ -127,7 +127,7 @@ PLUGIN_INFO_EX MountManager::GetPluginInfo(PLUGIN_ID pluginId) const {
 
 std::size_t MountManager::CountPlugins() const {
   DWORD numPluginIds = 0;
-  CheckLibMergeFSResult(::GetSourcePlugins(&numPluginIds, nullptr, 0));
+  CheckLibMergeFSResult(LMF_GetSourcePlugins(&numPluginIds, nullptr, 0));
   return numPluginIds;
 }
 
@@ -135,7 +135,7 @@ std::size_t MountManager::CountPlugins() const {
 std::vector<PLUGIN_ID> MountManager::ListPluginIds() const {
   const auto numPluginIds = CountPlugins();
   std::vector<PLUGIN_ID> pluginIds(numPluginIds);
-  CheckLibMergeFSResult(::GetSourcePlugins(nullptr, pluginIds.data(), static_cast<DWORD>(numPluginIds)));
+  CheckLibMergeFSResult(LMF_GetSourcePlugins(nullptr, pluginIds.data(), static_cast<DWORD>(numPluginIds)));
   return pluginIds;
 }
 
@@ -244,7 +244,7 @@ MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::functio
   SetCurrentDirectoryW(configFileDirectory.c_str());
 
   MOUNT_ID mountId = MOUNT_ID_NULL;
-  if (!::Mount(&mountInitializeInfo, MountCallback, &mountId)) {
+  if (!LMF_Mount(&mountInitializeInfo, MountCallback, &mountId)) {
     throw MountError{
       MergeFSError(),
       mountPoint,
@@ -263,15 +263,15 @@ MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::functio
 
 void MountManager::RemoveMount(MOUNT_ID mountId, bool safe) {
   if (safe) {
-    CheckLibMergeFSResult(::SafeUnmount(mountId));
+    CheckLibMergeFSResult(LMF_SafeUnmount(mountId));
   } else {
-    CheckLibMergeFSResult(::Unmount(mountId));
+    CheckLibMergeFSResult(LMF_Unmount(mountId));
   }
 }
 
 
 void MountManager::GetMountInfo(MOUNT_ID mountId, MOUNT_INFO& mountInfo) const {
-  CheckLibMergeFSResult(::GetMountInfo(mountId, &mountInfo));
+  CheckLibMergeFSResult(LMF_GetMountInfo(mountId, &mountInfo));
 }
 
 
@@ -289,7 +289,7 @@ const MountManager::MountData& MountManager::GetMountData(MOUNT_ID mountId) cons
 
 std::size_t MountManager::CountMounts() const {
   DWORD numMountIds = 0;
-  CheckLibMergeFSResult(GetMounts(&numMountIds, nullptr, 0));
+  CheckLibMergeFSResult(LMF_GetMounts(&numMountIds, nullptr, 0));
   return numMountIds;
 }
 
@@ -297,7 +297,7 @@ std::size_t MountManager::CountMounts() const {
 std::vector<MOUNT_ID> MountManager::ListMountIds() const {
   const auto numMountIds = CountMounts();
   std::vector<MOUNT_ID> mountIds(numMountIds);
-  CheckLibMergeFSResult(::GetMounts(nullptr, mountIds.data(), static_cast<DWORD>(numMountIds)));
+  CheckLibMergeFSResult(LMF_GetMounts(nullptr, mountIds.data(), static_cast<DWORD>(numMountIds)));
   return mountIds;
 }
 
@@ -316,14 +316,14 @@ std::vector<std::pair<MOUNT_ID, MOUNT_INFO>> MountManager::ListMounts() const {
 
 void MountManager::UnmountAll(bool safe) {
   if (safe) {
-    CheckLibMergeFSResult(::SafeUnmountAll());
+    CheckLibMergeFSResult(LMF_SafeUnmountAll());
   } else {
-    CheckLibMergeFSResult(::UnmountAll());
+    CheckLibMergeFSResult(LMF_UnmountAll());
   }
 }
 
 
 void MountManager::Uninit(bool safe) {
   UnmountAll(safe);
-  ::Uninit();
+  LMF_Uninit();
 }
