@@ -273,8 +273,8 @@ MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::functio
   if (!LMF_Mount(&mountInitializeInfo, MountCallback, &mountId)) {
     throw MountError{
       MergeFSError(),
-      mountPoint,
       configFilepath,
+      mountPoint,
     };
   }
 
