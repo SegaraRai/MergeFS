@@ -186,6 +186,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MountManager.cpp" />
     <ClCompile Include="EncodingConverter.cpp" />
+    <ClCompile Include="Util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\SDK\LibMergeFS.h" />
@@ -194,6 +195,7 @@
     <ClInclude Include="MountManager.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="EncodingConverter.hpp" />
+    <ClInclude Include="Util.hpp" />
     <ClInclude Include="YamlWstring.hpp" />
   </ItemGroup>
   <ItemGroup>
