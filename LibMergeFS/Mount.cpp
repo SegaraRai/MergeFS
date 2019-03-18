@@ -301,6 +301,7 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
     m_mounted = true;
     const auto ret = DokanMain(&config, &operations);
     m_mounted = false;
+
     {
       std::lock_guard lock(m_imdMutex);
       if (m_imdState == ImdState::Mounting) {
@@ -336,24 +337,13 @@ Mount::~Mount() {
       m_mounted = false;
     }
   }
-  /*
-  if (m_mounted) {
-    m_thread.detach();
-  } else {
-    m_thread.join();
-  }
-  */
-  try {
-    if (m_thread.joinable()) {
-      m_thread.join();
-    } else {
-      m_thread.detach();
-    }
-  } catch (std::system_error&) {
-    try {
-      m_thread.detach();
-    } catch (std::system_error&) {}
-  }
+
+  std::unique_lock lock(m_imdMutex);
+  m_imdCv.wait(lock, [this]() {
+    return m_imdState != ImdState::Pending;
+  });
+
+  m_thread.join();
 }
 
 
