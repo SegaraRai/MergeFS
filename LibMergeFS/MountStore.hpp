@@ -7,13 +7,18 @@
 #include "Mount.hpp"
 #include "SourcePluginStore.hpp"
 
+#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
+#include <deque>
 #include <exception>
 #include <functional>
 #include <memory>
+#include <mutex>
+#include <shared_mutex>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -79,11 +84,18 @@ private:
     MountInfoWrapper wrappedMountInfo;
   };
 
+  mutable std::shared_mutex m_generalMutex;
   std::unordered_map<MOUNT_ID, MountData> m_mountMap;
   MOUNT_ID m_minimumUnusedMountId;
+  std::mutex m_itMutex;
+  std::condition_variable m_itCv;
+  bool m_itFinish;
+  std::deque<MOUNT_ID> m_itUnregisterIds;
+  std::thread m_unregisterThread;
 
 public:
   MountStore();
+  ~MountStore();
 
   MOUNT_ID Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(MOUNT_ID, const MOUNT_INFO&, int)> callback);
   bool HasMount(MOUNT_ID mountId) const;

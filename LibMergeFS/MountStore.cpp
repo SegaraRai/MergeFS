@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <cstddef>
 #include <functional>
+#include <mutex>
+#include <shared_mutex>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -171,9 +173,46 @@ const MOUNT_INFO& MountStore::MountData::MountInfoWrapper::Get() const {
 
 
 MountStore::MountStore() :
+  m_generalMutex(),
   m_mountMap(),
-  m_minimumUnusedMountId(MountIdStart)
+  m_minimumUnusedMountId(MountIdStart),
+  m_itMutex(),
+  m_itCv(),
+  m_itFinish(false),
+  m_itUnregisterIds(),
+  m_unregisterThread([this]() {
+    std::unique_lock lock(m_itMutex);
+
+    do {
+      m_itCv.wait(lock, [this]() {
+        return m_itFinish || !m_itUnregisterIds.empty();
+      });
+
+      if (!m_itUnregisterIds.empty()) {
+        {
+          std::lock_guard lock(m_generalMutex);
+          for (const auto& mountId : m_itUnregisterIds) {
+            m_mountMap.erase(mountId);
+            if (mountId < m_minimumUnusedMountId) {
+              m_minimumUnusedMountId = mountId;
+            }
+          }
+        }
+        m_itUnregisterIds.clear();
+      }
+    } while (!m_itFinish);
+  })
 {}
+
+
+MountStore::~MountStore() {
+  {
+    std::lock_guard lock(m_itMutex);
+    m_itFinish = true;
+  }
+  m_itCv.notify_one();
+  m_unregisterThread.join();
+}
 
 
 MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(MOUNT_ID, const MOUNT_INFO&, int)> callback) {
@@ -196,6 +235,8 @@ MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writab
     mountSources[i] = std::make_unique<MountSource>(initializeMountInfo, sourcePlugin);
   }
 
+  std::lock_guard lock(m_generalMutex);
+
   const MOUNT_ID mountId = m_minimumUnusedMountId;
   do {
     m_minimumUnusedMountId++;
@@ -204,10 +245,11 @@ MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writab
   auto mount = std::make_unique<::Mount>(mountPoint, writable, metadataFileName, deferCopyEnabled, caseSensitive, std::move(mountSources), [this, callback, mountId](int dokanMainResult) {
     callback(mountId, m_mountMap.at(mountId).wrappedMountInfo.Get(), dokanMainResult);
 
-    m_mountMap.erase(mountId);
-    if (mountId < m_minimumUnusedMountId) {
-      m_minimumUnusedMountId = mountId;
+    {
+      std::lock_guard lock(m_itMutex);
+      m_itUnregisterIds.emplace_back(mountId);
     }
+    m_itCv.notify_one();
   });
 
   const auto sourceWritable = mount->IsWritable();
@@ -221,16 +263,19 @@ MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writab
 
 
 bool MountStore::HasMount(MOUNT_ID mountId) const {
+  std::shared_lock lock(m_generalMutex);
   return m_mountMap.count(mountId);
 }
 
 
 std::size_t MountStore::CountMounts() const {
+  std::shared_lock lock(m_generalMutex);
   return m_mountMap.size();
 }
 
 
 std::vector<MountStore::MOUNT_ID> MountStore::ListMounts() const {
+  std::shared_lock lock(m_generalMutex);
   std::vector<MOUNT_ID> mountIds(m_mountMap.size());
   std::size_t i = 0;
   for (const auto& [mountId, _] : m_mountMap) {
@@ -242,6 +287,7 @@ std::vector<MountStore::MOUNT_ID> MountStore::ListMounts() const {
 
 
 const MOUNT_INFO& MountStore::GetMountInfo(MOUNT_ID mountId) const {
+  std::shared_lock lock(m_generalMutex);
   if (!m_mountMap.count(mountId)) {
     throw std::out_of_range(u8"no such mountId");
   }
@@ -250,6 +296,7 @@ const MOUNT_INFO& MountStore::GetMountInfo(MOUNT_ID mountId) const {
 
 
 bool MountStore::SafeUnmount(MOUNT_ID mountId) {
+  std::lock_guard lock(m_generalMutex);
   if (!m_mountMap.count(mountId)) {
     return false;
   }
@@ -261,6 +308,7 @@ bool MountStore::SafeUnmount(MOUNT_ID mountId) {
 
 
 void MountStore::SafeUnmountAll() {
+  std::lock_guard lock(m_generalMutex);
   for (auto& [mountId, mountData] : m_mountMap) {
     mountData.mount->SafeUnmount();
   }
@@ -268,6 +316,7 @@ void MountStore::SafeUnmountAll() {
 
 
 bool MountStore::Unmount(MOUNT_ID mountId) {
+  std::lock_guard lock(m_generalMutex);
   if (!m_mountMap.count(mountId)) {
     return false;
   }
@@ -277,6 +326,7 @@ bool MountStore::Unmount(MOUNT_ID mountId) {
 
 
 void MountStore::UnmountAll() {
+  std::lock_guard lock(m_generalMutex);
   for (auto&[mountId, mountData] : m_mountMap) {
     mountData.mount.reset();
   }
