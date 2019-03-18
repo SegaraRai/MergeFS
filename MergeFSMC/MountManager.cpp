@@ -7,6 +7,8 @@
 #include <nlohmann/json.hpp>
 #include <yaml-cpp/yaml.h>
 
+#include "../Util/RealFs.hpp"
+
 #include "MountManager.hpp"
 #include "JsonYamlInterop.hpp"
 #include "Util.hpp"
@@ -98,7 +100,7 @@ std::wstring MountManager::ResolveMountPoint(const std::wstring& mountPoint) {
     return mountPoint;
   }
 
-  return ToAbsoluteFilepath(mountPoint);
+  return util::rfs::ToAbsoluteFilepath(mountPoint);
 }
 
 

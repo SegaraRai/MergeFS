@@ -12,4 +12,3 @@ enum class SystemSound {
 
 
 void PlaySystemSound(SystemSound systemSound);
-std::wstring ToAbsoluteFilepath(const std::wstring& filepath);

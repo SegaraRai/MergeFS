@@ -4,6 +4,8 @@
 
 #include "../SDK/Plugin/SourceCpp.hpp"
 
+#include "../../Util/Common.hpp"
+
 #include <cassert>
 #include <mutex>
 #include <stdexcept>
@@ -11,7 +13,6 @@
 #include <Windows.h>
 
 #include "FileStream.hpp"
-#include "../Util.hpp"
 
 
 
@@ -24,7 +25,7 @@ void InFileStream::Init() {
     throw Win32Error(ERROR_DIRECTORY_NOT_SUPPORTED);
   }
   fileSize = (static_cast<UInt64>(byHandleFileInformation.nFileSizeHigh) << 32) | byHandleFileInformation.nFileSizeLow;
-  if (!SetFilePointerEx(fileHandle, CreateLargeInteger(0), nullptr, SEEK_SET)) {
+  if (!SetFilePointerEx(fileHandle, util::CreateLargeInteger(0), nullptr, SEEK_SET)) {
     throw Win32Error();
   }
 }
@@ -40,7 +41,7 @@ InFileStream::InFileStream(LPCWSTR filepath) :
   fileSize(0)
 {
   fileHandle = CreateFileW(filepath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-  if (!IsValidHandle(fileHandle)) {
+  if (!util::IsValidHandle(fileHandle)) {
     throw Win32Error();
   }
   try {
@@ -62,7 +63,7 @@ InFileStream::InFileStream(HANDLE hFile) :
 #endif
   fileSize(0)
 {
-  if (!IsValidHandle(fileHandle)) {
+  if (!util::IsValidHandle(fileHandle)) {
     throw Win32Error(ERROR_INVALID_HANDLE);
   }
   Init();
@@ -70,7 +71,7 @@ InFileStream::InFileStream(HANDLE hFile) :
 
 
 InFileStream::~InFileStream() {
-  if (needClose && IsValidHandle(fileHandle)) {
+  if (needClose && util::IsValidHandle(fileHandle)) {
     CloseHandle(fileHandle);
     fileHandle = NULL;
   }
@@ -107,7 +108,7 @@ STDMETHODIMP InFileStream::Read(void* data, UInt32 size, UInt32* processedSize) 
   static_assert(sizeof(LARGE_INTEGER) == sizeof(Int64));
   static_assert(sizeof(LARGE_INTEGER) == sizeof(UInt64));
   std::lock_guard lock(mutex);
-  if (!SetFilePointerEx(fileHandle, CreateLargeInteger(seekOffset), NULL, SEEK_SET)) {
+  if (!SetFilePointerEx(fileHandle, util::CreateLargeInteger(seekOffset), NULL, SEEK_SET)) {
     return HRESULT_FROM_WIN32(GetLastError());
   }
 #endif
@@ -174,7 +175,7 @@ STDMETHODIMP InFileStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64* newPosi
   static_assert(sizeof(LARGE_INTEGER) == sizeof(Int64));
   static_assert(sizeof(LARGE_INTEGER) == sizeof(UInt64));
   /*
-  if (!IsValidHandle(fileHandle)) {
+  if (!util::IsValidHandle(fileHandle)) {
     return __HRESULT_FROM_WIN32(ERROR_INVALID_HANDLE);
   }
   //*/
@@ -190,7 +191,7 @@ STDMETHODIMP InFileStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64* newPosi
 
 
 STDMETHODIMP InFileStream::GetSize(UInt64* size) {
-  if (!IsValidHandle(fileHandle)) {
+  if (!util::IsValidHandle(fileHandle)) {
     return __HRESULT_FROM_WIN32(ERROR_INVALID_HANDLE);
   }
   if (size) {

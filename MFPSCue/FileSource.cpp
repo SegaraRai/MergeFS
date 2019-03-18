@@ -7,6 +7,8 @@
 
 #include <Windows.h>
 
+#include "../Util/Common.hpp"
+
 #include "FileSource.hpp"
 #include "Util.hpp"
 
@@ -15,7 +17,7 @@ FileSource::FileSource(HANDLE fileHandle) :
   mNeedClose(false),
   mFileHandle(fileHandle)
 {
-  if (!IsValidHandle(fileHandle)) {
+  if (!util::IsValidHandle(fileHandle)) {
     throw std::runtime_error(u8"invalid handle specified");
   }
   LARGE_INTEGER fileSize;
@@ -29,7 +31,7 @@ FileSource::FileSource(HANDLE fileHandle) :
 FileSource::FileSource(LPCWSTR filepath) {
   mNeedClose = true;
   mFileHandle = CreateFileW(filepath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-  if (!IsValidHandle(mFileHandle)) {
+  if (!util::IsValidHandle(mFileHandle)) {
     throw std::runtime_error(u8"CreateFileW failed");
   }
   LARGE_INTEGER fileSize;
@@ -51,7 +53,7 @@ Source::SourceSize FileSource::GetSize() {
 NTSTATUS FileSource::Read(SourceOffset offset, std::byte* buffer, std::size_t size, std::size_t* readSize) {
   std::lock_guard lock(mMutex);
   LARGE_INTEGER newOffset;
-  if (!SetFilePointerEx(mFileHandle, CreateLargeInteger(offset), &newOffset, SEEK_SET)) {
+  if (!SetFilePointerEx(mFileHandle, util::CreateLargeInteger(offset), &newOffset, SEEK_SET)) {
     return NtstatusFromWin32();
   }
   if (newOffset.QuadPart != offset) {

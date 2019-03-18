@@ -22,11 +22,6 @@ using namespace std::literals;
 */
 
 
-bool IsValidHandle(HANDLE handle) noexcept {
-  return handle != NULL && handle != INVALID_HANDLE_VALUE;
-}
-
-
 std::wstring FilenameToKey(std::wstring_view filename, bool caseSensitive) {
 #if 0
   int bufferSize;
@@ -79,19 +74,6 @@ std::wstring FilenameToKey(std::wstring_view filename, bool caseSensitive) {
 }
 
 
-std::wstring_view GetParentPath(std::wstring_view filename) {
-  // ルートディレクトリの親ディレクトリを取得しようとするべきではない
-  assert(filename.size() > 1);
-  const std::size_t lastSlashPos = filename.find_last_of(L'\\');
-  if (lastSlashPos == 0) {
-    // root直下
-    return L"\\"sv;
-  }
-  return filename.substr(0, lastSlashPos);
-  //return std::wstring{filename.cbegin(), filename.cbegin() + lastSlashPos};
-}
-
-
 std::wstring_view GetBaseName(std::wstring_view filename) {
   // ルートディレクトリのベース名を取得しようとするべきではない
   assert(filename.size() > 1);
@@ -102,15 +84,4 @@ std::wstring_view GetBaseName(std::wstring_view filename) {
     return filename;
   }
   return filename.substr(lastSlashPos + 1);
-}
-
-
-bool IsRootDirectory(LPCWSTR filename) noexcept {
-  return filename[0] == L'\0' || filename[1] == L'\0';
-}
-
-
-bool IsRootDirectory(std::wstring_view filename) noexcept {
-  return filename.size() <= 1;
-  //return filename == L""sv || filename == L"\\"sv;
 }

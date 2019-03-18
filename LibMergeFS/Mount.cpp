@@ -6,6 +6,8 @@
 #include "DokanConfig.hpp"
 #include "DokanOperations.hpp"
 
+#include "../Util/VirtualFs.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -387,7 +389,7 @@ std::wstring Mount::ResolveFilepath(std::wstring_view filename) {
 
 
 std::optional<std::size_t> Mount::GetMountSourceIndexR(std::wstring_view resolvedFilename) {
-  if (IsRootDirectory(resolvedFilename)) {
+  if (util::vfs::IsRootDirectory(resolvedFilename)) {
     return TopSourceIndex;
   }
 
@@ -395,7 +397,7 @@ std::optional<std::size_t> Mount::GetMountSourceIndexR(std::wstring_view resolve
   // 祖先ディレクトリがここより優先度の高いソースにおいてファイルとして存在しているか、
   // メタデータにより削除済みとマークされている場合は対象のオブジェクトは存在しない
   // ここでは直属の親ディレクトリに対してGetMountSourceIndexを呼び出して確認することで再帰的にチェックしている
-  const std::wstring parentFilename(GetParentPath(resolvedFilename));
+  const std::wstring parentFilename(util::vfs::GetParentPath(resolvedFilename));
   const auto index = GetMountSourceIndexR(parentFilename);
   if (!index || m_mountSources[index.value()]->GetFileType(parentFilename.c_str()) != FileType::Directory) {
     return std::nullopt;
@@ -438,7 +440,7 @@ bool Mount::FileExists(std::wstring_view filename) {
 
 
 Mount::FileType Mount::GetFileTypeR(std::wstring_view resolvedFilename) {
-  if (IsRootDirectory(resolvedFilename)) {
+  if (util::vfs::IsRootDirectory(resolvedFilename)) {
     return FileType::Directory;
   }
   const auto index = GetMountSourceIndexR(resolvedFilename);
@@ -640,7 +642,7 @@ NTSTATUS Mount::TransportIfNeeded(PDOKAN_FILE_INFO DokanFileInfo) {
     if (fileContext.copyDeferred) {
       auto& oldMountSource = fileContext.mountSource.get();
       // ensure parent directory
-      const auto parentPath = GetParentPath(fileContext.resolvedFilename);
+      const auto parentPath = util::vfs::GetParentPath(fileContext.resolvedFilename);
       if (GetMountSourceIndexR(parentPath) != TopSourceIndex) {
         CopyFileToTopSourceR(parentPath, true);
       }
@@ -698,8 +700,8 @@ NTSTATUS Mount::DZwCreateFile(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT Secur
     DokanFileInfo->Context = NULL;
 
     // 親ディレクトリが存在することを確認する
-    if (!IsRootDirectory(FileName)) {
-      if (GetFileType(GetParentPath(FileName)) != FileType::Directory) {
+    if (!util::vfs::IsRootDirectory(FileName)) {
+      if (GetFileType(util::vfs::GetParentPath(FileName)) != FileType::Directory) {
         return STATUS_OBJECT_PATH_NOT_FOUND;
       }
     }
@@ -834,13 +836,13 @@ NTSTATUS Mount::DZwCreateFile(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT Secur
     if (resolvedFilenameN) {
       resolvedFilename = resolvedFilenameN.value();
     } else {
-      const auto resolvedParentFilenameN = ResolveFilepathN(GetParentPath(FileName));
+      const auto resolvedParentFilenameN = ResolveFilepathN(util::vfs::GetParentPath(FileName));
       if (!resolvedParentFilenameN) {
         // 一応
         assert(false);
         return STATUS_OBJECT_PATH_NOT_FOUND;
       }
-      const auto baseFilename = (IsRootDirectory(resolvedParentFilenameN.value()) ? L"\\"s : resolvedParentFilenameN.value() + L"\\"s) + std::wstring(GetBaseName(FileName)) + L"."s;
+      const auto baseFilename = (util::vfs::IsRootDirectory(resolvedParentFilenameN.value()) ? L"\\"s : resolvedParentFilenameN.value() + L"\\"s) + std::wstring(GetBaseName(FileName)) + L"."s;
       unsigned long i = 2;
       do {
         resolvedFilename = baseFilename + std::to_wstring(i);
@@ -850,7 +852,7 @@ NTSTATUS Mount::DZwCreateFile(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT Secur
 
     // 親ディレクトリをTopSource上に確保しておく
     if (existingFileType == FileType::Inexistent) {
-      auto resolvedParentFilename = GetParentPath(resolvedFilename);
+      auto resolvedParentFilename = util::vfs::GetParentPath(resolvedFilename);
       const auto parentSourceIndex = GetMountSourceIndexR(resolvedParentFilename);
       if (!parentSourceIndex) {
         // 一応
@@ -884,7 +886,7 @@ NTSTATUS Mount::DZwCreateFile(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT Secur
     if (!resolvedFilenameN) {
       // TODO: もっと効率良く書く
       std::lock_guard lock(m_metadataMutex);
-      m_metadataStore.Rename(std::wstring(GetParentPath(FileName)) + std::wstring(GetBaseName(resolvedFilename)), FileName);
+      m_metadataStore.Rename(std::wstring(util::vfs::GetParentPath(FileName)) + std::wstring(GetBaseName(resolvedFilename)), FileName);
       //m_metadataStore.Rename(resolvedFilename, FileName);
     }
 
@@ -1089,7 +1091,7 @@ List all files in the requested path DOKAN_OPERATIONS::FindFilesWithPattern is c
 */
 NTSTATUS Mount::DFindFiles(LPCWSTR FileName, PFillFindData FillFindData, PDOKAN_FILE_INFO DokanFileInfo) noexcept {
   return WrapException([=]() -> NTSTATUS {
-    const bool isRootDirectory = IsRootDirectory(FileName);
+    const bool isRootDirectory = util::vfs::IsRootDirectory(FileName);
     std::map<std::wstring, WIN32_FIND_DATAW> findDataMap;
 
     //const auto resolvedFilename = ResolveFilepath(FileName);
@@ -1269,7 +1271,7 @@ NTSTATUS Mount::DFindFiles(LPCWSTR FileName, PFillFindData FillFindData, PDOKAN_
       if (const auto status = addObject(L"."sv, resolvedFilename, true); status != STATUS_SUCCESS && status != STATUS_OBJECT_NAME_COLLISION) {
         return status;
       }
-      if (const auto status = addObject(L".."sv, GetParentPath(resolvedFilename), true); status != STATUS_SUCCESS && status != STATUS_OBJECT_NAME_COLLISION) {
+      if (const auto status = addObject(L".."sv, util::vfs::GetParentPath(resolvedFilename), true); status != STATUS_SUCCESS && status != STATUS_OBJECT_NAME_COLLISION) {
         return status;
       }
     }
@@ -1473,10 +1475,10 @@ NTSTATUS Mount::DMoveFile(LPCWSTR FileName, LPCWSTR NewFileName, BOOL ReplaceIfE
       return STATUS_MEDIA_WRITE_PROTECTED;
     }
     // ルートディレクトリに対しての操作は無効
-    if (IsRootDirectory(FileName)) {
+    if (util::vfs::IsRootDirectory(FileName)) {
       return STATUS_ACCESS_DENIED;
     }
-    if (IsRootDirectory(NewFileName)) {
+    if (util::vfs::IsRootDirectory(NewFileName)) {
       return STATUS_ACCESS_DENIED;
     }
     auto ptrFileContext = GetFileContextSharedPtr(DokanFileInfo);
@@ -1487,7 +1489,7 @@ NTSTATUS Mount::DMoveFile(LPCWSTR FileName, LPCWSTR NewFileName, BOOL ReplaceIfE
     }
     // リネーム先の親ディレクトリの実パスを確認
     // ついでに親ディレクトリが存在していることも確認
-    const auto resolvedParentNewFilenameN = ResolveFilepathN(GetParentPath(NewFileName));
+    const auto resolvedParentNewFilenameN = ResolveFilepathN(util::vfs::GetParentPath(NewFileName));
     if (!resolvedParentNewFilenameN) {
       return STATUS_OBJECT_PATH_NOT_FOUND;
     }
@@ -1522,7 +1524,7 @@ NTSTATUS Mount::DMoveFile(LPCWSTR FileName, LPCWSTR NewFileName, BOOL ReplaceIfE
           // ソース上に既にリネームされて存在している
           // せめて近い名前で存在させてあげる
           // TODO: この処理はDZwCreateFileでも記述しているので適当に共通化したい
-          const auto baseFilename = (IsRootDirectory(resolvedParentNewFilenameN.value()) ? L"\\"s : resolvedParentNewFilenameN.value() + L"\\"s) + std::wstring(GetBaseName(NewFileName)) + L"."s;
+          const auto baseFilename = (util::vfs::IsRootDirectory(resolvedParentNewFilenameN.value()) ? L"\\"s : resolvedParentNewFilenameN.value() + L"\\"s) + std::wstring(GetBaseName(NewFileName)) + L"."s;
           unsigned long i = 2;
           do {
             resolvedNewFileName = baseFilename + std::to_wstring(i);
@@ -1544,7 +1546,7 @@ NTSTATUS Mount::DMoveFile(LPCWSTR FileName, LPCWSTR NewFileName, BOOL ReplaceIfE
         if (!resolvedNewFileNameN) {
           // TODO: もっと効率良く書く
           std::lock_guard lock(m_metadataMutex);
-          m_metadataStore.Rename(std::wstring(GetParentPath(NewFileName)) + std::wstring(GetBaseName(resolvedNewFileName)), NewFileName);
+          m_metadataStore.Rename(std::wstring(util::vfs::GetParentPath(NewFileName)) + std::wstring(GetBaseName(resolvedNewFileName)), NewFileName);
           //m_metadataStore.Rename(resolvedNewFileName, NewFileName);
         }
         return STATUS_SUCCESS;

@@ -3,6 +3,8 @@
 #include "Util.hpp"
 #include "NsError.hpp"
 
+#include "../Util/Common.hpp"
+
 #include <memory>
 #include <optional>
 #include <shared_mutex>
@@ -71,7 +73,7 @@ std::wstring MetadataStore::FilenameToKey(std::wstring_view filename) const {
 void MetadataStore::LoadFromFile() {
   using namespace MetadataFile;
 
-  if (!IsValidHandle(mHFile)) {
+  if (!util::IsValidHandle(mHFile)) {
     throw W32Error(ERROR_INVALID_HANDLE);
   }
 
@@ -208,7 +210,7 @@ void MetadataStore::LoadFromFile() {
 void MetadataStore::SaveToFile() {
   using namespace MetadataFile;
 
-  if (!IsValidHandle(mHFile)) {
+  if (!util::IsValidHandle(mHFile)) {
     throw W32Error(ERROR_INVALID_HANDLE);
   }
 
@@ -350,7 +352,7 @@ MetadataStore::MetadataStore(std::wstring_view storeFileName, bool caseSensitive
 
 
 MetadataStore::~MetadataStore() {
-  if (IsValidHandle(mHFile)) {
+  if (util::IsValidHandle(mHFile)) {
     CloseHandle(mHFile);
     mHFile = NULL;
   }
@@ -358,7 +360,7 @@ MetadataStore::~MetadataStore() {
 
 
 void MetadataStore::SetFilePath(std::wstring_view storeFilename) {
-  const bool previousExists = IsValidHandle(mHFile);
+  const bool previousExists = util::IsValidHandle(mHFile);
 
   if (previousExists) {
     SaveToFile();
@@ -383,7 +385,7 @@ std::optional<std::wstring> MetadataStore::ResolveFilepath(std::wstring_view fil
 
 
 bool MetadataStore::HasMetadataR(std::wstring_view resolvedFilename) const {
-  if (!IsValidHandle(mHFile)) {
+  if (!util::IsValidHandle(mHFile)) {
     return false;
   }
   return mMetadataMap.count(FilenameToKey(resolvedFilename));
@@ -400,7 +402,7 @@ bool MetadataStore::HasMetadata(std::wstring_view filename) const {
 
 
 const Metadata& MetadataStore::GetMetadataR(std::wstring_view resolvedFilename) const {
-  if (!IsValidHandle(mHFile)) {
+  if (!util::IsValidHandle(mHFile)) {
     throw W32Error(ERROR_FILE_NOT_FOUND);
   }
   const std::wstring key = FilenameToKey(resolvedFilename);
@@ -421,7 +423,7 @@ const Metadata& MetadataStore::GetMetadata(std::wstring_view filename) const {
 
 
 Metadata MetadataStore::GetMetadata2R(std::wstring_view resolvedFilename) const {
-  if (!IsValidHandle(mHFile)) {
+  if (!util::IsValidHandle(mHFile)) {
     return Metadata{};
   }
   const std::wstring key = FilenameToKey(resolvedFilename);
@@ -439,7 +441,7 @@ Metadata MetadataStore::GetMetadata2(std::wstring_view filename) const {
 
 
 void MetadataStore::SetMetadataR(std::wstring_view resolvedFilename, const Metadata& metadata) {
-  if (!IsValidHandle(mHFile)) {
+  if (!util::IsValidHandle(mHFile)) {
     return;
   }
   mMetadataMap.insert_or_assign(FilenameToKey(resolvedFilename), metadata);
@@ -457,7 +459,7 @@ void MetadataStore::SetMetadata(std::wstring_view filename, const Metadata& meta
 
 
 bool MetadataStore::RemoveMetadataR(std::wstring_view resolvedFilename) {
-  if (!IsValidHandle(mHFile)) {
+  if (!util::IsValidHandle(mHFile)) {
     return false;
   }
   const auto ret = mMetadataMap.erase(FilenameToKey(resolvedFilename));
@@ -476,7 +478,7 @@ bool MetadataStore::RemoveMetadata(std::wstring_view filename) {
 
 
 bool MetadataStore::ExistsR(std::wstring_view resolvedFilename) const {
-  if (!IsValidHandle(mHFile)) {
+  if (!util::IsValidHandle(mHFile)) {
     return true;
   }
   // TODO:
@@ -509,7 +511,7 @@ std::vector<std::pair<std::wstring, std::wstring>> MetadataStore::ListChildrenIn
 
 
 void MetadataStore::Rename(std::wstring_view srcFilename, std::wstring_view destFilename) {
-  if (!IsValidHandle(mHFile)) {
+  if (!util::IsValidHandle(mHFile)) {
     return;
   }
   const auto result = mRenameStore.Rename(srcFilename, destFilename);
@@ -534,7 +536,7 @@ void MetadataStore::Rename(std::wstring_view srcFilename, std::wstring_view dest
 
 
 void MetadataStore::Delete(std::wstring_view filename) {
-  if (!IsValidHandle(mHFile)) {
+  if (!util::IsValidHandle(mHFile)) {
     return;
   }
   const auto resolvedFilenameN = ResolveFilepath(filename);
@@ -546,7 +548,7 @@ void MetadataStore::Delete(std::wstring_view filename) {
 
 
 bool MetadataStore::RemoveRenameEntry(std::wstring_view filename) {
-  if (!IsValidHandle(mHFile)) {
+  if (!util::IsValidHandle(mHFile)) {
     return false;
   }
   const auto result = mRenameStore.RemoveEntry(filename);

@@ -10,6 +10,9 @@
 #include <Windows.h>
 #include <Shlwapi.h>
 
+#include "../Util/Common.hpp"
+#include "../Util/VirtualFs.hpp"
+
 #include "FilesystemSourceMount.hpp"
 #include "FilesystemSourceMountFile.hpp"
 #include "Util.hpp"
@@ -32,7 +35,7 @@ FilesystemSourceMount::Portation::Portation(FilesystemSourceMount& sourceMount, 
 
 FilesystemSourceMount::Portation::~Portation() {
   // in case
-  if (needClose && IsValidHandle(hFile)) {
+  if (needClose && util::IsValidHandle(hFile)) {
     CloseHandle(hFile);
     hFile = NULL;
   }
@@ -40,7 +43,7 @@ FilesystemSourceMount::Portation::~Portation() {
 
 
 NTSTATUS FilesystemSourceMount::Portation::Finish(PORTATION_INFO* portationInfo, bool success) {
-  if (needClose && IsValidHandle(hFile)) {
+  if (needClose && util::IsValidHandle(hFile)) {
     CloseHandle(hFile);
     hFile = NULL;
   }
@@ -67,7 +70,7 @@ FilesystemSourceMount::ExportPortation::ExportPortation(FilesystemSourceMount& s
   }
 
   // create file handle if needed
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     hFile = directory
       ? CreateFileW(realPath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, fileAttributes | FILE_FLAG_BACKUP_SEMANTICS, NULL)
       : CreateFileW(realPath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, fileAttributes, NULL);
@@ -151,7 +154,7 @@ FilesystemSourceMount::ImportPortation::ImportPortation(FilesystemSourceMount& s
     memcpy(securityData.get(), portationInfo->securityData, securitySize);
   }
 
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     const DWORD existingFileAttributes = GetFileAttributesW(realPath.c_str());
     if (existingFileAttributes != INVALID_FILE_ATTRIBUTES) {
       throw Win32Error();
@@ -218,7 +221,7 @@ NTSTATUS FilesystemSourceMount::ImportPortation::Import(PORTATION_INFO* portatio
 
 
 NTSTATUS FilesystemSourceMount::ImportPortation::Finish(PORTATION_INFO* portationInfo, bool success) {
-  if (IsValidHandle(hFile)) {
+  if (util::IsValidHandle(hFile)) {
     if (!success) {
       if (!directory) {
         FILE_DISPOSITION_INFO fileDispositionInfo{
@@ -282,7 +285,7 @@ FilesystemSourceMount::FilesystemSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO*
   constexpr std::size_t BufferSize = MAX_PATH + 1;
 
   rootDirectoryFileHandle = CreateFileW(realPathPrefix.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_DIRECTORY | FILE_FLAG_BACKUP_SEMANTICS, NULL);
-  if (!IsValidHandle(rootDirectoryFileHandle)) {
+  if (!util::IsValidHandle(rootDirectoryFileHandle)) {
     throw Win32Error();
   }
 
@@ -308,7 +311,7 @@ FilesystemSourceMount::FilesystemSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO*
 
 
 FilesystemSourceMount::~FilesystemSourceMount() {
-  if (IsValidHandle(rootDirectoryFileHandle)) {
+  if (util::IsValidHandle(rootDirectoryFileHandle)) {
     CloseHandle(rootDirectoryFileHandle);
     rootDirectoryFileHandle = NULL;
   }
@@ -317,7 +320,7 @@ FilesystemSourceMount::~FilesystemSourceMount() {
 
 std::wstring FilesystemSourceMount::GetRealPath(LPCWSTR filepath) {
   assert(filepath && filepath[0] == L'\\');
-  return IsRootDirectory(filepath) ? realPathPrefix : realPathPrefix + std::wstring(filepath);
+  return util::vfs::IsRootDirectory(filepath) ? realPathPrefix : realPathPrefix + std::wstring(filepath);
 }
 
 

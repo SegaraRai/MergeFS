@@ -15,6 +15,10 @@
 #include "../SDK/CaseSensitivity.hpp"
 #include "../SDK/FileNaming.hpp"
 
+#include "../Util/Common.hpp"
+#include "../Util/RealFs.hpp"
+#include "../Util/VirtualFs.hpp"
+
 #include "CueSourceMount.hpp"
 #include "CueSourceMountFile.hpp"
 #include "AudioSourceToSourceWAV.hpp"
@@ -166,7 +170,7 @@ CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* initializeMou
         const auto jsonOptions = json::parse(initializeMountInfo->OptionsJSON);
 
         try {
-          const auto& strJsonExtractToMemory = ToLowerString(jsonOptions.at("extractToMemory"s).dump());
+          const auto& strJsonExtractToMemory = util::ToLowerString(jsonOptions.at("extractToMemory"s).dump());
           if (strJsonExtractToMemory == "true" || strJsonExtractToMemory == "\"always\"") {
             optExtractToMemory = CueAudioLoader::ExtractToMemory::Always;
           } else if (strJsonExtractToMemory == "\"compressed\"") {
@@ -183,10 +187,10 @@ CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* initializeMou
     }
 
 
-    const auto cueFilePath = ToAbsoluteFilepath(initializeMountInfo->FileName);
+    const auto cueFilePath = util::rfs::ToAbsoluteFilepath(initializeMountInfo->FileName);
 
     cueFileHandle = CreateFileW(cueFilePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (!IsValidHandle(cueFileHandle)) {
+    if (!util::IsValidHandle(cueFileHandle)) {
       throw Win32Error();
     }
 
@@ -275,7 +279,7 @@ CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* initializeMou
       }
     }
   } catch (...) {
-    if (IsValidHandle(cueFileHandle)) {
+    if (util::IsValidHandle(cueFileHandle)) {
       CloseHandle(cueFileHandle);
       cueFileHandle = NULL;
     }
@@ -288,8 +292,8 @@ CueSourceMount::~CueSourceMount() {}
 
 
 NTSTATUS CueSourceMount::ReturnPathOrNameNotFoundError(LPCWSTR filepath) const {
-  assert(!IsRootDirectory(filepath));
-  return directoryTree.Exists(GetParentPath(filepath).substr(1)) ? STATUS_OBJECT_NAME_NOT_FOUND : STATUS_OBJECT_PATH_NOT_FOUND;
+  assert(!util::vfs::IsRootDirectory(filepath));
+  return directoryTree.Exists(util::vfs::GetParentPath(filepath).substr(1)) ? STATUS_OBJECT_NAME_NOT_FOUND : STATUS_OBJECT_PATH_NOT_FOUND;
 }
 
 

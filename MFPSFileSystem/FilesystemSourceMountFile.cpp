@@ -11,6 +11,8 @@
 
 #include <Windows.h>
 
+#include "../Util/Common.hpp"
+
 #include "FilesystemSourceMountFile.hpp"
 #include "FilesystemSourceMount.hpp"
 #include "Util.hpp"
@@ -25,7 +27,7 @@ FilesystemSourceMountFile::FilesystemSourceMountFile(FilesystemSourceMount& sour
   realPath(sourceMount.GetRealPath(FileName))
 {
   const HANDLE preparedHandle = MaybeSwitchedN ? NULL : sourceMount.TransferSwitchDestinationHandle(FileContextId);
-  if (IsValidHandle(preparedHandle)) {
+  if (util::IsValidHandle(preparedHandle)) {
     this->hFile = preparedHandle;
 
     BY_HANDLE_FILE_INFORMATION byHandleFileInformation;
@@ -114,7 +116,7 @@ FilesystemSourceMountFile::FilesystemSourceMountFile(FilesystemSourceMount& sour
 
 FilesystemSourceMountFile::~FilesystemSourceMountFile() {
   // in case
-  if (IsValidHandle(hFile)) {
+  if (util::IsValidHandle(hFile)) {
     CloseHandle(hFile);
     hFile = NULL;
   }
@@ -127,7 +129,7 @@ HANDLE FilesystemSourceMountFile::GetFileHandle() {
 
 
 NTSTATUS FilesystemSourceMountFile::SwitchDestinationCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) {
-  if (IsValidHandle(hFile)) {
+  if (util::IsValidHandle(hFile)) {
     DokanFileInfo->DeleteOnClose = TRUE;
     DDeleteFile(DokanFileInfo);
   }
@@ -137,7 +139,7 @@ NTSTATUS FilesystemSourceMountFile::SwitchDestinationCleanupImpl(PDOKAN_FILE_INF
 
 
 NTSTATUS FilesystemSourceMountFile::SwitchDestinationCloseImpl(PDOKAN_FILE_INFO DokanFileInfo) {
-  if (IsValidHandle(hFile)) {
+  if (util::IsValidHandle(hFile)) {
     DokanFileInfo->DeleteOnClose = TRUE;
     DDeleteFile(DokanFileInfo);
   }
@@ -159,7 +161,7 @@ void FilesystemSourceMountFile::DCleanupImpl(PDOKAN_FILE_INFO DokanFileInfo) {
 
 
 void FilesystemSourceMountFile::DCloseFileImpl(PDOKAN_FILE_INFO DokanFileInfo) {
-  if (IsValidHandle(hFile)) {
+  if (util::IsValidHandle(hFile)) {
     CloseHandle(hFile);
     hFile = NULL;
     if (DokanFileInfo->DeleteOnClose) {
@@ -176,10 +178,10 @@ void FilesystemSourceMountFile::DCloseFileImpl(PDOKAN_FILE_INFO DokanFileInfo) {
 
 
 NTSTATUS FilesystemSourceMountFile::DReadFile(LPVOID Buffer, DWORD BufferLength, LPDWORD ReadLength, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo) {
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     return STATUS_INVALID_HANDLE;
   }
-  if (!SetFilePointerEx(hFile, CreateLargeInteger(Offset), NULL, FILE_BEGIN)) {
+  if (!SetFilePointerEx(hFile, util::CreateLargeInteger(Offset), NULL, FILE_BEGIN)) {
     return NtstatusFromWin32();
   }
   return NtstatusFromWin32Api(ReadFile(hFile, Buffer, BufferLength, ReadLength, NULL));
@@ -187,12 +189,12 @@ NTSTATUS FilesystemSourceMountFile::DReadFile(LPVOID Buffer, DWORD BufferLength,
 
 
 NTSTATUS FilesystemSourceMountFile::DWriteFile(LPCVOID Buffer, DWORD NumberOfBytesToWrite, LPDWORD NumberOfBytesWritten, LONGLONG Offset, PDOKAN_FILE_INFO DokanFileInfo) {
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     return STATUS_INVALID_HANDLE;
   }
   // seek
   if (DokanFileInfo->WriteToEndOfFile) {
-    if (!SetFilePointerEx(hFile, CreateLargeInteger(0), NULL, FILE_END)) {
+    if (!SetFilePointerEx(hFile, util::CreateLargeInteger(0), NULL, FILE_END)) {
       return NtstatusFromWin32();
     }
   } else {
@@ -213,7 +215,7 @@ NTSTATUS FilesystemSourceMountFile::DWriteFile(LPCVOID Buffer, DWORD NumberOfByt
         NumberOfBytesToWrite = static_cast<DWORD>(std::min<ULONGLONG>(writableBytes, static_cast<ULONGLONG>(std::numeric_limits<DWORD>::max())));
       }
     }
-    if (!SetFilePointerEx(hFile, CreateLargeInteger(Offset), NULL, FILE_BEGIN)) {
+    if (!SetFilePointerEx(hFile, util::CreateLargeInteger(Offset), NULL, FILE_BEGIN)) {
       return NtstatusFromWin32();
     }
   }
@@ -223,7 +225,7 @@ NTSTATUS FilesystemSourceMountFile::DWriteFile(LPCVOID Buffer, DWORD NumberOfByt
 
 
 NTSTATUS FilesystemSourceMountFile::DFlushFileBuffers(PDOKAN_FILE_INFO DokanFileInfo) {
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     return STATUS_INVALID_HANDLE;
   }
   return NtstatusFromWin32Api(FlushFileBuffers(hFile));
@@ -231,7 +233,7 @@ NTSTATUS FilesystemSourceMountFile::DFlushFileBuffers(PDOKAN_FILE_INFO DokanFile
 
 
 NTSTATUS FilesystemSourceMountFile::DGetFileInformation(LPBY_HANDLE_FILE_INFORMATION Buffer, PDOKAN_FILE_INFO DokanFileInfo) {
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     return STATUS_INVALID_HANDLE;
   }
   return NtstatusFromWin32Api(GetFileInformationByHandle(hFile, Buffer));
@@ -239,7 +241,7 @@ NTSTATUS FilesystemSourceMountFile::DGetFileInformation(LPBY_HANDLE_FILE_INFORMA
 
 
 NTSTATUS FilesystemSourceMountFile::DSetFileAttributes(DWORD FileAttributes, PDOKAN_FILE_INFO DokanFileInfo) {
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     return STATUS_INVALID_HANDLE;
   }
   if (!FileAttributes) {
@@ -251,7 +253,7 @@ NTSTATUS FilesystemSourceMountFile::DSetFileAttributes(DWORD FileAttributes, PDO
 
 
 NTSTATUS FilesystemSourceMountFile::DSetFileTime(const FILETIME* CreationTime, const FILETIME* LastAccessTime, const FILETIME* LastWriteTime, PDOKAN_FILE_INFO DokanFileInfo) {
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     return STATUS_INVALID_HANDLE;
   }
   return NtstatusFromWin32Api(SetFileTime(hFile, CreationTime, LastAccessTime, LastWriteTime));
@@ -259,7 +261,7 @@ NTSTATUS FilesystemSourceMountFile::DSetFileTime(const FILETIME* CreationTime, c
 
 
 NTSTATUS FilesystemSourceMountFile::DDeleteFile(PDOKAN_FILE_INFO DokanFileInfo) {
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     return STATUS_INVALID_HANDLE;
   }
   if (directory) {
@@ -273,7 +275,7 @@ NTSTATUS FilesystemSourceMountFile::DDeleteFile(PDOKAN_FILE_INFO DokanFileInfo) 
 
 
 NTSTATUS FilesystemSourceMountFile::DDeleteDirectory(PDOKAN_FILE_INFO DokanFileInfo) {
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     return STATUS_INVALID_HANDLE;
   }
   if (!DokanFileInfo->DeleteOnClose) {
@@ -284,7 +286,7 @@ NTSTATUS FilesystemSourceMountFile::DDeleteDirectory(PDOKAN_FILE_INFO DokanFileI
 
 
 NTSTATUS FilesystemSourceMountFile::DMoveFile(LPCWSTR NewFileName, BOOL ReplaceIfExisting, PDOKAN_FILE_INFO DokanFileInfo) {
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     return STATUS_INVALID_HANDLE;
   }
 
@@ -308,10 +310,10 @@ NTSTATUS FilesystemSourceMountFile::DMoveFile(LPCWSTR NewFileName, BOOL ReplaceI
 
 
 NTSTATUS FilesystemSourceMountFile::DSetEndOfFile(LONGLONG ByteOffset, PDOKAN_FILE_INFO DokanFileInfo) {
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     return STATUS_INVALID_HANDLE;
   }
-  if (!SetFilePointerEx(hFile, CreateLargeInteger(ByteOffset), NULL, FILE_BEGIN)) {
+  if (!SetFilePointerEx(hFile, util::CreateLargeInteger(ByteOffset), NULL, FILE_BEGIN)) {
     return NtstatusFromWin32();
   }
   return NtstatusFromWin32Api(SetEndOfFile(hFile));
@@ -319,7 +321,7 @@ NTSTATUS FilesystemSourceMountFile::DSetEndOfFile(LONGLONG ByteOffset, PDOKAN_FI
 
 
 NTSTATUS FilesystemSourceMountFile::DSetAllocationSize(LONGLONG AllocSize, PDOKAN_FILE_INFO DokanFileInfo) {
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     return STATUS_INVALID_HANDLE;
   }
   // check if AllocSize if smaller than the file size
@@ -332,7 +334,7 @@ NTSTATUS FilesystemSourceMountFile::DSetAllocationSize(LONGLONG AllocSize, PDOKA
     return STATUS_SUCCESS;
   }
   //
-  if (!SetFilePointerEx(hFile, CreateLargeInteger(AllocSize), NULL, FILE_BEGIN)) {
+  if (!SetFilePointerEx(hFile, util::CreateLargeInteger(AllocSize), NULL, FILE_BEGIN)) {
     return NtstatusFromWin32();
   }
   return NtstatusFromWin32Api(SetEndOfFile(hFile));
@@ -340,7 +342,7 @@ NTSTATUS FilesystemSourceMountFile::DSetAllocationSize(LONGLONG AllocSize, PDOKA
 
 
 NTSTATUS FilesystemSourceMountFile::DGetFileSecurity(PSECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR SecurityDescriptor, ULONG BufferLength, PULONG LengthNeeded, PDOKAN_FILE_INFO DokanFileInfo) {
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     return STATUS_INVALID_HANDLE;
   }
   // TODO
@@ -349,7 +351,7 @@ NTSTATUS FilesystemSourceMountFile::DGetFileSecurity(PSECURITY_INFORMATION Secur
 
 
 NTSTATUS FilesystemSourceMountFile::DSetFileSecurity(PSECURITY_INFORMATION SecurityInformation, PSECURITY_DESCRIPTOR SecurityDescriptor, ULONG BufferLength, PDOKAN_FILE_INFO DokanFileInfo) {
-  if (!IsValidHandle(hFile)) {
+  if (!util::IsValidHandle(hFile)) {
     return STATUS_INVALID_HANDLE;
   }
   // TODO

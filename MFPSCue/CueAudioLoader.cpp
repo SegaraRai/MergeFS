@@ -13,6 +13,8 @@
 #include <Windows.h>
 #include <shlwapi.h>
 
+#include "../Util/RealFs.hpp"
+
 #include "CueAudioLoader.hpp"
 #include "AudioSource.hpp"
 #include "AudioSourceWrapper.hpp"
@@ -41,8 +43,8 @@ namespace {
 
 
 CueAudioLoader::CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory) {
-  const auto fullCueFilepath = ToAbsoluteFilepath(filepath);
-  const auto baseDirectoryPath = GetParentPath(fullCueFilepath);
+  const auto fullCueFilepath = util::rfs::ToAbsoluteFilepath(filepath);
+  const auto baseDirectoryPath = util::rfs::GetParentPath(fullCueFilepath);
 
   mCueFileSource = std::make_shared<FileSource>(fullCueFilepath.c_str());
   auto rawCueSheetData = std::make_unique<std::byte[]>(static_cast<std::size_t>(mCueFileSource->GetSize()));

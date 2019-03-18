@@ -6,6 +6,8 @@
 
 #include "../SDK/Plugin/SourceCpp.hpp"
 
+#include "../Util/RealFs.hpp"
+
 #include <memory>
 
 #include <Windows.h>
@@ -100,7 +102,7 @@ BOOL SIsSupportedImpl(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo) n
       return FALSE;
     }
     auto& NanaZ = *gPtrNanaZ;
-    const auto archiveFilepathN = FindRootFilepath(ToAbsoluteFilepath(InitializeMountInfo->FileName));
+    const auto archiveFilepathN = FindRootFilepath(util::rfs::ToAbsoluteFilepath(InitializeMountInfo->FileName));
     if (!archiveFilepathN) {
       return FALSE;
     }

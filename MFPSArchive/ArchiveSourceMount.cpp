@@ -12,6 +12,11 @@
 #include <Windows.h>
 #include <winrt/base.h>
 
+#include "../Util/Common.hpp"
+#include "../Util/InternalFs.hpp"
+#include "../Util/RealFs.hpp"
+#include "../Util/VirtualFs.hpp"
+
 #include "ArchiveSourceMount.hpp"
 #include "ArchiveSourceMountFile.hpp"
 #include "Util.hpp"
@@ -112,7 +117,7 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
   constexpr std::size_t BufferSize = MAX_PATH + 1;
 
   try {
-    absolutePath = ToAbsoluteFilepath(InitializeMountInfo->FileName);
+    absolutePath = util::rfs::ToAbsoluteFilepath(InitializeMountInfo->FileName);
     const auto archiveFilepathN = FindRootFilepath(absolutePath);
     if (!archiveFilepathN) {
       throw std::runtime_error(u8"archive file not found");
@@ -123,7 +128,7 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
     pathPrefixWb = pathPrefix.empty() ? L""s : pathPrefix + L"\\"s;
 
     archiveFileHandle = CreateFileW(archiveFilepath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (!IsValidHandle(archiveFileHandle)) {
+    if (!util::IsValidHandle(archiveFileHandle)) {
       throw Win32Error();
     }
 
@@ -161,7 +166,7 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
       return std::make_optional<std::pair<std::wstring, bool>>(newFilepath, false);
     }, nullptr);
   } catch (...) {
-    if (IsValidHandle(archiveFileHandle)) {
+    if (util::IsValidHandle(archiveFileHandle)) {
       CloseHandle(archiveFileHandle);
       archiveFileHandle = NULL;
     }
@@ -172,7 +177,7 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
 
 ArchiveSourceMount::~ArchiveSourceMount() {
   archiveN = std::nullopt;
-  if (IsValidHandle(archiveFileHandle)) {
+  if (util::IsValidHandle(archiveFileHandle)) {
     CloseHandle(archiveFileHandle);
     archiveFileHandle = NULL;
   }
@@ -181,7 +186,7 @@ ArchiveSourceMount::~ArchiveSourceMount() {
 
 std::wstring ArchiveSourceMount::GetRealPath(LPCWSTR filepath) const {
   assert(filepath && filepath[0] == L'\\');
-  if (IsRootDirectory(filepath)) {
+  if (util::vfs::IsRootDirectory(filepath)) {
     return pathPrefix;
   }
   return pathPrefixWb + std::wstring(filepath + 1);
@@ -194,7 +199,7 @@ NTSTATUS ArchiveSourceMount::ReturnPathOrNameNotFoundErrorR(std::wstring_view re
     return STATUS_OBJECT_NAME_NOT_FOUND;
   }
   auto& archive = this->archiveN.value();
-  return archive.Exists(GetParentPath(realPath)) ? STATUS_OBJECT_NAME_NOT_FOUND : STATUS_OBJECT_PATH_NOT_FOUND;
+  return archive.Exists(util::ifs::GetParentPath(realPath)) ? STATUS_OBJECT_NAME_NOT_FOUND : STATUS_OBJECT_PATH_NOT_FOUND;
 }
 
 

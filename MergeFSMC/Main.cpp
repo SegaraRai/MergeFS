@@ -16,6 +16,8 @@
 #include <Windowsx.h>
 #include <Shlwapi.h>
 
+#include "../Util/RealFs.hpp"
+
 #include "resource.h"
 
 #include "CommandLineArgs.hpp"
@@ -592,7 +594,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
   std::vector<std::wstring> sourceFilepaths(args);
   for (auto& sourceFilepath : sourceFilepaths) {
-    sourceFilepath = ToAbsoluteFilepath(sourceFilepath);
+    sourceFilepath = util::rfs::ToAbsoluteFilepath(sourceFilepath);
   }
 
 

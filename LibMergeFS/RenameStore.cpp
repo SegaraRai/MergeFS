@@ -3,6 +3,8 @@
 
 #include "../SDK/CaseSensitivity.hpp"
 
+#include "../Util/VirtualFs.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -379,7 +381,7 @@ std::vector<std::pair<std::wstring, std::wstring>> RenameStore::ListChildrenInRe
 
 
 std::optional<bool> RenameStore::Exists(std::wstring_view filepath) const {
-  if (IsRootDirectory(filepath)) {
+  if (util::vfs::IsRootDirectory(filepath)) {
     return std::nullopt;
   }
   // trim leading backslash
@@ -395,7 +397,7 @@ std::optional<bool> RenameStore::Exists(std::wstring_view filepath) const {
 
 
 std::optional<std::wstring> RenameStore::Resolve(std::wstring_view filepath) const {
-  if (IsRootDirectory(filepath)) {
+  if (util::vfs::IsRootDirectory(filepath)) {
     return std::wstring(filepath);
   }
   // trim leading backslash
@@ -413,7 +415,7 @@ std::optional<std::wstring> RenameStore::Resolve(std::wstring_view filepath) con
 
 
 RenameStore::Result RenameStore::Rename(std::wstring_view srcFilepath, std::wstring_view destFilepath) {
-  if (IsRootDirectory(srcFilepath) || IsRootDirectory(destFilepath)) {
+  if (util::vfs::IsRootDirectory(srcFilepath) || util::vfs::IsRootDirectory(destFilepath)) {
     return Result::Invalid;
   }
 
@@ -469,7 +471,7 @@ RenameStore::Result RenameStore::Rename(std::wstring_view srcFilepath, std::wstr
 
 
 bool RenameStore::RemoveEntry(std::wstring_view filepath) {
-  if (IsRootDirectory(filepath)) {
+  if (util::vfs::IsRootDirectory(filepath)) {
     return false;
   }
   const auto trimedFilepath = filepath.substr(1);
