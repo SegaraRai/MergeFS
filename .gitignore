@@ -6,6 +6,7 @@
 experiments
 
 dokan/bin
+dokan/src
 
 # User-specific files
 *.suo
