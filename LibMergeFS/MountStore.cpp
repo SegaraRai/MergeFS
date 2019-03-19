@@ -247,6 +247,9 @@ MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writab
 
     {
       std::lock_guard lock(m_itMutex);
+      if (m_itFinish) {
+        return;
+      }
       m_itUnregisterIds.emplace_back(mountId);
     }
     m_itCv.notify_one();
