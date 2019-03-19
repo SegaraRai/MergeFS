@@ -362,7 +362,7 @@ bool Mount::Unmount() {
       return true;
     }
   }
-#if DOKAN_VERSION >= 122
+#if DOKAN_VERSION >= 200
   if (!DokanRemoveMountPointEx(m_mountPoint.c_str(), FALSE)) {
 #else
   if (!DokanRemoveMountPoint(m_mountPoint.c_str())) {
