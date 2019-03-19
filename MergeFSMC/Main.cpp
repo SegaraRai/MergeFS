@@ -451,7 +451,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
                 loadedMenuHandles.emplace_back(hMenuCopy);
 
-                const HMENU hMountSubMenu = GetSubMenu(hMenu, 1);
+                const HMENU hMountSubMenu = GetSubMenu(hMenuCopy, 1);
                 if (hMountSubMenu == NULL) {
                   continue;
                 }
