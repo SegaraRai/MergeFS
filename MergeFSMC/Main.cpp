@@ -72,7 +72,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     // NOTE: To receive "TaskbarCreated" message, the window must be a top level window. A message-only window will not receive the message.
     if (gNotifyIcon) {
       if (!gNotifyIcon.value().Register()) {
-        MessageBoxW(NULL, L"Failed to register notify icon", L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+        const std::wstring message = L"Failed to register notify icon (code "s + std::to_wstring(GetLastError()) + L")"s;
+        MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
         DestroyWindow(hwnd);
       }
     }
@@ -730,9 +731,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   }, true);
 
   if (!gNotifyIcon.value().Register()) {
-    MessageBoxW(NULL, L"Failed to register notify icon", L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
     ReleaseMutex(hMutex);
-    const std::wstring message = L"Initialization error: Shell_NotifyIconW [1] failed with code "s + std::to_wstring(GetLastError());
+    const std::wstring message = L"Initialization error: Failed to register notify icon (code "s + std::to_wstring(GetLastError()) + L")"s;
     MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
     DestroyWindow(hWnd);
     return 1;
