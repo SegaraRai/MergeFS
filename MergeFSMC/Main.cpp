@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <list>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -23,6 +24,7 @@
 #include "CommandLineArgs.hpp"
 #include "EncodingConverter.hpp"
 #include "MountManager.hpp"
+#include "NotifyIcon.hpp"
 #include "Util.hpp"
 
 using namespace std::literals;
@@ -57,13 +59,27 @@ namespace {
   std::atomic<bool> gUnmountAll = false;
   std::list<std::vector<std::wstring>> gSecondInstanceArgsQueue;
   std::list<MountError> gMountErrorQueue;
+  const UINT gTaskbarCreatedMessage = RegisterWindowMessageW(L"TaskbarCreated");
   auto& gMountManager = MountManager::GetInstance();
+  std::optional<NotifyIcon> gNotifyIcon;
   HINSTANCE gHInstance;
   std::wstring gPluginsDirectory;
 }
 
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+  if (gTaskbarCreatedMessage != 0 && uMsg == gTaskbarCreatedMessage) {
+    // use if statement because gTaskbarCreatedMessage is not a constexpr
+    // NOTE: To receive "TaskbarCreated" message, the window must be a top level window. A message-only window will not receive the message.
+    if (gNotifyIcon) {
+      if (!gNotifyIcon.value().Register()) {
+        MessageBoxW(NULL, L"Failed to register notify icon", L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+        DestroyWindow(hwnd);
+      }
+    }
+    return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+  }
+
   switch (uMsg) {
     // IPC
     case WM_COPYDATA:
@@ -164,14 +180,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
       std::vector<MountError> mountErrorQueueCopy(gMountErrorQueue.cbegin(), gMountErrorQueue.cend());
       gMountErrorQueue.clear();
       lock.unlock();
-
-      const bool playDeviceDisconnectSound = std::any_of(mountErrorQueueCopy.cbegin(), mountErrorQueueCopy.cend(), [](const MountError& mountError) {
-        return mountError.fromCallback;
-      });
-
-      if (playDeviceDisconnectSound) {
-        PlaySystemSound(SystemSound::DeviceDisconnect);
-      }
 
       for (const auto& mountError : mountErrorQueueCopy) {
         std::wstring message = L"Failed to mount \""s + mountError.configFilepath + L"\""s;
@@ -642,7 +650,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   }
 
 
-  HWND hWnd = CreateWindowExW(0, ClassName, WindowName, WS_OVERLAPPED, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, HWND_MESSAGE, NULL, hInstance, NULL);
+  HWND hWnd = CreateWindowExW(0, ClassName, WindowName, WS_OVERLAPPED, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, hInstance, NULL);
   if (hWnd == NULL) {
     const std::wstring message = L"Initialization error: CreateWindowExW failed with code "s + std::to_wstring(GetLastError());
     MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
@@ -665,7 +673,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
       return 1;
     }
 
-    const auto hWndFirstInstance = FindWindowExW(HWND_MESSAGE, NULL, ClassName, ReadyWindowName);
+    const auto hWndFirstInstance = FindWindowExW(NULL, NULL, ClassName, ReadyWindowName);
     if (hWndFirstInstance == NULL) {
       if (hMutex != NULL) {
         ReleaseMutex(hMutex);
@@ -712,8 +720,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 
   // register notify icon
-  const NOTIFYICONDATAW commonNotifyIconData{
-    sizeof(commonNotifyIconData),
+  gNotifyIcon.emplace(NOTIFYICONDATAW{
+    sizeof(NOTIFYICONDATAW),
     hWnd,
     NotifyIconId,
     NIF_MESSAGE | NIF_ICON | NIF_TIP,
@@ -730,28 +738,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     NIIF_NONE,
     {},
     NULL,
-  };
+  }, true);
 
-  {
-    NOTIFYICONDATAW notifyIconData = commonNotifyIconData;
-    if (!Shell_NotifyIconW(NIM_ADD, &notifyIconData)) {
-      ReleaseMutex(hMutex);
-      const std::wstring message = L"Initialization error: Shell_NotifyIconW [1] failed with code "s + std::to_wstring(GetLastError());
-      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
-      DestroyWindow(hWnd);
-      return 1;
-    }
-  }
-
-  {
-    NOTIFYICONDATAW notifyIconData = commonNotifyIconData;
-    if (!Shell_NotifyIconW(NIM_SETVERSION, &notifyIconData)) {
-      ReleaseMutex(hMutex);
-      const std::wstring message = L"Initialization error: Shell_NotifyIconW [2] failed with code "s + std::to_wstring(GetLastError());
-      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
-      DestroyWindow(hWnd);
-      return 1;
-    }
+  if (!gNotifyIcon.value().Register()) {
+    MessageBoxW(NULL, L"Failed to register notify icon", L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+    ReleaseMutex(hMutex);
+    const std::wstring message = L"Initialization error: Shell_NotifyIconW [1] failed with code "s + std::to_wstring(GetLastError());
+    MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+    DestroyWindow(hWnd);
+    return 1;
   }
 
 
@@ -778,11 +773,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 
   // remove notify icon
-  {
-    NOTIFYICONDATAW notifyIconData = commonNotifyIconData;
-    Shell_NotifyIconW(NIM_DELETE, &notifyIconData);
-  }
-
+  gNotifyIcon.value().Unregister();
 
   ReleaseMutex(hMutex);
 
