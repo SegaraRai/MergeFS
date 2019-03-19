@@ -320,7 +320,7 @@ bool MountStore::Unmount(MOUNT_ID mountId) {
   if (!m_mountMap.count(mountId)) {
     return false;
   }
-  m_mountMap.at(mountId).mount.reset();
+  m_mountMap.at(mountId).mount->Unmount();
   return true;
 }
 
@@ -328,6 +328,6 @@ bool MountStore::Unmount(MOUNT_ID mountId) {
 void MountStore::UnmountAll() {
   std::lock_guard lock(m_generalMutex);
   for (auto&[mountId, mountData] : m_mountMap) {
-    mountData.mount.reset();
+    mountData.mount->Unmount();
   }
 }

@@ -136,6 +136,7 @@ public:
   bool IsWritable() const;
 
   bool SafeUnmount();
+  bool Unmount();
 
   NTSTATUS DZwCreateFile(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo) noexcept;
   void DCleanup(LPCWSTR FileName, PDOKAN_FILE_INFO DokanFileInfo) noexcept;

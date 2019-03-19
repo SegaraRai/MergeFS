@@ -328,15 +328,7 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
 
 
 Mount::~Mount() {
-  if (m_mounted) {
-#if DOKAN_VERSION >= 122
-    if (DokanRemoveMountPointEx(m_mountPoint.c_str(), FALSE)) {
-#else
-    if (DokanRemoveMountPoint(m_mountPoint.c_str())) {
-#endif
-      m_mounted = false;
-    }
-  }
+  Unmount();
 
   std::unique_lock lock(m_imdMutex);
   m_imdCv.wait(lock, [this]() {
@@ -357,6 +349,22 @@ bool Mount::SafeUnmount() {
     return true;
   }
   if (!DokanRemoveMountPoint(m_mountPoint.c_str())) {
+    return false;
+  }
+  m_mounted = false;
+  return true;
+}
+
+
+bool Mount::Unmount() {
+  if (!m_mounted) {
+    return true;
+  }
+#if DOKAN_VERSION >= 122
+  if (!DokanRemoveMountPointEx(m_mountPoint.c_str(), FALSE)) {
+#else
+  if (!DokanRemoveMountPoint(m_mountPoint.c_str())) {
+#endif
     return false;
   }
   m_mounted = false;
