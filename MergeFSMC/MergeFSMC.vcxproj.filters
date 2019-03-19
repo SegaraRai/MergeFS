@@ -30,9 +30,6 @@
     <ClCompile Include="EncodingConverter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Util.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="NotifyIcon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

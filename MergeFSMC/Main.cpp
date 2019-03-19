@@ -132,7 +132,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 });
                 PostMessageW(hwnd, ProcessErrorQueueMessageId, 0, 0);
               } else if (!gUnmountAll) {
-                PlaySystemSound(SystemSound::DeviceDisconnect);
+                PlaySystemSound<SystemSound::DeviceDisconnect>();
               }
             });
             mounted = true;
@@ -166,7 +166,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
       gSecondInstanceArgsQueue.clear();
 
       if (mounted) {
-        PlaySystemSound(SystemSound::DeviceConnect);
+        PlaySystemSound<SystemSound::DeviceConnect>();
       }
 
       PostMessageW(hwnd, ProcessErrorQueueMessageId, 0, 0);
@@ -357,7 +357,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             gUnmountAll = true;
             gMountManager.UnmountAll(true);
             gUnmountAll = false;
-            PlaySystemSound(SystemSound::DeviceDisconnect);
+            PlaySystemSound<SystemSound::DeviceDisconnect>();
           }
           return 0;
 
@@ -579,7 +579,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
     case WM_DESTROY:
       if (gMountManager.CountMounts()) {
-        PlaySystemSound(SystemSound::DeviceDisconnect);
+        PlaySystemSound<SystemSound::DeviceDisconnect>();
       }
       gUnmountAll = true;
       gMountManager.UnmountAll(true);
@@ -778,7 +778,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   ReleaseMutex(hMutex);
 
   if (gMountManager.CountMounts()) {
-    PlaySystemSound(SystemSound::DeviceDisconnect);
+    PlaySystemSound<SystemSound::DeviceDisconnect>();
   }
   gUnmountAll = true;
   gMountManager.Uninit(true);

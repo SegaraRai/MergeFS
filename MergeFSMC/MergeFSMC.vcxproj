@@ -187,7 +187,6 @@
     <ClCompile Include="MountManager.cpp" />
     <ClCompile Include="EncodingConverter.cpp" />
     <ClCompile Include="NotifyIcon.cpp" />
-    <ClCompile Include="Util.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\SDK\LibMergeFS.h" />
