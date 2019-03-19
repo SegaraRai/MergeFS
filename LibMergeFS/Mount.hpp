@@ -93,7 +93,6 @@ private:
   const bool m_deferCopyEnabled;
   const bool m_caseSensitive;
   MetadataStore m_metadataStore;
-  std::atomic<bool> m_mounted;
 #ifdef USE_SHARED_PTR_FOR_FILE_CONTEXT
   std::unordered_map<FILE_CONTEXT_ID, std::shared_ptr<FileContext>> m_fileContextMap;
 #else

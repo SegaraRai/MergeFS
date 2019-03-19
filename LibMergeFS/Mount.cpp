@@ -273,7 +273,6 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
   m_deferCopyEnabled(deferCopyEnabled),
   m_caseSensitive(caseSensitive),
   m_metadataStore(m_metadataFileName, caseSensitive),
-  m_mounted(false),
   m_fileContextMap(),
   m_minimumUnusedFileContextId(FileContextIdStart),
   m_fileIndexBases(CalcFileIndexBases(m_mountSources.size())),
@@ -298,10 +297,8 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
       DokanConfig::SectorSize,
     };
     DOKAN_OPERATIONS operations = gDokanOperations;
-    m_mounted = true;
     const auto ret = DokanMain(&config, &operations);
-    m_mounted = false;
-
+    
     {
       std::lock_guard lock(m_imdMutex);
       if (m_imdState == ImdState::Mounting) {
@@ -345,20 +342,25 @@ bool Mount::IsWritable() const {
 
 
 bool Mount::SafeUnmount() {
-  if (!m_mounted) {
-    return true;
+  {
+    std::lock_guard lock(m_imdMutex);
+    if (m_imdState != ImdState::Mounting) {
+      return true;
+    }
   }
   if (!DokanRemoveMountPoint(m_mountPoint.c_str())) {
     return false;
   }
-  m_mounted = false;
   return true;
 }
 
 
 bool Mount::Unmount() {
-  if (!m_mounted) {
-    return true;
+  {
+    std::lock_guard lock(m_imdMutex);
+    if (m_imdState != ImdState::Mounting) {
+      return true;
+    }
   }
 #if DOKAN_VERSION >= 122
   if (!DokanRemoveMountPointEx(m_mountPoint.c_str(), FALSE)) {
@@ -367,7 +369,6 @@ bool Mount::Unmount() {
 #endif
     return false;
   }
-  m_mounted = false;
   return true;
 }
 
