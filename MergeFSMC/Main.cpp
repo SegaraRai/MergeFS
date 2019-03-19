@@ -692,6 +692,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   }
 
 
+  if (!SetWindowTextW(hWnd, ReadyWindowName)) {
+    ReleaseMutex(hMutex);
+    const std::wstring message = L"Initialization error: SetWindowTextW failed with code "s + std::to_wstring(GetLastError());
+    MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+    DestroyWindow(hWnd);
+    return 1;
+  }
+
+
   // process arguments
   gSecondInstanceArgsQueue.emplace_back(sourceFilepaths);
   if (!PostMessageW(hWnd, ProcessArgQueueMessageId, 0, 0)) {
@@ -724,15 +733,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     MessageBoxW(NULL, L"Failed to register notify icon", L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
     ReleaseMutex(hMutex);
     const std::wstring message = L"Initialization error: Shell_NotifyIconW [1] failed with code "s + std::to_wstring(GetLastError());
-    MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
-    DestroyWindow(hWnd);
-    return 1;
-  }
-
-
-  if (!SetWindowTextW(hWnd, ReadyWindowName)) {
-    ReleaseMutex(hMutex);
-    const std::wstring message = L"Initialization error: SetWindowTextW failed with code "s + std::to_wstring(GetLastError());
     MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
     DestroyWindow(hWnd);
     return 1;
