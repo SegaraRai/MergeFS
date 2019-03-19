@@ -299,17 +299,21 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
     DOKAN_OPERATIONS operations = gDokanOperations;
     const auto ret = DokanMain(&config, &operations);
     
+    bool callCallback = false;
     {
       std::lock_guard lock(m_imdMutex);
       if (m_imdState == ImdState::Mounting) {
-        if (callback) {
-          callback(ret);
-        }
+        callCallback = true;
       }
       m_imdState = ImdState::Finished;
       m_imdResult = ret;
     }
     m_imdCv.notify_one();
+
+    if (callCallback && callback) {
+      // defer calling callback to avoid dead lock
+      callback(ret);
+    }
   })
 {
   std::unique_lock lock(m_imdMutex);
@@ -327,10 +331,12 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
 Mount::~Mount() {
   Unmount();
 
-  std::unique_lock lock(m_imdMutex);
-  m_imdCv.wait(lock, [this]() {
-    return m_imdState == ImdState::Finished;
-  });
+  {
+    std::unique_lock lock(m_imdMutex);
+    m_imdCv.wait(lock, [this]() {
+      return m_imdState == ImdState::Finished;
+    });
+  }
 
   m_thread.join();
 }
