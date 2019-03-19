@@ -56,7 +56,6 @@ namespace {
 
   std::mutex gMutex;
   std::atomic<bool> gDisableUserControls = false;
-  std::atomic<bool> gUnmountAll = false;
   std::list<std::vector<std::wstring>> gSecondInstanceArgsQueue;
   std::list<MountError> gMountErrorQueue;
   const UINT gTaskbarCreatedMessage = RegisterWindowMessageW(L"TaskbarCreated");
@@ -109,8 +108,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     // internal
     case ProcessArgQueueMessageId:
     {
-      bool mounted = false;
-
       for (const auto& args : gSecondInstanceArgsQueue) {
         if (args.empty()) {
           continue;
@@ -131,11 +128,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                   true,
                 });
                 PostMessageW(hwnd, ProcessErrorQueueMessageId, 0, 0);
-              } else if (!gUnmountAll) {
-                PlaySystemSound<SystemSound::DeviceDisconnect>();
               }
+              PlaySystemSound<SystemSound::DeviceDisconnect>();
             });
-            mounted = true;
+            PlaySystemSound<SystemSound::DeviceConnect>();
           } catch (const MountManager::MountError& mountError) {
             std::lock_guard lock(gMutex);
             gMountErrorQueue.emplace_back(MountError{
@@ -164,10 +160,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         }
       }
       gSecondInstanceArgsQueue.clear();
-
-      if (mounted) {
-        PlaySystemSound<SystemSound::DeviceConnect>();
-      }
 
       PostMessageW(hwnd, ProcessErrorQueueMessageId, 0, 0);
 
@@ -353,12 +345,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         }
 
         case IDM_CTX_MOUNTS_UNMOUNTALL:
-          if (gMountManager.CountMounts()) {
-            gUnmountAll = true;
-            gMountManager.UnmountAll(true);
-            gUnmountAll = false;
-            PlaySystemSound<SystemSound::DeviceDisconnect>();
-          }
+          gMountManager.UnmountAll(true);
           return 0;
 
         case IDM_CTX_PLUGINS_OPENDIR:
@@ -578,15 +565,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     }
 
     case WM_DESTROY:
-      if (gMountManager.CountMounts()) {
-        PlaySystemSound<SystemSound::DeviceDisconnect>();
-      }
-      gUnmountAll = true;
       gMountManager.UnmountAll(true);
-      gUnmountAll = false;
-
       PostQuitMessage(0);
-
       return 0;
   }
 
@@ -777,12 +757,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
   ReleaseMutex(hMutex);
 
-  if (gMountManager.CountMounts()) {
-    PlaySystemSound<SystemSound::DeviceDisconnect>();
-  }
-  gUnmountAll = true;
   gMountManager.Uninit(true);
-  gUnmountAll = false;
 
 
   if (gmResult == -1) {
