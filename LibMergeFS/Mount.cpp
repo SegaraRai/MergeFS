@@ -340,7 +340,7 @@ Mount::~Mount() {
 
   std::unique_lock lock(m_imdMutex);
   m_imdCv.wait(lock, [this]() {
-    return m_imdState != ImdState::Pending;
+    return m_imdState == ImdState::Finished;
   });
 
   m_thread.join();
