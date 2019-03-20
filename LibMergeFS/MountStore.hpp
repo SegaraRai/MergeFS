@@ -77,6 +77,8 @@ private:
 
       MountInfoWrapper(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources);
 
+      void SetWritable(bool writable);
+
       const MOUNT_INFO& Get() const;
     };
 
@@ -102,8 +104,8 @@ public:
   std::size_t CountMounts() const;
   std::vector<MOUNT_ID> ListMounts() const;
   const MOUNT_INFO& GetMountInfo(MOUNT_ID mountId) const;
-  bool SafeUnmount(MOUNT_ID mountId);
   bool Unmount(MOUNT_ID mountId);
-  void SafeUnmountAll();
   void UnmountAll();
+  bool SafeUnmount(MOUNT_ID mountId);
+  void SafeUnmountAll();
 };

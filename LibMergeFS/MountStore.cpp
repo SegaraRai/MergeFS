@@ -75,6 +75,11 @@ MountStore::MountData::MountInfoWrapper::MountSourceInfoWrapper::MountSourceInfo
 }
 
 
+void MountStore::MountData::MountInfoWrapper::SetWritable(bool writable) {
+  this->writable = writable;
+}
+
+
 const MOUNT_SOURCE_INFO& MountStore::MountData::MountInfoWrapper::MountSourceInfoWrapper::Get() const {
   return mountSourceInfo;
 }
@@ -181,33 +186,35 @@ MountStore::MountStore() :
   m_itFinish(false),
   m_itUnregisterIds(),
   m_unregisterThread([this]() {
-    std::unique_lock lock(m_itMutex);
+    {
+      std::unique_lock itLock(m_itMutex);
 
-    do {
-      m_itCv.wait(lock, [this]() {
-        return m_itFinish || !m_itUnregisterIds.empty();
-      });
+      do {
+        m_itCv.wait(itLock, [this]() {
+          return m_itFinish || !m_itUnregisterIds.empty();
+        });
 
-      if (!m_itUnregisterIds.empty()) {
-        {
-          std::lock_guard lock(m_generalMutex);
-          for (const auto& mountId : m_itUnregisterIds) {
-            m_mountMap.erase(mountId);
-            if (mountId < m_minimumUnusedMountId) {
-              m_minimumUnusedMountId = mountId;
+        if (!m_itUnregisterIds.empty()) {
+          {
+            std::lock_guard generalLock(m_generalMutex);
+            for (const auto& mountId : m_itUnregisterIds) {
+              m_mountMap.erase(mountId);
+              if (mountId < m_minimumUnusedMountId) {
+                m_minimumUnusedMountId = mountId;
+              }
             }
           }
+          m_itUnregisterIds.clear();
         }
-        m_itUnregisterIds.clear();
-      }
-    } while (!m_itFinish);
+      } while (!m_itFinish);
+    }
   })
 {}
 
 
 MountStore::~MountStore() {
   {
-    std::lock_guard lock(m_itMutex);
+    std::lock_guard itLock(m_itMutex);
     m_itFinish = true;
   }
   m_itCv.notify_one();
@@ -235,39 +242,31 @@ MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writab
     mountSources[i] = std::make_unique<MountSource>(initializeMountInfo, sourcePlugin);
   }
 
-  std::lock_guard lock(m_generalMutex);
+  std::lock_guard generalLock(m_generalMutex);
 
   const MOUNT_ID mountId = m_minimumUnusedMountId;
   do {
     m_minimumUnusedMountId++;
   } while (m_mountMap.count(m_minimumUnusedMountId));
 
-  auto mount = std::make_unique<::Mount>(mountPoint, writable, metadataFileName, deferCopyEnabled, caseSensitive, std::move(mountSources), [this, callback, mountId](int dokanMainResult) {
-    std::optional<MountData::MountInfoWrapper> wrappedMountInfoN;
-    {
-      std::shared_lock lock(m_generalMutex);
-      const MOUNT_INFO* ptrMountInfo = nullptr;
-      if (m_mountMap.count(mountId)) {
-        wrappedMountInfoN.emplace(m_mountMap.at(mountId).wrappedMountInfo);
-      }
-    }
+  MountData::MountInfoWrapper wrappedMountInfo(mountPoint, writable, metadataFileName, deferCopyEnabled, caseSensitive, sources);
+  auto mount = std::make_unique<::Mount>(mountPoint, writable, metadataFileName, deferCopyEnabled, caseSensitive, std::move(mountSources), [this, callback, mountId, wrappedMountInfo](::Mount& mount, int dokanMainResult) mutable {
+    wrappedMountInfo.SetWritable(mount.IsWritable());
 
-    callback(mountId, wrappedMountInfoN ? &wrappedMountInfoN.value().Get() : nullptr, dokanMainResult);
+    callback(mountId, &wrappedMountInfo.Get(), dokanMainResult);
 
     {
-      std::lock_guard lock(m_itMutex);
-      if (m_itFinish) {
-        return;
-      }
+      std::lock_guard itLock(m_itMutex);
       m_itUnregisterIds.emplace_back(mountId);
     }
     m_itCv.notify_one();
   });
 
-  const auto sourceWritable = mount->IsWritable();
+  wrappedMountInfo.SetWritable(mount->IsWritable());
+  
   m_mountMap.emplace(mountId, MountData{
     std::move(mount),
-    MountData::MountInfoWrapper(mountPoint, sourceWritable, metadataFileName, deferCopyEnabled, caseSensitive, sources),
+    std::move(wrappedMountInfo),
   });
 
   return mountId;
@@ -275,19 +274,19 @@ MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writab
 
 
 bool MountStore::HasMount(MOUNT_ID mountId) const {
-  std::shared_lock lock(m_generalMutex);
+  std::shared_lock generalLock(m_generalMutex);
   return m_mountMap.count(mountId);
 }
 
 
 std::size_t MountStore::CountMounts() const {
-  std::shared_lock lock(m_generalMutex);
+  std::shared_lock generalLock(m_generalMutex);
   return m_mountMap.size();
 }
 
 
 std::vector<MountStore::MOUNT_ID> MountStore::ListMounts() const {
-  std::shared_lock lock(m_generalMutex);
+  std::shared_lock generalLock(m_generalMutex);
   std::vector<MOUNT_ID> mountIds(m_mountMap.size());
   std::size_t i = 0;
   for (const auto& [mountId, _] : m_mountMap) {
@@ -299,7 +298,7 @@ std::vector<MountStore::MOUNT_ID> MountStore::ListMounts() const {
 
 
 const MOUNT_INFO& MountStore::GetMountInfo(MOUNT_ID mountId) const {
-  std::shared_lock lock(m_generalMutex);
+  std::shared_lock generalLock(m_generalMutex);
   if (!m_mountMap.count(mountId)) {
     throw std::out_of_range(u8"no such mountId");
   }
@@ -308,7 +307,7 @@ const MOUNT_INFO& MountStore::GetMountInfo(MOUNT_ID mountId) const {
 
 
 bool MountStore::SafeUnmount(MOUNT_ID mountId) {
-  std::lock_guard lock(m_generalMutex);
+  std::lock_guard generalLock(m_generalMutex);
   if (!m_mountMap.count(mountId)) {
     return false;
   }
@@ -320,7 +319,7 @@ bool MountStore::SafeUnmount(MOUNT_ID mountId) {
 
 
 void MountStore::SafeUnmountAll() {
-  std::lock_guard lock(m_generalMutex);
+  std::lock_guard generalLock(m_generalMutex);
   for (auto& [mountId, mountData] : m_mountMap) {
     mountData.mount->SafeUnmount();
   }
@@ -328,7 +327,7 @@ void MountStore::SafeUnmountAll() {
 
 
 bool MountStore::Unmount(MOUNT_ID mountId) {
-  std::lock_guard lock(m_generalMutex);
+  std::lock_guard generalLock(m_generalMutex);
   if (!m_mountMap.count(mountId)) {
     return false;
   }
@@ -338,7 +337,7 @@ bool MountStore::Unmount(MOUNT_ID mountId) {
 
 
 void MountStore::UnmountAll() {
-  std::lock_guard lock(m_generalMutex);
+  std::lock_guard generalLock(m_generalMutex);
   for (auto&[mountId, mountData] : m_mountMap) {
     mountData.mount->Unmount();
   }
