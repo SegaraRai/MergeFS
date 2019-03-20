@@ -129,7 +129,7 @@ private:
   NTSTATUS TransportIfNeeded(PDOKAN_FILE_INFO DokanFileInfo);
 
 public:
-  Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, std::vector<std::unique_ptr<MountSource>>&& sources, std::function<void(int)> callback);
+  Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, std::vector<std::unique_ptr<MountSource>>&& sources, std::function<void(Mount&, int)> callback);
   ~Mount();
 
   bool IsWritable() const;

@@ -258,7 +258,7 @@ std::wstring Mount::FilenameToKey(std::wstring_view filename) const {
 }
 
 
-Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, std::vector<std::unique_ptr<MountSource>>&& sources, std::function<void(int)> callback) :
+Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, std::vector<std::unique_ptr<MountSource>>&& sources, std::function<void(Mount&, int)> callback) :
   m_imdMutex(),
   m_imdCv(),
   m_imdState(ImdState::Pending),
@@ -312,7 +312,7 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
 
     if (callCallback && callback) {
       // defer calling callback to avoid dead lock
-      callback(ret);
+      callback(*this, ret);
     }
   })
 {
