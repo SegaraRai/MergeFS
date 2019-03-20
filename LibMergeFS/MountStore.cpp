@@ -208,6 +208,11 @@ MountStore::MountStore() :
         }
       } while (!m_itFinish);
     }
+
+    {
+      std::lock_guard generalLock(m_generalMutex);
+      m_mountMap.clear();
+    }
   })
 {}
 
