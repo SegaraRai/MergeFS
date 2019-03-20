@@ -215,7 +215,7 @@ MountStore::~MountStore() {
 }
 
 
-MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(MOUNT_ID, const MOUNT_INFO&, int)> callback) {
+MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(MOUNT_ID, const MOUNT_INFO*, int)> callback) {
   if (sources.empty()) {
     throw NoSourceError();
   }
@@ -243,7 +243,16 @@ MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writab
   } while (m_mountMap.count(m_minimumUnusedMountId));
 
   auto mount = std::make_unique<::Mount>(mountPoint, writable, metadataFileName, deferCopyEnabled, caseSensitive, std::move(mountSources), [this, callback, mountId](int dokanMainResult) {
-    callback(mountId, m_mountMap.at(mountId).wrappedMountInfo.Get(), dokanMainResult);
+    std::optional<MountData::MountInfoWrapper> wrappedMountInfoN;
+    {
+      std::shared_lock lock(m_generalMutex);
+      const MOUNT_INFO* ptrMountInfo = nullptr;
+      if (m_mountMap.count(mountId)) {
+        wrappedMountInfoN.emplace(m_mountMap.at(mountId).wrappedMountInfo);
+      }
+    }
+
+    callback(mountId, wrappedMountInfoN ? &wrappedMountInfoN.value().Get() : nullptr, dokanMainResult);
 
     {
       std::lock_guard lock(m_itMutex);

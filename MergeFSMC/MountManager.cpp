@@ -108,7 +108,7 @@ void WINAPI MountManager::MountCallback(MOUNT_ID mountId, const MOUNT_INFO* ptrM
   try {
     auto& mountManager = GetInstance();
     MountData& mountData = mountManager.mMountDataMap.at(mountId);
-    mountData.callback(mountId, dokanMainResult, mountData, *ptrMountInfo);
+    mountData.callback(mountId, dokanMainResult, mountData, ptrMountInfo);
     mountManager.mMountDataMap.erase(mountId);
   } catch (...) {}
 }
@@ -197,7 +197,7 @@ std::vector<std::pair<PLUGIN_ID, PLUGIN_INFO_EX>> MountManager::ListPlugins() co
 }
 
 
-MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::function<void(MOUNT_ID, int, MountData&, const MOUNT_INFO&)> callback) {
+MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::function<void(MOUNT_ID, int, MountData&, const MOUNT_INFO*)> callback) {
   std::ifstream ifs(configFilepath);
   if (!ifs) {
     throw std::ifstream::failure("failed to load configuration file");

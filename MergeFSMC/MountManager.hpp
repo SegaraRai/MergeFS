@@ -16,7 +16,7 @@ class MountManager {
 public:
   struct MountData {
     std::wstring configFilepath;
-    std::function<void(MOUNT_ID, int, MountData&, const MOUNT_INFO&)> callback;
+    std::function<void(MOUNT_ID, int, MountData&, const MOUNT_INFO*)> callback;
   };
 
   struct MergeFSError : MERGEFS_ERROR_INFO {
@@ -66,7 +66,7 @@ public:
   std::vector<PLUGIN_ID> ListPluginIds() const;
   std::vector<std::pair<PLUGIN_ID, PLUGIN_INFO_EX>> ListPlugins() const;
 
-  MOUNT_ID AddMount(const std::wstring& configFilepath, std::function<void(MOUNT_ID, int, MountData&, const MOUNT_INFO&)> callback);
+  MOUNT_ID AddMount(const std::wstring& configFilepath, std::function<void(MOUNT_ID, int, MountData&, const MOUNT_INFO*)> callback);
   void RemoveMount(MOUNT_ID mountId, bool safe);
   void GetMountInfo(MOUNT_ID mountId, MOUNT_INFO& mountInfo) const;
   MOUNT_INFO GetMountInfo(MOUNT_ID mountId) const;

@@ -348,8 +348,8 @@ namespace Exports {
         });
       }
 
-      const auto mountId = mountStore.Mount(mountInitializeInfo->mountPoint, mountInitializeInfo->writable, mountInitializeInfo->metadataFileName, mountInitializeInfo->deferCopyEnabled, mountInitializeInfo->caseSensitive, sources, [callback](MOUNT_ID mountId, const MOUNT_INFO& mountInfo, int dokanMainResult) {
-        callback(mountId, &mountInfo, dokanMainResult);
+      const auto mountId = mountStore.Mount(mountInitializeInfo->mountPoint, mountInitializeInfo->writable, mountInitializeInfo->metadataFileName, mountInitializeInfo->deferCopyEnabled, mountInitializeInfo->caseSensitive, sources, [callback](MOUNT_ID mountId, const MOUNT_INFO* ptrMountInfo, int dokanMainResult) {
+        callback(mountId, ptrMountInfo, dokanMainResult);
       });
 
       if (outMountId) {
