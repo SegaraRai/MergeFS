@@ -195,16 +195,20 @@ MountStore::MountStore() :
         });
 
         if (!m_itUnregisterIds.empty()) {
+          const std::vector<MOUNT_ID> unregisterIdsCopy(m_itUnregisterIds.cbegin(), m_itUnregisterIds.cend());
+          m_itUnregisterIds.clear();
+
+          itLock.unlock();
           {
             std::lock_guard generalLock(m_generalMutex);
-            for (const auto& mountId : m_itUnregisterIds) {
+            for (const auto& mountId : unregisterIdsCopy) {
               m_mountMap.erase(mountId);
               if (mountId < m_minimumUnusedMountId) {
                 m_minimumUnusedMountId = mountId;
               }
             }
           }
-          m_itUnregisterIds.clear();
+          itLock.lock();
         }
       } while (!m_itFinish);
     }
@@ -343,7 +347,7 @@ bool MountStore::Unmount(MOUNT_ID mountId) {
 
 void MountStore::UnmountAll() {
   std::lock_guard generalLock(m_generalMutex);
-  for (auto&[mountId, mountData] : m_mountMap) {
+  for (auto& [mountId, mountData] : m_mountMap) {
     mountData.mount->Unmount();
   }
 }
