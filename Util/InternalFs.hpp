@@ -10,4 +10,5 @@ namespace util::ifs {
 
   std::wstring_view GetParentPath(std::wstring_view filepath);
   std::wstring_view GetParentPathTs(std::wstring_view filepath);    // GetParentPath with trailing backslash
+  std::wstring_view GetBaseName(std::wstring_view filepath);
 }

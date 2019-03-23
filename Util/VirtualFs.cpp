@@ -42,4 +42,14 @@ namespace util::vfs {
     }
     return filepath.substr(0, lastBackslashPos + 1);
   }
+
+
+  std::wstring_view GetBaseName(std::wstring_view filepath) {
+    const auto lastBackslashPos = filepath.find_last_of(L'\\');
+    if (lastBackslashPos == std::wstring_view::npos) {
+      assert(false);
+      return filepath;
+    }
+    return filepath.substr(lastBackslashPos + 1);
+  }
 }

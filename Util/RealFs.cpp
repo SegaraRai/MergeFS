@@ -29,6 +29,26 @@ namespace util::rfs {
   }
 
 
+  std::wstring_view GetBaseNameAbs(std::wstring_view absoluteFilepath) {
+    const auto lastBackslashPos = absoluteFilepath.find_last_of(L'\\');
+    if (lastBackslashPos == std::wstring_view::npos) {
+      assert(false);
+      return absoluteFilepath;
+    }
+    return absoluteFilepath.substr(lastBackslashPos + 1);
+  }
+
+
+  std::wstring GetBaseName(LPCWSTR filepath) {
+    return std::wstring(GetBaseNameAbs(ToAbsoluteFilepath(filepath)));
+  }
+
+
+  std::wstring GetBaseName(const std::wstring& filepath) {
+    return GetBaseName(filepath.c_str());
+  }
+
+
   std::wstring ToAbsoluteFilepath(LPCWSTR filepath) {
     const DWORD size = GetFullPathNameW(filepath, 0, NULL, NULL);
     if (!size) {

@@ -13,4 +13,5 @@ namespace util::vfs {
   bool IsRootDirectory(std::wstring_view filepath) noexcept;
   std::wstring_view GetParentPath(std::wstring_view filepath);
   std::wstring_view GetParentPathTs(std::wstring_view filepath);
+  std::wstring_view GetBaseName(std::wstring_view filepath);
 }
