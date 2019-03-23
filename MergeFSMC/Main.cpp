@@ -696,7 +696,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     sizeof(NOTIFYICONDATAW),
     hWnd,
     NotifyIconId,
-    NIF_MESSAGE | NIF_ICON | NIF_TIP,
+    NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_SHOWTIP,
     NotifyIconCallbackMessageId,
     hIcon,
     L"MergeFSMC",
