@@ -72,16 +72,3 @@ std::wstring FilenameToKey(std::wstring_view filename, bool caseSensitive) {
   return str;
 #endif
 }
-
-
-std::wstring_view GetBaseName(std::wstring_view filename) {
-  // ルートディレクトリのベース名を取得しようとするべきではない
-  assert(filename.size() > 1);
-  const std::size_t lastSlashPos = filename.find_last_of(L'\\');
-  assert(lastSlashPos != std::wstring_view::npos);
-  if (lastSlashPos == std::wstring_view::npos) {
-    // 不正な形式
-    return filename;
-  }
-  return filename.substr(lastSlashPos + 1);
-}

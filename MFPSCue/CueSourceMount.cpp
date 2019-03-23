@@ -206,12 +206,10 @@ CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* initializeMou
     baseVolumeName = std::wstring(baseVolumeNameBuffer.get());
     baseFileSystemName = std::wstring(baseFileSystemNameBuffer.get());
 
-    const auto lastSlashPos = cueFilePath.find_last_of(L'\\');
-    const auto cueFilename = (lastSlashPos == std::wstring::npos ? cueFilePath : cueFilePath.substr(lastSlashPos + 1)).substr(0, MAX_PATH);
-    const auto lastDotPos = cueFilename.find_last_of(L'.');
-    const auto cueBasename = cueFilename.substr(0, lastDotPos);
+    const auto cueFilename = util::rfs::GetBaseName(cueFilePath);
+    const auto cueBasename = cueFilename.substr(0, cueFilename.find_last_of(L'.'));
 
-    volumeName = cueFilename;
+    volumeName = cueFilename.substr(0, MAX_PATH);
     volumeSerialNumber = baseVolumeSerialNumber ^ cueFileInfo.nFileIndexHigh ^ cueFileInfo.nFileIndexLow;
 
     // TODO: move definition

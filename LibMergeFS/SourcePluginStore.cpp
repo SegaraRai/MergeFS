@@ -1,6 +1,8 @@
 #include "SourcePluginStore.hpp"
 #include "Util.hpp"
 
+#include "../Util/VirtualFs.hpp"
+
 #include <algorithm>
 #include <memory>
 #include <optional>
@@ -21,7 +23,7 @@ std::wstring SourcePluginStore::FilenameToKey(std::wstring_view filename) {
     }
   }
   // trim directory
-  std::wstring_view key = GetBaseName(normalizedFilename);
+  std::wstring_view key = util::vfs::GetBaseName(normalizedFilename);
   // trim extension
   key = key.substr(0, key.find_last_of(L'.'));
   // trim _x86 or _x64 suffix

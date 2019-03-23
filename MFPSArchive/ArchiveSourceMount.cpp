@@ -145,8 +145,7 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
     baseVolumeName = std::wstring(baseVolumeNameBuffer.get());
     baseFileSystemName = std::wstring(baseFileSystemNameBuffer.get());
 
-    const auto lastSlashPos = archiveFilepath.find_last_of(L'\\');
-    volumeName = (lastSlashPos == std::wstring::npos ? archiveFilepath : archiveFilepath.substr(lastSlashPos + 1)).substr(0, MAX_PATH);
+    volumeName = util::rfs::GetBaseName(archiveFilepath).substr(0, MAX_PATH);
     volumeSerialNumber = baseVolumeSerialNumber ^ archiveFileInfo.nFileIndexHigh ^ archiveFileInfo.nFileIndexLow;
 
     // TODO: move definition
@@ -156,9 +155,9 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
 
     // open archive
     archiveN.emplace(nanaZ, CreateCOMPtr(new InFileStream(archiveFileHandle)), archiveFileInfo, DefaultFilepath, pathPrefixWb, caseSensitive, MaxCheckStartPosition, OnExisting, ExtractToMemory, [](const std::wstring& originalFilepath, std::size_t count) -> std::optional<std::pair<std::wstring, bool>> {
-      const auto lastDelimiterPos = originalFilepath.find_last_of(Archive::DirectorySeparatorFromLibrary);
-      const auto parentDirectoryPath = lastDelimiterPos == std::wstring::npos ? L""s : originalFilepath.substr(0, lastDelimiterPos + 1);
-      const auto baseFilename = lastDelimiterPos == std::wstring::npos ? originalFilepath : originalFilepath.substr(lastDelimiterPos + 1);
+      // use util::ifs because a filepath provided by 7-Zip is like "abc\\example.txt"
+      const std::wstring parentDirectoryPath(util::ifs::GetParentPathTs(originalFilepath));
+      const std::wstring baseFilename(util::ifs::GetBaseName(originalFilepath));
       std::wstring newFilepath = parentDirectoryPath + L"["s + baseFilename + L"]"s;;
       if (count) {
         newFilepath += L"."s + std::to_wstring(count + 1);

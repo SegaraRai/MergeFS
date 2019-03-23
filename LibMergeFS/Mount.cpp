@@ -847,7 +847,7 @@ NTSTATUS Mount::DZwCreateFile(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT Secur
         assert(false);
         return STATUS_OBJECT_PATH_NOT_FOUND;
       }
-      const auto baseFilename = (util::vfs::IsRootDirectory(resolvedParentFilenameN.value()) ? L"\\"s : resolvedParentFilenameN.value() + L"\\"s) + std::wstring(GetBaseName(FileName)) + L"."s;
+      const auto baseFilename = (util::vfs::IsRootDirectory(resolvedParentFilenameN.value()) ? L"\\"s : resolvedParentFilenameN.value() + L"\\"s) + std::wstring(util::vfs::GetBaseName(FileName)) + L"."s;
       unsigned long i = 2;
       do {
         resolvedFilename = baseFilename + std::to_wstring(i);
@@ -891,7 +891,7 @@ NTSTATUS Mount::DZwCreateFile(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT Secur
     if (!resolvedFilenameN) {
       // TODO: もっと効率良く書く
       std::lock_guard lock(m_metadataMutex);
-      m_metadataStore.Rename(std::wstring(util::vfs::GetParentPath(FileName)) + std::wstring(GetBaseName(resolvedFilename)), FileName);
+      m_metadataStore.Rename(std::wstring(util::vfs::GetParentPath(FileName)) + std::wstring(util::vfs::GetBaseName(resolvedFilename)), FileName);
       //m_metadataStore.Rename(resolvedFilename, FileName);
     }
 
@@ -1529,7 +1529,7 @@ NTSTATUS Mount::DMoveFile(LPCWSTR FileName, LPCWSTR NewFileName, BOOL ReplaceIfE
           // ソース上に既にリネームされて存在している
           // せめて近い名前で存在させてあげる
           // TODO: この処理はDZwCreateFileでも記述しているので適当に共通化したい
-          const auto baseFilename = (util::vfs::IsRootDirectory(resolvedParentNewFilenameN.value()) ? L"\\"s : resolvedParentNewFilenameN.value() + L"\\"s) + std::wstring(GetBaseName(NewFileName)) + L"."s;
+          const auto baseFilename = (util::vfs::IsRootDirectory(resolvedParentNewFilenameN.value()) ? L"\\"s : resolvedParentNewFilenameN.value() + L"\\"s) + std::wstring(util::vfs::GetBaseName(NewFileName)) + L"."s;
           unsigned long i = 2;
           do {
             resolvedNewFileName = baseFilename + std::to_wstring(i);
@@ -1551,7 +1551,7 @@ NTSTATUS Mount::DMoveFile(LPCWSTR FileName, LPCWSTR NewFileName, BOOL ReplaceIfE
         if (!resolvedNewFileNameN) {
           // TODO: もっと効率良く書く
           std::lock_guard lock(m_metadataMutex);
-          m_metadataStore.Rename(std::wstring(util::vfs::GetParentPath(NewFileName)) + std::wstring(GetBaseName(resolvedNewFileName)), NewFileName);
+          m_metadataStore.Rename(std::wstring(util::vfs::GetParentPath(NewFileName)) + std::wstring(util::vfs::GetBaseName(resolvedNewFileName)), NewFileName);
           //m_metadataStore.Rename(resolvedNewFileName, NewFileName);
         }
         return STATUS_SUCCESS;

@@ -276,11 +276,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             {
               const auto pluginInfo = gMountManager.GetPluginInfo(pluginId);
 
-              std::wstring pluginBasename = pluginInfo.filename;
-              const auto lastBackslashPos = pluginBasename.find_last_of(L'\\');
-              if (lastBackslashPos != std::wstring::npos) {
-                pluginBasename = pluginBasename.substr(lastBackslashPos + 1);
-              }
+              const std::wstring pluginBasename = util::rfs::GetBaseName(pluginInfo.filename);
 
               const std::wstring message =
                 pluginBasename + L"\n"s +
@@ -496,11 +492,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
               for (std::size_t i = 0; i < plugins.size(); i++) {
                 const auto& [pluginId, pluginInfo] = plugins[i];
 
-                std::wstring menuString = pluginInfo.filename;
-                const auto lastBackslashPos = menuString.find_last_of(L'\\');
-                if (lastBackslashPos != std::wstring::npos) {
-                  menuString = menuString.substr(lastBackslashPos + 1);
-                }
+                const std::wstring menuString = util::rfs::GetBaseName(pluginInfo.filename);
 
                 const MENUITEMINFOW menuItemInfo{
                   sizeof(menuItemInfo),
@@ -587,19 +579,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   }
 
 
-  {
-    static wchar_t buffer[PathBufferSize];
-    GetModuleFileNameW(hInstance, buffer, PathBufferSize);
-    if (GetLastError() != ERROR_SUCCESS) {
-      const std::wstring message = L"Initialization error: GetModuleFileNameW failed with code "s + std::to_wstring(GetLastError());
-      MessageBoxW(NULL, message.c_str(), L"MergeFSMC Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
-      return 1;
-    }
+  gPluginsDirectory = util::rfs::ToAbsoluteFilepath(util::rfs::GetModuleFilepath(hInstance) + L"\\..\\..\\Plugins"s);
 
-    gPluginsDirectory = std::wstring(buffer) + L"\\..\\..\\Plugins"s;
-
-    gMountManager.AddPluginsByDirectory(gPluginsDirectory);
-  }
+  gMountManager.AddPluginsByDirectory(gPluginsDirectory);
 
 
   const auto hIcon = LoadIconW(hInstance, MAKEINTRESOURCEW(IDI_ICON1));

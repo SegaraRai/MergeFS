@@ -275,7 +275,7 @@ MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::functio
   }
 
   // TODO: error handling, restore current directory
-  const std::wstring configFileDirectory = configFilepath + L"\\.."s;
+  const std::wstring configFileDirectory = util::rfs::GetParentPath(configFilepath);
   SetCurrentDirectoryW(configFileDirectory.c_str());
 
   const std::wstring resolvedMountPoint = ResolveMountPoint(mountPoint);

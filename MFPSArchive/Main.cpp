@@ -60,19 +60,11 @@ namespace {
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
   if (fdwReason == DLL_PROCESS_ATTACH) {
     // load 7z.dll from this DLL's directory
-    constexpr std::size_t BufferSize = 65600;
-    auto buffer = std::make_unique<wchar_t[]>(BufferSize);
-    GetModuleFileNameW(hinstDLL, buffer.get(), BufferSize);
-    if (GetLastError() == ERROR_SUCCESS) {
-      gDllPrefix = std::wstring(buffer.get());
-      const auto lastSlashPos = gDllPrefix.find_last_of(L'\\');
-      if (lastSlashPos != std::wstring::npos) {
-        gDllPrefix = gDllPrefix.substr(0, lastSlashPos + 1);
-      } else {
-        // error
-        gDllPrefix = L""s;
-      }
-    }
+    try {
+      gDllPrefix.clear();
+      const auto dllPath = util::rfs::GetModuleFilepath(hinstDLL);
+      gDllPrefix = util::rfs::GetParentPath(dllPath) + L"\\";
+    } catch (...) {}
   }
   return TRUE;
 }
