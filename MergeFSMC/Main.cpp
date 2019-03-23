@@ -465,24 +465,53 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                   SetMenuItemInfoW(hMountSubMenu, originalId, FALSE, &menuItemInfo);
                 }
 
-                wchar_t menuString[MenuPathLength];
-                PathCompactPathExW(menuString, mountInfo.mountPoint, MenuPathLength, 0);
+                {
+                  const auto& mountData = gMountManager.GetMountData(mountId);
 
-                const MENUITEMINFOW menuItemInfo{
-                  sizeof(menuItemInfo),
-                  MIIM_ID | MIIM_SUBMENU | MIIM_TYPE,
-                  MFT_STRING,
-                  MFS_ENABLED,
-                  baseId + IDMB_CTX_MOUNT_TOP,
-                  hMountSubMenu,
-                  NULL,
-                  NULL,
-                  NULL,
-                  menuString,
-                  0,
-                  NULL,
-                };
-                InsertMenuItemW(hMountsMenu, static_cast<UINT>(i), TRUE, &menuItemInfo);
+                  wchar_t configFilepathCompact[MenuPathLength];
+                  PathCompactPathExW(configFilepathCompact, mountData.configFilepath.c_str(), MenuPathLength, 0);
+
+                  const std::wstring menuString(configFilepathCompact);
+
+                  const MENUITEMINFOW menuItemInfo{
+                    sizeof(menuItemInfo),
+                    MIIM_TYPE,
+                    MFT_STRING,
+                    MFS_DISABLED,
+                    IDM_DUMMY_CTX_MOUNT_CONFIGFILE,
+                    NULL,
+                    NULL,
+                    NULL,
+                    NULL,
+                    const_cast<LPWSTR>(menuString.c_str()),
+                    0,
+                    NULL,
+                  };
+                  SetMenuItemInfoW(hMountSubMenu, IDM_DUMMY_CTX_MOUNT_CONFIGFILE, FALSE, &menuItemInfo);
+                }
+
+                {
+                  wchar_t mountPointCompact[MenuPathLength];
+                  PathCompactPathExW(mountPointCompact, mountInfo.mountPoint, MenuPathLength, 0);
+
+                  const std::wstring menuString(mountPointCompact);
+
+                  const MENUITEMINFOW menuItemInfo{
+                    sizeof(menuItemInfo),
+                    MIIM_ID | MIIM_SUBMENU | MIIM_TYPE,
+                    MFT_STRING,
+                    MFS_ENABLED,
+                    baseId + IDMB_CTX_MOUNT_TOP,
+                    hMountSubMenu,
+                    NULL,
+                    NULL,
+                    NULL,
+                    const_cast<LPWSTR>(menuString.c_str()),
+                    0,
+                    NULL,
+                  };
+                  InsertMenuItemW(hMountsMenu, static_cast<UINT>(i), TRUE, &menuItemInfo);
+                }
               }
             }
 

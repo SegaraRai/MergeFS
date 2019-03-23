@@ -17,6 +17,7 @@
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEUD)
 LANGUAGE LANG_NEUTRAL, SUBLANG_DEFAULT
+#pragma code_page(932)
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -36,6 +37,7 @@ IDI_ICON1               ICON                    "Icon.ico"
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_NEUTRAL
+#pragma code_page(1252)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -131,6 +133,8 @@ BEGIN
         MENUITEM "Browse Configuration File (&C)", IDM_DUMMY_CTX_MOUNT_OPENCONFIG
         MENUITEM SEPARATOR
         MENUITEM "Unmount (&U)",                IDM_DUMMY_CTX_MOUNT_UNMOUNT
+        MENUITEM SEPARATOR
+        MENUITEM "<ConfigFile.mfcfg>",          IDM_DUMMY_CTX_MOUNT_CONFIGFILE, INACTIVE
     END
 END
 
