@@ -7,9 +7,7 @@
 NotifyIcon::NotifyIcon(const NOTIFYICONDATAW& notifyIconData, bool setVersion) :
   mNotifyIconData(notifyIconData),
   mSetVersion(setVersion)
-{
-  // TODO: copy strings?
-}
+{}
 
 
 BOOL NotifyIcon::Register() {
