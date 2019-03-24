@@ -153,3 +153,21 @@ namespace nlohmann {
     }
   };
 }
+
+
+namespace YAML {
+  template<>
+  struct convert<nlohmann::json> {
+    static Node encode(const nlohmann::json& rhs) {
+      return rhs.get<YAML::Node>();
+    }
+
+    static bool decode(const Node& node, nlohmann::json& rhs) {
+      try {
+        rhs = nlohmann::json(node);
+        return true;
+      } catch (YAML::BadConversion&) {}
+      return false;
+    }
+  };
+}
