@@ -49,7 +49,7 @@ namespace {
   constexpr auto MutexName = L"MergeFSMC.MTX";
   constexpr auto WindowName = L"MergeFSMC.WND";
   constexpr auto ReadyWindowName = L"MergeFSMC.WNDRDY";
-  constexpr UINT NotifyIconId = 6;
+  constexpr UINT NotifyIconId = 0x0001;
   constexpr UINT ProcessArgQueueMessageId = WM_APP + 0x1101;
   constexpr UINT ProcessErrorQueueMessageId = WM_APP + 0x1102;
   constexpr UINT NotifyIconCallbackMessageId = WM_APP + 0x2101;
