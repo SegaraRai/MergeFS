@@ -534,6 +534,9 @@ Archive::Archive(NanaZ& nanaZ, winrt::com_ptr<IInStream> inStream, const BY_HAND
     };
   }
   this->inArchive = CreateInArchiveFromInStream(nanaZ, inStream, maxCheckStartPosition, rootArchivePasswordCallback);
+  if (!this->inArchive) {
+    throw std::runtime_error("cannot open stream as archive");
+  }
   UInt64 fileIndexCount = this->fileIndex + 1;
   InitializeDirectoryTree(*this, defaultFilepath, prefixFilter, L""s, nanaZ, maxCheckStartPosition, onExisting, extractToMemory, archiveNameCallback, passwordCallback, fileIndexCount);
 }
