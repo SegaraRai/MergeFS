@@ -283,6 +283,11 @@ CueSourceMount::CueSourceMount(const PLUGIN_INITIALIZE_MOUNT_INFO* initializeMou
     }
     throw;
   }
+
+  if (util::IsValidHandle(cueFileHandle)) {
+    CloseHandle(cueFileHandle);
+    cueFileHandle = NULL;
+  }
 }
 
 
