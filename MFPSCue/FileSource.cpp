@@ -45,6 +45,14 @@ FileSource::FileSource(LPCWSTR filepath) {
 }
 
 
+FileSource::~FileSource() {
+  if (mNeedClose && util::IsValidHandle(mFileHandle)) {
+    CloseHandle(mFileHandle);
+    mFileHandle = NULL;
+  }
+}
+
+
 Source::SourceSize FileSource::GetSize() {
   return mFileSize;
 }

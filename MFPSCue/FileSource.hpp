@@ -8,7 +8,7 @@
 #include "Source.hpp"
 
 
-class FileSource : public Source {
+class FileSource final : public Source {
   std::mutex mMutex;
   bool mNeedClose;
   HANDLE mFileHandle;
@@ -17,6 +17,7 @@ class FileSource : public Source {
 public:
   FileSource(HANDLE fileHandle);
   FileSource(LPCWSTR filepath);
+  ~FileSource();
 
   SourceSize GetSize() override;
   NTSTATUS Read(SourceOffset offset, std::byte* buffer, std::size_t size, std::size_t* readSize) override;
