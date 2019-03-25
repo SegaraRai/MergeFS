@@ -27,6 +27,8 @@
   - mno
     - pqr
 
+おそらくLinuxでのUnionFSやOverlayFSに似たものだと思います（使ったことがないので分かりませんが）。
+
 マウント自体には[Dokany](https://github.com/dokan-dev/dokany)ライブラリを使用しています。
 
 ## 用途
