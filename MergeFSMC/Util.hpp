@@ -25,5 +25,5 @@ void PlaySystemSound() {
   constexpr LPCWSTR SoundName = GetSystemSoundName(Sound);
   static_assert(SoundName != nullptr);
 
-  PlaySoundW(SoundName, NULL, SND_ALIAS | SND_NODEFAULT | SND_SYNC);
+  PlaySoundW(SoundName, NULL, SND_ALIAS | SND_NODEFAULT | SND_ASYNC);
 }
