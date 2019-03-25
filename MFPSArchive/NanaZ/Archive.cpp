@@ -38,6 +38,10 @@ namespace {
   using PasswordCallback = MemoryArchiveExtractCallback::PasswordCallback;
 
 
+  // TODO: make customizable
+  constexpr UInt32 SevereErrorFlags = kpv_ErrorFlags_IsNotArc;
+
+
 
   FILETIME GetCreationTime(const DirectoryTree& directoryTree, const FILETIME& fallbackCreationTime) {
     if (directoryTree.creationTimeN) {
@@ -166,7 +170,7 @@ namespace {
         PropVariantWrapper propVariant;
         inArchive->GetArchiveProperty(kpidErrorFlags, &propVariant);
         const auto errorFlags = FromPropVariantN<UInt32>(propVariant).value_or(0);
-        if (errorFlags) {
+        if (errorFlags & SevereErrorFlags) {
           continue;
         }
       }
