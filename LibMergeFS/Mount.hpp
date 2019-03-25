@@ -23,6 +23,19 @@
 
 
 
+struct VolumeInfoOverride {
+  std::optional<std::wstring> VolumeName;
+  std::optional<DWORD> VolumeSerialNumber;
+  std::optional<DWORD> MaximumComponentLength;
+  std::optional<DWORD> FileSystemFlags;
+  std::optional<std::wstring> FileSystemName;
+  //
+  std::optional<ULONGLONG> FreeBytesAvailable;
+  std::optional<ULONGLONG> TotalNumberOfBytes;
+  std::optional<ULONGLONG> TotalNumberOfFreeBytes;
+};
+
+
 class Mount {
 public:
   class DokanMainError : std::runtime_error {
@@ -92,6 +105,7 @@ private:
   const std::wstring m_metadataFileName;
   const bool m_deferCopyEnabled;
   const bool m_caseSensitive;
+  const VolumeInfoOverride m_volumeInfoOverride;
   MetadataStore m_metadataStore;
 #ifdef USE_SHARED_PTR_FOR_FILE_CONTEXT
   std::unordered_map<FILE_CONTEXT_ID, std::shared_ptr<FileContext>> m_fileContextMap;
@@ -129,7 +143,7 @@ private:
   NTSTATUS TransportIfNeeded(PDOKAN_FILE_INFO DokanFileInfo);
 
 public:
-  Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, std::vector<std::unique_ptr<MountSource>>&& sources, std::function<void(Mount&, int)> callback);
+  Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const VolumeInfoOverride& volumeInfoOverride, std::vector<std::unique_ptr<MountSource>>&& sources, std::function<void(Mount&, int)> callback);
   ~Mount();
 
   bool IsWritable() const;

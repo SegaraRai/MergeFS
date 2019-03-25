@@ -258,7 +258,7 @@ std::wstring Mount::FilenameToKey(std::wstring_view filename) const {
 }
 
 
-Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, std::vector<std::unique_ptr<MountSource>>&& sources, std::function<void(Mount&, int)> callback) :
+Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const VolumeInfoOverride& volumeInfoOverride, std::vector<std::unique_ptr<MountSource>>&& sources, std::function<void(Mount&, int)> callback) :
   m_imdMutex(),
   m_imdCv(),
   m_imdState(ImdState::Pending),
@@ -272,6 +272,7 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
   m_metadataFileName(m_writable ? metadataFileName : L""sv),
   m_deferCopyEnabled(deferCopyEnabled),
   m_caseSensitive(caseSensitive),
+  m_volumeInfoOverride(volumeInfoOverride),
   m_metadataStore(m_metadataFileName, caseSensitive),
   m_fileContextMap(),
   m_minimumUnusedFileContextId(FileContextIdStart),
@@ -1630,7 +1631,30 @@ NTSTATUS Mount::DGetDiskFreeSpace(PULONGLONG FreeBytesAvailable, PULONGLONG Tota
   // 空き容量に関してはTopSourceIndexのものを用いる
   // 全体的な容量は各ソースを合計する
 
-  return WrapException([=]() -> NTSTATUS {
+  return WrapException([&]() -> NTSTATUS {
+    // override
+
+    if (FreeBytesAvailable && m_volumeInfoOverride.FreeBytesAvailable) {
+      *FreeBytesAvailable = m_volumeInfoOverride.FreeBytesAvailable.value();
+      FreeBytesAvailable = nullptr;
+    }
+
+    if (TotalNumberOfBytes && m_volumeInfoOverride.TotalNumberOfBytes) {
+      *TotalNumberOfBytes = m_volumeInfoOverride.TotalNumberOfBytes.value();
+      TotalNumberOfBytes = nullptr;
+    }
+
+    if (TotalNumberOfFreeBytes && m_volumeInfoOverride.TotalNumberOfFreeBytes) {
+      *TotalNumberOfFreeBytes = m_volumeInfoOverride.TotalNumberOfFreeBytes.value();
+      TotalNumberOfFreeBytes = nullptr;
+    }
+
+    
+    if (!FreeBytesAvailable && !TotalNumberOfBytes && !TotalNumberOfFreeBytes) {
+      return STATUS_SUCCESS;
+    }
+
+
     if (!TotalNumberOfBytes) {
       // 全体の容量を計算する必要がないならTopSourceIndexだけ確認すれば良い
       return m_topSource.DGetDiskFreeSpace(FreeBytesAvailable, TotalNumberOfBytes, TotalNumberOfFreeBytes, DokanFileInfo);
@@ -1664,7 +1688,47 @@ FileSystemName could be anything up to 10 characters. But Windows check few feat
 FILE_READ_ONLY_VOLUME is automatically added to the FileSystemFlags if DOKAN_OPTION_WRITE_PROTECT was specified in DOKAN_OPTIONS when the volume was mounted.
 */
 NTSTATUS Mount::DGetVolumeInformation(LPWSTR VolumeNameBuffer, DWORD VolumeNameSize, LPDWORD VolumeSerialNumber, LPDWORD MaximumComponentLength, LPDWORD FileSystemFlags, LPWSTR FileSystemNameBuffer, DWORD FileSystemNameSize, PDOKAN_FILE_INFO DokanFileInfo) noexcept {
-  return WrapException([=]() -> NTSTATUS {
+  return WrapException([&]() -> NTSTATUS {
+    // override
+
+    if (VolumeNameBuffer && m_volumeInfoOverride.VolumeName) {
+      const auto& volumeName = m_volumeInfoOverride.VolumeName.value();
+      if (VolumeNameSize < volumeName.size() + 1) {
+        return STATUS_BUFFER_TOO_SMALL;
+      }
+      std::memcpy(VolumeNameBuffer, volumeName.c_str(), (volumeName.size() + 1) * sizeof(wchar_t));
+      VolumeNameBuffer = nullptr;
+    }
+
+    if (VolumeSerialNumber && m_volumeInfoOverride.VolumeSerialNumber) {
+      *VolumeSerialNumber = m_volumeInfoOverride.VolumeSerialNumber.value();
+      VolumeSerialNumber = nullptr;
+    }
+
+    if (MaximumComponentLength && m_volumeInfoOverride.MaximumComponentLength) {
+      *MaximumComponentLength = m_volumeInfoOverride.MaximumComponentLength.value();
+      MaximumComponentLength = nullptr;
+    }
+
+    if (FileSystemFlags && m_volumeInfoOverride.FileSystemFlags) {
+      *FileSystemFlags = m_volumeInfoOverride.FileSystemFlags.value();
+      FileSystemFlags = nullptr;
+    }
+
+    if (FileSystemNameBuffer && m_volumeInfoOverride.FileSystemName) {
+      const auto& fileSystemName = m_volumeInfoOverride.FileSystemName.value();
+      if (FileSystemNameSize < fileSystemName.size() + 1) {
+        return STATUS_BUFFER_TOO_SMALL;
+      }
+      std::memcpy(FileSystemNameBuffer, fileSystemName.c_str(), (fileSystemName.size() + 1) * sizeof(wchar_t));
+      FileSystemNameBuffer = nullptr;
+    }
+
+
+    if (!VolumeNameBuffer && !VolumeSerialNumber && !MaximumComponentLength && !FileSystemFlags && !FileSystemNameBuffer) {
+      return STATUS_SUCCESS;
+    }
+
     return m_topSource.DGetVolumeInformation(VolumeNameBuffer, VolumeNameSize, VolumeSerialNumber, MaximumComponentLength, FileSystemFlags, FileSystemNameBuffer, FileSystemNameSize, DokanFileInfo);
   });
 }

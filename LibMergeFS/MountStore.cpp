@@ -231,7 +231,7 @@ MountStore::~MountStore() {
 }
 
 
-MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(MOUNT_ID, const MOUNT_INFO*, int)> callback) {
+MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const VolumeInfoOverride& volumeInfoOverride, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(MOUNT_ID, const MOUNT_INFO*, int)> callback) {
   if (sources.empty()) {
     throw NoSourceError();
   }
@@ -259,7 +259,7 @@ MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writab
   } while (m_mountMap.count(m_minimumUnusedMountId));
 
   MountData::MountInfoWrapper wrappedMountInfo(mountPoint, writable, metadataFileName, deferCopyEnabled, caseSensitive, sources);
-  auto mount = std::make_unique<::Mount>(mountPoint, writable, metadataFileName, deferCopyEnabled, caseSensitive, std::move(mountSources), [this, callback, mountId, wrappedMountInfo](::Mount& mount, int dokanMainResult) mutable {
+  auto mount = std::make_unique<::Mount>(mountPoint, writable, metadataFileName, deferCopyEnabled, caseSensitive, volumeInfoOverride, std::move(mountSources), [this, callback, mountId, wrappedMountInfo](::Mount& mount, int dokanMainResult) mutable {
     wrappedMountInfo.SetWritable(mount.IsWritable());
 
     callback(mountId, &wrappedMountInfo.Get(), dokanMainResult);

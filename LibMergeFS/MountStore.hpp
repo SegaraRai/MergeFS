@@ -99,7 +99,7 @@ public:
   MountStore();
   ~MountStore();
 
-  MOUNT_ID Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(MOUNT_ID, const MOUNT_INFO*, int)> callback);
+  MOUNT_ID Mount(std::wstring_view mountPoint, bool writable, std::wstring_view metadataFileName, bool deferCopyEnabled, bool caseSensitive, const VolumeInfoOverride& volumeInfoOverride, const std::vector<std::pair<PLUGIN_ID, PLUGIN_INITIALIZE_MOUNT_INFO>>& sources, std::function<void(MOUNT_ID, const MOUNT_INFO*, int)> callback);
   bool HasMount(MOUNT_ID mountId) const;
   std::size_t CountMounts() const;
   std::vector<MOUNT_ID> ListMounts() const;

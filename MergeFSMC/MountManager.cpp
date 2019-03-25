@@ -274,6 +274,52 @@ MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::functio
     };
   }
 
+  // load volumeInfoOverride
+  VOLUME_INFO_OVERRIDE volumeInfoOverride{
+    MERGEFS_VIOF_NONE,
+  };
+  std::wstring vioVolumeName;
+  std::wstring vioFileSystemName;
+  const auto& yamlVolumeInfo = yaml["volumeInfo"];
+  if (yamlVolumeInfo) {
+    if (yamlVolumeInfo["volumeName"]) {
+      vioVolumeName = yamlVolumeInfo["volumeName"].as<std::wstring>();
+      volumeInfoOverride.VolumeName = vioVolumeName.c_str();
+      volumeInfoOverride.overrideFlags |= MERGEFS_VIOF_VOLUMENAME;
+    }
+    if (yamlVolumeInfo["volumeSerialNumber"]) {
+      volumeInfoOverride.VolumeSerialNumber = yamlVolumeInfo["volumeSerialNumber"].as<DWORD>();
+      volumeInfoOverride.overrideFlags |= MERGEFS_VIOF_VOLUMESERIALNUMBER;
+    }
+    if (yamlVolumeInfo["maximumComponentLength"]) {
+      volumeInfoOverride.MaximumComponentLength = yamlVolumeInfo["maximumComponentLength"].as<DWORD>();
+      volumeInfoOverride.overrideFlags |= MERGEFS_VIOF_MAXIMUMCOMPONENTLENGTH;
+    }
+    if (yamlVolumeInfo["fileSystemFlags"]) {
+      volumeInfoOverride.FileSystemFlags = yamlVolumeInfo["fileSystemFlags"].as<DWORD>();
+      volumeInfoOverride.overrideFlags |= MERGEFS_VIOF_FILESYSTEMFLAGS;
+    }
+    if (yamlVolumeInfo["fileSystemName"]) {
+      vioFileSystemName = yamlVolumeInfo["fileSystemName"].as<std::wstring>();
+      volumeInfoOverride.FileSystemName = vioFileSystemName.c_str();
+      volumeInfoOverride.overrideFlags |= MERGEFS_VIOF_FILESYSTEMNAME;
+    }
+
+    if (yamlVolumeInfo["freeBytesAvailable"]) {
+      volumeInfoOverride.FreeBytesAvailable = yamlVolumeInfo["freeBytesAvailable"].as<ULONGLONG>();
+      volumeInfoOverride.overrideFlags |= MERGEFS_VIOF_FREEBYTESAVAILABLE;
+    }
+    if (yamlVolumeInfo["totalNumberOfBytes"]) {
+      volumeInfoOverride.TotalNumberOfBytes = yamlVolumeInfo["totalNumberOfBytes"].as<ULONGLONG>();
+      volumeInfoOverride.overrideFlags |= MERGEFS_VIOF_TOTALNUMBEROFBYTES;
+    }
+    if (yamlVolumeInfo["totalNumberOfFreeBytes"]) {
+      volumeInfoOverride.TotalNumberOfFreeBytes = yamlVolumeInfo["totalNumberOfFreeBytes"].as<ULONGLONG>();
+      volumeInfoOverride.overrideFlags |= MERGEFS_VIOF_TOTALNUMBEROFFREEBYTES;
+    }
+
+  }
+
   // TODO: error handling, restore current directory
   const std::wstring configFileDirectory = util::rfs::GetParentPath(configFilepath);
   SetCurrentDirectoryW(configFileDirectory.c_str());
@@ -288,6 +334,7 @@ MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::functio
     caseSensitive,
     static_cast<DWORD>(sourceInitializeInfos.size()),
     sourceInitializeInfos.data(),
+    volumeInfoOverride,
   };
 
   MOUNT_ID mountId = MOUNT_ID_NULL;

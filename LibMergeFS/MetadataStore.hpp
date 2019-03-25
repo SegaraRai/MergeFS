@@ -28,7 +28,6 @@ private:
   void LoadFromFile();
   void SaveToFile();
 
-
 public:
   MetadataStore(const MetadataStore&) = delete;
 

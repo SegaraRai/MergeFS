@@ -203,6 +203,17 @@ int CommandMount(const std::deque<std::wstring>& args) {
     FALSE,
     static_cast<DWORD>(mountSources.size()),
     mountSources.data(),
+    {
+      MERGEFS_VIOF_NONE,
+      NULL,
+      0,
+      0,
+      0,
+      NULL,
+      0,
+      0,
+      0,
+    },
   };
   MOUNT_ID mountId;
   if (!LMF_Mount(&mountInitializeInfo, [](MOUNT_ID mountId, const MOUNT_INFO* mountInfo, int dokanMainResult) noexcept -> void {

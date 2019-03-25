@@ -52,6 +52,16 @@
 #define MERGEFS_ERROR_ALREADY_EXISTING_MOUNT            ((DWORD) 0x00050004)
 #define MERGEFS_ERROR_ALREADY_EXISTING_MOUNTPOINT       ((DWORD) 0x00050005)
 
+#define MERGEFS_VIOF_NONE                     ((DWORD) 0x00000000)
+#define MERGEFS_VIOF_VOLUMENAME               ((DWORD) 0x00000001)
+#define MERGEFS_VIOF_VOLUMESERIALNUMBER       ((DWORD) 0x00000002)
+#define MERGEFS_VIOF_MAXIMUMCOMPONENTLENGTH   ((DWORD) 0x00000004)
+#define MERGEFS_VIOF_FILESYSTEMFLAGS          ((DWORD) 0x00000008)
+#define MERGEFS_VIOF_FILESYSTEMNAME           ((DWORD) 0x00000010)
+#define MERGEFS_VIOF_FREEBYTESAVAILABLE       ((DWORD) 0x00000100)
+#define MERGEFS_VIOF_TOTALNUMBEROFBYTES       ((DWORD) 0x00000200)
+#define MERGEFS_VIOF_TOTALNUMBEROFFREEBYTES   ((DWORD) 0x00000400)
+
 
 # ifdef __cplusplus
 #  define MFEXTERNC extern "C"
@@ -132,6 +142,21 @@ typedef struct {
 
 
 typedef struct {
+  DWORD overrideFlags;
+
+  LPCWSTR VolumeName;
+  DWORD VolumeSerialNumber;
+  DWORD MaximumComponentLength;
+  DWORD FileSystemFlags;
+  LPCWSTR FileSystemName;
+  
+  ULONGLONG FreeBytesAvailable;
+  ULONGLONG TotalNumberOfBytes;
+  ULONGLONG TotalNumberOfFreeBytes;
+} VOLUME_INFO_OVERRIDE;
+
+
+typedef struct {
   LPCWSTR mountPoint;
   BOOL writable;
   LPCWSTR metadataFileName;
@@ -139,6 +164,7 @@ typedef struct {
   BOOL caseSensitive;
   DWORD numSources;
   MOUNT_SOURCE_INITIALIZE_INFO* sources;
+  VOLUME_INFO_OVERRIDE volumeInfoOverride;
 } MOUNT_INITIALIZE_INFO;
 
 
@@ -157,6 +183,7 @@ typedef struct {
   BOOL caseSensitive;
   DWORD numSources;
   MOUNT_SOURCE_INFO* sources;
+  // TODO: VOLUME_INFO_OVERRIDE
 } MOUNT_INFO;
 
 
@@ -164,8 +191,9 @@ typedef struct {
 static_assert(sizeof(PLUGIN_INFO) == 3 * 4 + 1 * 16 + 3 * sizeof(void*));
 static_assert(sizeof(PLUGIN_INFO_EX) == sizeof(PLUGIN_INFO) + 1 * sizeof(void*));
 static_assert(sizeof(MOUNT_SOURCE_INITIALIZE_INFO) == 1 * 16 + 3 * sizeof(void*));
-static_assert(sizeof(MOUNT_INITIALIZE_INFO) == 4 * 4 + 3 * sizeof(void*));
-static_assert(sizeof(MOUNT_INFO) == sizeof(MOUNT_INITIALIZE_INFO));
+static_assert(sizeof(VOLUME_INFO_OVERRIDE) == 4 * 4 + 3 * 8 + 2 * sizeof(void*));
+static_assert(sizeof(MOUNT_INITIALIZE_INFO) == 4 * 4 + 3 * sizeof(void*) + sizeof(VOLUME_INFO_OVERRIDE));
+static_assert(sizeof(MOUNT_INFO) == sizeof(MOUNT_INITIALIZE_INFO) - sizeof(VOLUME_INFO_OVERRIDE));
 #endif
 
 

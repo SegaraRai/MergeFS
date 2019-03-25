@@ -348,7 +348,33 @@ namespace Exports {
         });
       }
 
-      const auto mountId = mountStore.Mount(mountInitializeInfo->mountPoint, mountInitializeInfo->writable, mountInitializeInfo->metadataFileName, mountInitializeInfo->deferCopyEnabled, mountInitializeInfo->caseSensitive, sources, [callback](MOUNT_ID mountId, const MOUNT_INFO* ptrMountInfo, int dokanMainResult) {
+      VolumeInfoOverride volumeInfoOverride{};
+      if (mountInitializeInfo->volumeInfoOverride.overrideFlags & MERGEFS_VIOF_VOLUMENAME) {
+        volumeInfoOverride.VolumeName.emplace(mountInitializeInfo->volumeInfoOverride.VolumeName);
+      }
+      if (mountInitializeInfo->volumeInfoOverride.overrideFlags & MERGEFS_VIOF_VOLUMESERIALNUMBER) {
+        volumeInfoOverride.VolumeSerialNumber.emplace(mountInitializeInfo->volumeInfoOverride.VolumeSerialNumber);
+      }
+      if (mountInitializeInfo->volumeInfoOverride.overrideFlags & MERGEFS_VIOF_MAXIMUMCOMPONENTLENGTH) {
+        volumeInfoOverride.MaximumComponentLength.emplace(mountInitializeInfo->volumeInfoOverride.MaximumComponentLength);
+      }
+      if (mountInitializeInfo->volumeInfoOverride.overrideFlags & MERGEFS_VIOF_FILESYSTEMFLAGS) {
+        volumeInfoOverride.FileSystemFlags.emplace(mountInitializeInfo->volumeInfoOverride.FileSystemFlags);
+      }
+      if (mountInitializeInfo->volumeInfoOverride.overrideFlags & MERGEFS_VIOF_FILESYSTEMNAME) {
+        volumeInfoOverride.FileSystemName.emplace(mountInitializeInfo->volumeInfoOverride.FileSystemName);
+      }
+      if (mountInitializeInfo->volumeInfoOverride.overrideFlags & MERGEFS_VIOF_FREEBYTESAVAILABLE) {
+        volumeInfoOverride.FreeBytesAvailable.emplace(mountInitializeInfo->volumeInfoOverride.FreeBytesAvailable);
+      }
+      if (mountInitializeInfo->volumeInfoOverride.overrideFlags & MERGEFS_VIOF_TOTALNUMBEROFBYTES) {
+        volumeInfoOverride.TotalNumberOfBytes.emplace(mountInitializeInfo->volumeInfoOverride.TotalNumberOfBytes);
+      }
+      if (mountInitializeInfo->volumeInfoOverride.overrideFlags & MERGEFS_VIOF_TOTALNUMBEROFFREEBYTES) {
+        volumeInfoOverride.TotalNumberOfFreeBytes.emplace(mountInitializeInfo->volumeInfoOverride.TotalNumberOfFreeBytes);
+      }
+
+      const auto mountId = mountStore.Mount(mountInitializeInfo->mountPoint, mountInitializeInfo->writable, mountInitializeInfo->metadataFileName, mountInitializeInfo->deferCopyEnabled, mountInitializeInfo->caseSensitive, volumeInfoOverride, sources, [callback](MOUNT_ID mountId, const MOUNT_INFO* ptrMountInfo, int dokanMainResult) {
         callback(mountId, ptrMountInfo, dokanMainResult);
       });
 
