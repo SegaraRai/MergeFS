@@ -2,6 +2,8 @@
 
 #include <7z/CPP/Common/Common.h>
 
+#include <nlohmann/json.hpp>
+
 #include <algorithm>
 #include <cassert>
 #include <memory>
@@ -26,15 +28,7 @@
 #include "NanaZ/NanaZ.hpp"
 
 using namespace std::literals;
-
-
-
-namespace {
-  const std::wstring DefaultFilepath = L"Content"s;
-  constexpr UInt64 MaxCheckStartPosition = 1 << 23;
-  constexpr DirectoryTree::OnExisting OnExisting = DirectoryTree::OnExisting::RenameNewOne;
-  constexpr DirectoryTree::ExtractToMemory ExtractToMemory = DirectoryTree::ExtractToMemory::Auto;
-}
+using json = nlohmann::json;
 
 
 
@@ -107,8 +101,8 @@ NTSTATUS ArchiveSourceMount::ExportPortation::Finish(PORTATION_INFO* portationIn
 
 
 
-ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) :
-  ReadonlySourceMountBase(InitializeMountInfo, sourceContextId),
+ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOUNT_INFO* initializeMountInfo, SOURCE_CONTEXT_ID sourceContextId) :
+  ReadonlySourceMountBase(initializeMountInfo, sourceContextId),
   nanaZ(nanaZ),
   subMutex(),
   portationMap(),
@@ -117,7 +111,63 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
   constexpr std::size_t BufferSize = MAX_PATH + 1;
 
   try {
-    absolutePath = util::rfs::ToAbsoluteFilepath(InitializeMountInfo->FileName);
+    // parse options
+    std::wstring optDefaultFilepath = L"Content"s;
+    UInt64 optMaxCheckStartPosition = 1 << 23;
+    DirectoryTree::OnExisting optOnExisting = DirectoryTree::OnExisting::RenameNewOne;
+    DirectoryTree::ExtractToMemory optExtractToMemory = DirectoryTree::ExtractToMemory::Auto;
+    bool optRecursive = true;
+
+    if (initializeMountInfo->OptionsJSON && initializeMountInfo->OptionsJSON[0] == '{') {
+      try {
+        const auto jsonOptions = json::parse(initializeMountInfo->OptionsJSON);
+
+        try {
+          optDefaultFilepath = jsonOptions.at("defaultFilepath"s).get<std::wstring>();
+        } catch (json::type_error) {
+        } catch (json::out_of_range) {}
+
+        try {
+          optMaxCheckStartPosition = jsonOptions.at("maxCheckStartPosition"s).get<unsigned long long>();
+        } catch (json::type_error) {
+        } catch (json::out_of_range) {}
+
+        try {
+          const auto& strOnExisting = util::ToLowerString(jsonOptions.at("extractToMemory"s).get<std::string>());
+          if (strOnExisting == "skip"sv) {
+            optOnExisting = DirectoryTree::OnExisting::Skip;
+          } else if (strOnExisting == "replace"sv) {
+            optOnExisting = DirectoryTree::OnExisting::Replace;
+          } else if (strOnExisting == "rename") {
+            optOnExisting = DirectoryTree::OnExisting::RenameNewOne;
+          }
+        } catch (json::type_error) {
+        } catch (json::out_of_range) {}
+
+        try {
+          const auto& strJsonExtractToMemory = util::ToLowerString(jsonOptions.at("extractToMemory"s).dump());
+          if (strJsonExtractToMemory == "true"sv || strJsonExtractToMemory == "\"always\""sv) {
+            optExtractToMemory = DirectoryTree::ExtractToMemory::Always;
+          } else if (strJsonExtractToMemory == "\"compressed\""sv || strJsonExtractToMemory == "\"auto\""sv) {
+            optExtractToMemory = DirectoryTree::ExtractToMemory::Auto;
+          } else if (strJsonExtractToMemory == "false"sv || strJsonExtractToMemory == "\"never\""sv) {
+            optExtractToMemory = DirectoryTree::ExtractToMemory::Always;
+          }
+        } catch (json::type_error) {
+        } catch (json::out_of_range) {}
+
+        try {
+          optRecursive = jsonOptions.at("recursive"s).get<bool>();
+        } catch (json::type_error) {
+        } catch (json::out_of_range) {}
+
+        //
+      } catch (json::type_error) {
+      } catch (json::out_of_range) {}
+    }
+
+
+    absolutePath = util::rfs::ToAbsoluteFilepath(initializeMountInfo->FileName);
     const auto archiveFilepathN = FindRootFilepath(absolutePath);
     if (!archiveFilepathN) {
       throw std::runtime_error(u8"archive file not found");
@@ -154,7 +204,11 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
     fileSystemName = L"ARCHIVE"s;
 
     // open archive
-    archiveN.emplace(nanaZ, CreateCOMPtr(new InFileStream(archiveFileHandle)), archiveFileInfo, DefaultFilepath, pathPrefixWb, caseSensitive, MaxCheckStartPosition, OnExisting, ExtractToMemory, [](const std::wstring& originalFilepath, std::size_t count) -> std::optional<std::pair<std::wstring, bool>> {
+    archiveN.emplace(nanaZ, CreateCOMPtr(new InFileStream(archiveFileHandle)), archiveFileInfo, optDefaultFilepath, pathPrefixWb, caseSensitive, optMaxCheckStartPosition, optOnExisting, optExtractToMemory, [optRecursive](const std::wstring& originalFilepath, std::size_t count) -> std::optional<std::pair<std::wstring, bool>> {
+      if (!optRecursive) {
+        return std::nullopt;
+      }
+
       // use util::ifs because a filepath provided by 7-Zip is like "abc\\example.txt"
       const std::wstring parentDirectoryPath(util::ifs::GetParentPathTs(originalFilepath));
       const std::wstring baseFilename(util::ifs::GetBaseName(originalFilepath));
