@@ -15,8 +15,10 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <ios>
 #include <optional>
 #include <shared_mutex>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>

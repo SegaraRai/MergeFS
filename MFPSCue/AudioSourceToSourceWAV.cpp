@@ -1,4 +1,5 @@
 #include <memory>
+#include <stdexcept>
 #include <utility>
 
 #include "AudioSourceToSourceWAV.hpp"
