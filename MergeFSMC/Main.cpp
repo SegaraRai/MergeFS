@@ -133,6 +133,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
               PlaySystemSound<SystemSound::DeviceDisconnect>();
             });
             PlaySystemSound<SystemSound::DeviceConnect>();
+          } catch (const MountManager::MountPointAlreadyInUseError& mountPointAlreadyInUseError) {
+            gMountManager.RemoveMount(mountPointAlreadyInUseError.mountId, true);
           } catch (const MountManager::MountError& mountError) {
             std::lock_guard lock(gMutex);
             gMountErrorQueue.emplace_back(MountError{

@@ -81,6 +81,13 @@ MountManager::Win32ApiError::Win32ApiError(DWORD error) :
 
 
 
+MountManager::MountPointAlreadyInUseError::MountPointAlreadyInUseError(MOUNT_ID mountId) :
+  std::runtime_error("mount point is already in use"),
+  mountId(mountId)
+{}
+
+
+
 void MountManager::CheckLibMergeFSResult(BOOL ret) {
   if (!ret) {
     throw MergeFSError();
@@ -109,6 +116,9 @@ void WINAPI MountManager::MountCallback(MOUNT_ID mountId, const MOUNT_INFO* ptrM
     auto& mountManager = GetInstance();
     MountData& mountData = mountManager.mMountDataMap.at(mountId);
     mountData.callback(mountId, dokanMainResult, mountData, ptrMountInfo);
+    if (mountManager.mMountPointToMountIdMap.count(ptrMountInfo->mountPoint) && mountManager.mMountPointToMountIdMap.at(ptrMountInfo->mountPoint) == mountId) {
+      mountManager.mMountPointToMountIdMap.erase(ptrMountInfo->mountPoint);
+    }
     mountManager.mMountDataMap.erase(mountId);
   } catch (...) {}
 }
@@ -206,6 +216,8 @@ MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::functio
   ifs.close();
 
   const auto mountPoint = yaml["mountPoint"].as<std::wstring>();
+
+  const std::wstring resolvedMountPoint = ResolveMountPoint(mountPoint);
 
   // TODO: convert to absolute path with configuration file's directory as base directory
   const auto metadataFileName = yaml["metadata"].as<std::wstring>();
@@ -320,11 +332,13 @@ MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::functio
 
   }
 
+  if (mMountPointToMountIdMap.count(resolvedMountPoint)) {
+    throw MountPointAlreadyInUseError(mMountPointToMountIdMap.at(resolvedMountPoint));
+  }
+
   // TODO: error handling, restore current directory
   const std::wstring configFileDirectory = util::rfs::GetParentPath(configFilepath);
   SetCurrentDirectoryW(configFileDirectory.c_str());
-
-  const std::wstring resolvedMountPoint = ResolveMountPoint(mountPoint);
 
   MOUNT_INITIALIZE_INFO mountInitializeInfo{
     resolvedMountPoint.c_str(),
@@ -345,6 +359,8 @@ MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::functio
       resolvedMountPoint,
     };
   }
+
+  mMountPointToMountIdMap.emplace(resolvedMountPoint, mountId);
 
   mMountDataMap.emplace(mountId, MountData{
     configFilepath,

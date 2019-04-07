@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -39,8 +40,15 @@ public:
     Win32ApiError(DWORD error = GetLastError());
   };
 
+  struct MountPointAlreadyInUseError : std::runtime_error {
+    MOUNT_ID mountId;
+
+    MountPointAlreadyInUseError(MOUNT_ID mountId);
+  };
+
 private:
   std::unordered_map<MOUNT_ID, MountData> mMountDataMap;
+  std::unordered_map<std::wstring, MOUNT_ID> mMountPointToMountIdMap;
 
   static void CheckLibMergeFSResult(BOOL ret);
   static std::wstring ResolveMountPoint(const std::wstring& mountPoint);
