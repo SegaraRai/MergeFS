@@ -10,18 +10,6 @@
 
 
 namespace util {
-  bool IsValidHandle(HANDLE handle) noexcept {
-    return handle != NULL && handle != INVALID_HANDLE_VALUE;
-  }
-
-
-  LARGE_INTEGER CreateLargeInteger(LONGLONG quadPart) noexcept {
-    LARGE_INTEGER li;
-    li.QuadPart = quadPart;
-    return li;
-  }
-
-
   std::string ToLowerString(std::string_view string) {
     constexpr static auto LowerCharTable = ([]() constexpr {
       static_assert(CHAR_BIT == 8);
