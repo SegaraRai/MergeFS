@@ -1378,7 +1378,7 @@ NTSTATUS Mount::DSetFileTime(LPCWSTR FileName, const FILETIME *CreationTime, con
         }
       }
       if (LastWriteTime && !IsZeroFiletime(*LastWriteTime)) {
-        if (!IsMinusOneFiletime(*LastAccessTime)) {
+        if (!IsMinusOneFiletime(*LastWriteTime)) {
           metadata.lastWriteTime = *LastWriteTime;
         } else {
           fileContext.autoUpdateLastWriteTime = false;
