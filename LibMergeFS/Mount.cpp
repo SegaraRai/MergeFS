@@ -1501,8 +1501,10 @@ NTSTATUS Mount::DMoveFile(LPCWSTR FileName, LPCWSTR NewFileName, BOOL ReplaceIfE
     }
     //
     const auto& resolvedFilename = fileContext.resolvedFilename;
-    // 元ファイルがTopSourceにあり、かつ下位ソースにも存在するディレクトリでなければ直接MoveFileを行う
+    // 元ファイルがTopSourceにあり、かつ下位層（TopSource以外のソース）にも存在するディレクトリでなければ直接MoveFileを行う
     // fileContext.writableはファイルがTopSourceにあることも保証する（TopSource以外書き込まれないので）
+    // 下位層にも同名のディレクトリが存在する場合、TopSourceのみ移動を行うとどうしてもマージの不整合が生じる
+    // 下位層にも同名のファイルが存在する場合、TopSourceで移動を行うったあと下位層のものが新たに現れてしまうため、その処理は後で行う
     if (fileContext.writable) {
       bool directlyRenamable = true;
       if (fileContext.directory) {
@@ -1552,7 +1554,7 @@ NTSTATUS Mount::DMoveFile(LPCWSTR FileName, LPCWSTR NewFileName, BOOL ReplaceIfE
         if (!resolvedNewFileNameN) {
           // TODO: もっと効率良く書く
           std::lock_guard lock(m_metadataMutex);
-          m_metadataStore.Rename(std::wstring(util::vfs::GetParentPath(NewFileName)) + std::wstring(util::vfs::GetBaseName(resolvedNewFileName)), NewFileName);
+          m_metadataStore.Rename(std::wstring(util::vfs::GetParentPathTs(NewFileName)) + std::wstring(util::vfs::GetBaseName(resolvedNewFileName)), NewFileName);
           //m_metadataStore.Rename(resolvedNewFileName, NewFileName);
         }
         return STATUS_SUCCESS;
