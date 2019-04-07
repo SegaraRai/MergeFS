@@ -35,9 +35,9 @@ public:
 
   InFileStream(const InFileStream&) = delete;
   InFileStream& operator=(const InFileStream&) = delete;
-  InFileStream& operator=(InFileStream&&) = delete;
 
-  InFileStream(InFileStream&& other);
+  InFileStream& operator=(InFileStream&& other) noexcept;
+  InFileStream(InFileStream&& other) noexcept;
 
   // IInStream
   STDMETHOD(Read)(void* data, UInt32 size, UInt32* processedSize);

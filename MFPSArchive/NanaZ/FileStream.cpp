@@ -78,7 +78,7 @@ InFileStream::~InFileStream() {
 }
 
 
-InFileStream::InFileStream(InFileStream&& other) {
+InFileStream& InFileStream::operator=(InFileStream&& other) noexcept {
   needClose = other.needClose;
   fileHandle = other.fileHandle;
   byHandleFileInformation = other.byHandleFileInformation;
@@ -90,12 +90,15 @@ InFileStream::InFileStream(InFileStream&& other) {
 }
 
 
+InFileStream::InFileStream(InFileStream&& other) noexcept {
+  *this = std::move(other);
+}
+
+
 STDMETHODIMP InFileStream::Read(void* data, UInt32 size, UInt32* processedSize) {
-  /*
-  if (!IsValidHandle(fileHandle)) {
+  if (!util::IsValidHandle(fileHandle)) {
     return __HRESULT_FROM_WIN32(ERROR_INVALID_HANDLE);
   }
-  //*/
   if (size == 0) {
     if (processedSize) {
       *processedSize = 0;
@@ -133,6 +136,9 @@ STDMETHODIMP InFileStream::Read(void* data, UInt32 size, UInt32* processedSize) 
 
 
 STDMETHODIMP InFileStream::Seek(Int64 offset, UInt32 seekOrigin, UInt64* newPosition) {
+  if (!util::IsValidHandle(fileHandle)) {
+    return __HRESULT_FROM_WIN32(ERROR_INVALID_HANDLE);
+  }
 #ifdef FILESTREAM_MANAGE_SEEK
   std::lock_guard lock(mutex);
   Int64 newOffset;
