@@ -55,7 +55,7 @@ AudioSourceToSourceWAV::AudioSourceToSourceWAV(std::shared_ptr<AudioSource> audi
   const SourceSize audioDataSize = audioSource->GetSize();
   const SourceSize totalSourceSize = mergedPreambleDataSize + audioDataSize;
 
-  const auto bits = 16;
+  constexpr auto Bits = 16;
   if (audioSource->GetDataType() != AudioSource::DataType::Int16) {
     throw std::runtime_error(u8"unsupported DataType");
   }
@@ -64,9 +64,9 @@ AudioSourceToSourceWAV::AudioSourceToSourceWAV(std::shared_ptr<AudioSource> audi
 
   *reinterpret_cast<std::uint16_t*>(preambleData3 + 0x0A) = static_cast<std::uint16_t>(audioSource->GetChannels());
   *reinterpret_cast<std::uint32_t*>(preambleData3 + 0x0C) = static_cast<std::uint32_t>(audioSource->GetSamplingRate());
-  *reinterpret_cast<std::uint32_t*>(preambleData3 + 0x10) = static_cast<std::uint32_t>(audioSource->GetSamplingRate() * bits * audioSource->GetChannels() / 8);
-  *reinterpret_cast<std::uint16_t*>(preambleData3 + 0x14) = static_cast<std::uint16_t>(audioSource->GetChannels() * bits / 8);
-  *reinterpret_cast<std::uint16_t*>(preambleData3 + 0x16) = static_cast<std::uint16_t>(bits);
+  *reinterpret_cast<std::uint32_t*>(preambleData3 + 0x10) = static_cast<std::uint32_t>(audioSource->GetSamplingRate() * Bits * audioSource->GetChannels() / 8);
+  *reinterpret_cast<std::uint16_t*>(preambleData3 + 0x14) = static_cast<std::uint16_t>(audioSource->GetChannels() * Bits / 8);
+  *reinterpret_cast<std::uint16_t*>(preambleData3 + 0x16) = static_cast<std::uint16_t>(Bits);
   *reinterpret_cast<std::uint32_t*>(preambleData3 + 0x1C) = static_cast<std::uint32_t>(audioDataSize);
 
   auto mergedPreambleData = std::make_unique<std::byte[]>(mergedPreambleDataSize);
