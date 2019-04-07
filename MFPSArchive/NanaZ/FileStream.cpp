@@ -87,6 +87,7 @@ InFileStream& InFileStream::operator=(InFileStream&& other) noexcept {
 #endif
   fileSize = other.fileSize;
   other.fileHandle = NULL;
+  return *this;
 }
 
 
