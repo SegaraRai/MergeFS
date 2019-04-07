@@ -765,6 +765,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   }
 
 
+  
+  const bool waitForSound = gMountManager.CountMounts();
+
   // remove notify icon
   gNotifyIcon.value().Unregister();
 
@@ -772,6 +775,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
   gMountManager.Uninit(true);
 
+  // wait for sound to finish
+  if (waitForSound) {
+    Sleep(2000);
+  }
 
   if (gmResult == -1) {
     //return 1;
