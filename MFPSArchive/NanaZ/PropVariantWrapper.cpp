@@ -13,7 +13,7 @@ PropVariantWrapper::PropVariantWrapper() : PROPVARIANT{} {
 }
 
 
-PropVariantWrapper::PropVariantWrapper(PropVariantWrapper&& other) {
+PropVariantWrapper::PropVariantWrapper(PropVariantWrapper&& other) noexcept {
   /*
   std::memcpy(static_cast<PROPVARIANT*>(this), static_cast<PROPVARIANT*>(&other), sizeof(PROPVARIANT));
   std::memset(static_cast<PROPVARIANT*>(&other), 0, sizeof(PROPVARIANT));
@@ -24,7 +24,7 @@ PropVariantWrapper::PropVariantWrapper(PropVariantWrapper&& other) {
 }
 
 
-PropVariantWrapper& PropVariantWrapper::operator=(PropVariantWrapper&& other) {
+PropVariantWrapper& PropVariantWrapper::operator=(PropVariantWrapper&& other) noexcept {
   std::memcpy(static_cast<PROPVARIANT*>(this), static_cast<PROPVARIANT*>(&other), sizeof(PROPVARIANT));
   std::memset(static_cast<PROPVARIANT*>(&other), 0, sizeof(PROPVARIANT));
   other.vt = VT_EMPTY;
