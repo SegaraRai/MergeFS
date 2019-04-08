@@ -217,8 +217,6 @@ MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::functio
 
   const auto mountPoint = yaml["mountPoint"].as<std::wstring>();
 
-  const std::wstring resolvedMountPoint = ResolveMountPoint(mountPoint);
-
   // TODO: convert to absolute path with configuration file's directory as base directory
   const auto metadataFileName = yaml["metadata"].as<std::wstring>();
 
@@ -332,13 +330,16 @@ MOUNT_ID MountManager::AddMount(const std::wstring& configFilepath, std::functio
 
   }
 
-  if (mMountPointToMountIdMap.count(resolvedMountPoint)) {
-    throw MountPointAlreadyInUseError(mMountPointToMountIdMap.at(resolvedMountPoint));
-  }
-
   // TODO: error handling, restore current directory
   const std::wstring configFileDirectory = util::rfs::GetParentPath(configFilepath);
   SetCurrentDirectoryW(configFileDirectory.c_str());
+
+  // ResolveMountPoint must be called after setting current working directory
+  const std::wstring resolvedMountPoint = ResolveMountPoint(mountPoint);
+
+  if (mMountPointToMountIdMap.count(resolvedMountPoint)) {
+    throw MountPointAlreadyInUseError(mMountPointToMountIdMap.at(resolvedMountPoint));
+  }
 
   MOUNT_INITIALIZE_INFO mountInitializeInfo{
     resolvedMountPoint.c_str(),
