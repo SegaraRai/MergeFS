@@ -220,7 +220,8 @@ SourceToAudioSourceFLAC::SourceToAudioSourceFLAC(std::shared_ptr<Source> source)
   mLastFLACFrame(std::make_unique<std::byte[]>(sizeof(FLAC__Frame))),
   mDataType(DataType::Other),
   mTotalSamples(0),
-  mTotalSize(0)
+  mTotalSize(0),
+  mLastFLACAvailable(false)
 {
   auto& decoder = *static_cast<FLACDecoderImpl*>(mDecoder.get());
   decoder.SetErrorCallback([this](FLAC__StreamDecoderErrorStatus errorStatus) {
