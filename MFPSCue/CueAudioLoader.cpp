@@ -1,3 +1,5 @@
+#define DISABLE_LOCKING_CUE_SHEET
+
 #pragma comment(lib, "Shlwapi.lib")
 
 #include <dokan/dokan.h>
@@ -56,6 +58,11 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory
     throw std::runtime_error(u8"failed to read cue file");
   }
   auto wCueSheetData = ConvertFileContentToWString(rawCueSheetData.get(), static_cast<std::size_t>(mCueFileSource->GetSize()));
+
+#ifdef DISABLE_LOCKING_CUE_SHEET
+  mCueFileSource.reset();
+#endif
+
   mCueSheet = CueSheet::ParseCueSheet(wCueSheetData);
   
   const std::wstring directoryPrefix = std::wstring(baseDirectoryPath) + L"\\"s;
