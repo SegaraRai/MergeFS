@@ -603,7 +603,7 @@ NTSTATUS WINAPI Mount(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo, S
 
 BOOL WINAPI Unmount(SOURCE_CONTEXT_ID sourceContextId) MFNOEXCEPT {
   try {
-    std::lock_guard lock(gMutex);
+    std::lock_guard<std::shared_mutex> lock(gMutex);
     if (!gSourceMountBaseMap.count(sourceContextId)) {
       return FALSE;
     }
