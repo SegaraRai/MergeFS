@@ -198,6 +198,8 @@ Win32Error::Win32Error(const std::string& errorMessage) :
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 SourceMountFileBase::SourceMountFileBase(SourceMountBase& sourceMountBase, LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT SecurityContext, ACCESS_MASK DesiredAccess, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PDOKAN_FILE_INFO DokanFileInfo, FILE_CONTEXT_ID FileContextId, std::optional<BOOL> MaybeSwitchedN) :
+  privateCleanuped(false),
+  privateClosed(false),
   mutex(),
   sourceMountBase(sourceMountBase),
   fileContextId(FileContextId),
