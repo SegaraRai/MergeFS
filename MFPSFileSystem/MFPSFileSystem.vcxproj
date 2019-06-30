@@ -206,6 +206,12 @@
     <ClCompile Include="FilesystemSourceMountFile.cpp" />
     <ClCompile Include="Util.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Util\Util.vcxproj">
+      <Project>{8926d400-55b9-4ec2-a30b-c3a0021080e7}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -249,6 +249,20 @@
   <ItemGroup>
     <None Include="..\SDK\Plugin\Source.def" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Util\Util.vcxproj">
+      <Project>{8926d400-55b9-4ec2-a30b-c3a0021080e7}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="Vendor\libFLAC++.vcxproj">
+      <Project>{e295b111-030c-4cb5-bb85-6bbda0b2436e}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="Vendor\libFLAC.vcxproj">
+      <Project>{f53d7bd7-c8d5-46d2-b2ee-9223230b08e5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -205,6 +205,36 @@
   <ItemGroup>
     <Image Include="Icon.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LibMergeFS\LibMergeFS.vcxproj">
+      <Project>{f956a17a-28ee-453b-9d52-ce87d45d476e}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\MFPSArchive\MFPSArchive.vcxproj">
+      <Project>{2e89077b-f99d-4e85-90ed-21f9be82311b}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\MFPSCue\MFPSCue.vcxproj">
+      <Project>{f7995c69-50ad-4d75-91e2-415ac9717b19}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\MFPSFileSystem\MFPSFileSystem.vcxproj">
+      <Project>{fa6839f8-05b1-4178-9cb5-345ff70ab1a6}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\MFPSNull\MFPSNull.vcxproj">
+      <Project>{5f559c6e-c4ea-452d-9a2e-ec1aec4ed384}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\Util\Util.vcxproj">
+      <Project>{8926d400-55b9-4ec2-a30b-c3a0021080e7}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="Vendor\yaml-cpp.vcxproj">
+      <Project>{187858c1-4e20-4585-b17d-07f5a34ef0f5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

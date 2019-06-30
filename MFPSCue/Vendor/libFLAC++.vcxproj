@@ -179,6 +179,12 @@
     <ClInclude Include="flac\include\FLAC++\export.h" />
     <ClInclude Include="flac\include\FLAC++\metadata.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="libFLAC.vcxproj">
+      <Project>{f53d7bd7-c8d5-46d2-b2ee-9223230b08e5}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
