@@ -57,7 +57,7 @@ AudioSourceToSourceWAV::AudioSourceToSourceWAV(std::shared_ptr<AudioSource> audi
 
   constexpr auto Bits = 16;
   if (audioSource->GetDataType() != AudioSource::DataType::Int16) {
-    throw std::runtime_error(u8"unsupported DataType");
+    throw std::runtime_error("unsupported DataType");
   }
 
   *reinterpret_cast<std::uint32_t*>(preambleData1 + 0x04) = static_cast<std::uint32_t>(totalSourceSize - 8);

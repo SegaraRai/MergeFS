@@ -25,7 +25,7 @@ inline std::optional<bool> FromPropVariantN(const PROPVARIANT& propVariant) {
   if (propVariant.vt == VT_BOOL) {
     return propVariant.boolVal;
   }
-  throw std::invalid_argument(u8"property does not have a bool value");
+  throw std::invalid_argument("property does not have a bool value");
 }
 
 
@@ -37,7 +37,7 @@ inline std::optional<std::uint32_t> FromPropVariantN(const PROPVARIANT& propVari
   if (propVariant.vt == VT_UI1 || propVariant.vt == VT_UI2 || propVariant.vt == VT_UI4) {
     return std::make_optional(propVariant.ulVal);
   }
-  throw std::invalid_argument(u8"property does not have a uint32_t value");
+  throw std::invalid_argument("property does not have a uint32_t value");
 }
 
 
@@ -49,7 +49,7 @@ inline std::optional<std::uint64_t> FromPropVariantN(const PROPVARIANT& propVari
   if (propVariant.vt == VT_UI1 || propVariant.vt == VT_UI2 || propVariant.vt == VT_UI4 || propVariant.vt == VT_UI8) {
     return std::make_optional(propVariant.uhVal.QuadPart);
   }
-  throw std::invalid_argument(u8"property does not have a uint64_t value");
+  throw std::invalid_argument("property does not have a uint64_t value");
 }
 
 
@@ -61,7 +61,7 @@ inline std::optional<FILETIME> FromPropVariantN(const PROPVARIANT& propVariant) 
   if (propVariant.vt == VT_FILETIME) {
     return std::make_optional<FILETIME>(propVariant.filetime);
   }
-  throw std::invalid_argument(u8"property does not have a string value");
+  throw std::invalid_argument("property does not have a string value");
 }
 
 
@@ -74,7 +74,7 @@ inline std::optional<std::wstring> FromPropVariantN(const PROPVARIANT& propVaria
     // BSTR == WCHAR* == wchar_t*
     return std::make_optional<std::wstring>(propVariant.bstrVal);
   }
-  throw std::invalid_argument(u8"property does not have a string value");
+  throw std::invalid_argument("property does not have a string value");
 }
 
 
@@ -92,7 +92,7 @@ inline std::optional<std::vector<std::byte>> FromPropVariantN(const PROPVARIANT&
     }
     return std::make_optional(ret);   // RVO
   }
-  throw std::invalid_argument(u8"property does not have a string value");
+  throw std::invalid_argument("property does not have a string value");
 }
 
 

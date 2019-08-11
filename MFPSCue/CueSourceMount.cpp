@@ -43,7 +43,7 @@ namespace {
 
   void Insert(DirectoryTree& directoryTree, std::wstring_view filepath, std::shared_ptr<Source> source, ULONGLONG& fileIndexCount) {
     if (filepath.empty()) {
-      throw std::runtime_error(u8"invalid function call");
+      throw std::runtime_error("invalid function call");
     }
 
     const auto firstDelimiterPos = filepath.find_first_of(L'\\');

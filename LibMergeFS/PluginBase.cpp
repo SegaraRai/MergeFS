@@ -50,7 +50,7 @@ namespace {
 
 PluginBase::DLL::DLL(LPCWSTR FileName) : hModule(LoadLibraryW(FileName)) {
   if (!hModule) {
-    throw std::runtime_error(u8"failed to load library");
+    throw std::runtime_error("failed to load library");
   }
 }
 
@@ -72,7 +72,7 @@ PluginBase::DLL::operator HMODULE() const noexcept {
 
 
 PluginBase::PluginInitError::PluginInitError(PLUGIN_INITCODE errorCode) :
-  std::runtime_error(u8"PluginInitError: "s + std::to_string(static_cast<int>(errorCode))),
+  std::runtime_error("PluginInitError: "s + std::to_string(static_cast<int>(errorCode))),
   errorCode(errorCode),
   w32Code(errorCode == PLUGIN_INITCODE::W32 ? GetLastError() : ERROR_SUCCESS),
   status(w32Code != ERROR_SUCCESS ? DokanNtStatusFromWin32(w32Code) : STATUS_SUCCESS)
@@ -104,8 +104,8 @@ PluginBase::PluginBase(std::wstring_view pluginFilePath, PLUGIN_TYPE pluginType)
     },
   }),
   dll(this->pluginFilePath.c_str()),
-  SGetPluginInfo(dll.GetProc<PSGetPluginInfo>(u8"SGetPluginInfo")),
-  SInitialize(dll.GetProc<PSInitialize>(u8"SInitialize")),
+  SGetPluginInfo(dll.GetProc<PSGetPluginInfo>("SGetPluginInfo")),
+  SInitialize(dll.GetProc<PSInitialize>("SInitialize")),
   pluginInfo(*SGetPluginInfo())
 {
   if (gPtrPluginGuidSet->count(pluginInfo.guid)) {

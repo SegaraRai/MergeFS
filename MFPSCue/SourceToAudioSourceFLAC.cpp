@@ -99,7 +99,7 @@ namespace {
 
     FLAC__StreamDecoderWriteStatus write_callback(const FLAC__Frame* frame, const FLAC__int32* const buffer[]) override {
       if (!mWriteCallback) {
-        throw std::runtime_error(u8"no write callback provided");
+        throw std::runtime_error("no write callback provided");
       }
       return mWriteCallback(frame, buffer);
     }
@@ -115,7 +115,7 @@ namespace {
 
     void error_callback(FLAC__StreamDecoderErrorStatus status) override {
       if (!mErrorCallback) {
-        throw std::runtime_error(u8"no error callback provided");
+        throw std::runtime_error("no error callback provided");
       }
       mErrorCallback(status);
     }
@@ -257,16 +257,16 @@ SourceToAudioSourceFLAC::SourceToAudioSourceFLAC(std::shared_ptr<Source> source)
     decoder.set_md5_checking(true);
   }
   if (decoder.init() != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
-    throw std::runtime_error(u8"failed to initialize FLAC stream decoder");
+    throw std::runtime_error("failed to initialize FLAC stream decoder");
   }
   if (!decoder.process_until_end_of_metadata()) {
-    throw std::runtime_error(u8"failed to process metadata");
+    throw std::runtime_error("failed to process metadata");
   }
   if (mError) {
-    throw std::runtime_error(u8"an error occurred while decoding stream");
+    throw std::runtime_error("an error occurred while decoding stream");
   }
   if (!mTotalSamples) {
-    throw std::runtime_error(u8"unsupported FLAC file");
+    throw std::runtime_error("unsupported FLAC file");
   }
   decoder.SetMetadataCallback();
 }

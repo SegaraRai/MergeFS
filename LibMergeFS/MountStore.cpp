@@ -309,7 +309,7 @@ std::vector<MountStore::MOUNT_ID> MountStore::ListMounts() const {
 const MOUNT_INFO& MountStore::GetMountInfo(MOUNT_ID mountId) const {
   std::shared_lock generalLock(m_generalMutex);
   if (!m_mountMap.count(mountId)) {
-    throw std::out_of_range(u8"no such mountId");
+    throw std::out_of_range("no such mountId");
   }
   return m_mountMap.at(mountId).wrappedMountInfo.Get();
 }

@@ -100,7 +100,7 @@ namespace {
 
 
   std::string UInt32ToHexString(std::uint_fast32_t value) {
-    constexpr auto Hex = u8"0123456789ABCDEF";
+    constexpr auto Hex = "0123456789ABCDEF";
 
     return std::string({
       Hex[(value >> 28) & 0x0F],
@@ -122,7 +122,7 @@ namespace {
 
 NtstatusError::NtstatusError(NTSTATUS ntstatusErrorCode) :
   // NTSTATUS is usually represented in hexadecimal
-  std::runtime_error(u8"NT Error 0x"s + UInt32ToHexString(ntstatusErrorCode)),
+  std::runtime_error("NT Error 0x"s + UInt32ToHexString(ntstatusErrorCode)),
   ntstatusErrorCode(ntstatusErrorCode)
 {}
 
@@ -161,7 +161,7 @@ NTSTATUS Win32Error::NTSTATUSFromWin32(DWORD win32ErrorCode) noexcept {
 
 Win32Error::Win32Error(DWORD win32ErrorCode) :
   // Win32 error codes are usually represented in decimal
-  NtstatusError(NTSTATUSFromWin32(win32ErrorCode), u8"Win32 Error "s + std::to_string(win32ErrorCode)),
+  NtstatusError(NTSTATUSFromWin32(win32ErrorCode), "Win32 Error "s + std::to_string(win32ErrorCode)),
   win32ErrorCode(win32ErrorCode)
 {}
 

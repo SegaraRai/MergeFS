@@ -15,7 +15,7 @@ PartialSource::PartialSource(std::shared_ptr<Source> source, SourceOffset offset
 {
   const auto sourceSize = source->GetSize();
   if (offset > sourceSize || offset + size > sourceSize) {
-    throw std::out_of_range(u8"source out of range");
+    throw std::out_of_range("source out of range");
   }
 }
 

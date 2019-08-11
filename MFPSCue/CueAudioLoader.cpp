@@ -52,10 +52,10 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory
   auto rawCueSheetData = std::make_unique<std::byte[]>(static_cast<std::size_t>(mCueFileSource->GetSize()));
   std::size_t readSize = 0;
   if (mCueFileSource->Read(0, rawCueSheetData.get(), static_cast<std::size_t>(mCueFileSource->GetSize()), &readSize) != STATUS_SUCCESS) {
-    throw std::runtime_error(u8"failed to read cue file");
+    throw std::runtime_error("failed to read cue file");
   }
   if (readSize != mCueFileSource->GetSize()) {
-    throw std::runtime_error(u8"failed to read cue file");
+    throw std::runtime_error("failed to read cue file");
   }
   auto wCueSheetData = ConvertFileContentToWString(rawCueSheetData.get(), static_cast<std::size_t>(mCueFileSource->GetSize()));
 
@@ -78,16 +78,16 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory
     auto audioSource = TransformToAudioSource(audioFileSource, file.type == L"BINARY"sv);
     
     if (!audioSource) {
-      throw std::runtime_error(u8"cannot load audio");
+      throw std::runtime_error("cannot load audio");
     }
     if (audioSource->GetChannels() != CDChannels || audioSource->GetSamplingRate() != CDSamplingRate) {
-      throw std::runtime_error(u8"invalid audio format");
+      throw std::runtime_error("invalid audio format");
     }
     if (audioSource->GetChannelInfo(0) != AudioSource::ChannelInfo::Left || audioSource->GetChannelInfo(1) != AudioSource::ChannelInfo::Right) {
-      throw std::runtime_error(u8"unsupported channel layout");
+      throw std::runtime_error("unsupported channel layout");
     }
     if (audioSource->GetDataType() != AudioSource::DataType::Int16) {
-      throw std::runtime_error(u8"unsupported data type");
+      throw std::runtime_error("unsupported data type");
     }
 
     if (extractToMemory == ExtractToMemory::Always || (extractToMemory == ExtractToMemory::Compressed && audioSource->IsCompressed())) {
@@ -101,7 +101,7 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory
       const auto& track = file.tracks[trackIndex];
 
       if (!track.offsetMap.count(CueSheet::File::Track::DefaultOffsetNumber)) {
-        throw std::runtime_error(u8"missing INDEX 01 offset");
+        throw std::runtime_error("missing INDEX 01 offset");
       }
 
       mTrackNumberToAdditionalTrackInfoMap.emplace(track.number, AdditionalTrackInfo{
@@ -127,14 +127,14 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory
   }
 
   if (mTrackNumberToAdditionalTrackInfoMap.empty()) {
-    throw std::runtime_error(u8"no track provided");
+    throw std::runtime_error("no track provided");
   }
 
   mFirstTrackNumber = mTrackNumberToAdditionalTrackInfoMap.cbegin()->first;
   mLastTrackNumber = (--mTrackNumberToAdditionalTrackInfoMap.cend())->first;
 
   if (mTrackNumberToAdditionalTrackInfoMap.size() != mLastTrackNumber - mFirstTrackNumber + 1) {
-    throw std::runtime_error(u8"missing track");
+    throw std::runtime_error("missing track");
   }
 
   for (const auto& [trackNumber, additionalTrackInfo] : mTrackNumberToAdditionalTrackInfoMap) {
@@ -167,7 +167,7 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory
       }
 
       if (currentTrackOffset > nextTrackOffset) {
-        throw std::runtime_error(u8"invalid track offset provided");
+        throw std::runtime_error("invalid track offset provided");
       }
 
       auto currentAudioSource = mAudioSources.at(additionalTrackInfo.fileIndex);

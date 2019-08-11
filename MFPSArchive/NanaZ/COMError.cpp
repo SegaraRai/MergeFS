@@ -13,7 +13,7 @@ using namespace std::literals;
 
 namespace {
   std::string UInt32ToHexString(std::uint_fast32_t value) {
-    constexpr auto Hex = u8"0123456789ABCDEF";
+    constexpr auto Hex = "0123456789ABCDEF";
 
     return std::string({
       Hex[(value >> 28) & 0x0F],
@@ -57,7 +57,7 @@ void COMError::CheckHRESULT(HRESULT hResult) {
 
 COMError::COMError(HRESULT hResult) :
   // HRESULT is usually represented in hexadecimal
-  NtstatusError(NTSTATUSFromHRESULT(hResult), u8"COM Error 0x"s + UInt32ToHexString(hResult)),
+  NtstatusError(NTSTATUSFromHRESULT(hResult), "COM Error 0x"s + UInt32ToHexString(hResult)),
   hResult(hResult)
 {
   assert(FAILED(hResult));

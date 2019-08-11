@@ -170,7 +170,7 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
     absolutePath = util::rfs::ToAbsoluteFilepath(initializeMountInfo->FileName);
     const auto archiveFilepathN = FindRootFilepath(absolutePath);
     if (!archiveFilepathN) {
-      throw std::runtime_error(u8"archive file not found");
+      throw std::runtime_error("archive file not found");
     }
 
     archiveFilepath = archiveFilepathN.value();

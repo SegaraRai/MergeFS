@@ -18,11 +18,11 @@ FileSource::FileSource(HANDLE fileHandle) :
   mFileHandle(fileHandle)
 {
   if (!util::IsValidHandle(fileHandle)) {
-    throw std::runtime_error(u8"invalid handle specified");
+    throw std::runtime_error("invalid handle specified");
   }
   LARGE_INTEGER fileSize;
   if (!GetFileSizeEx(fileHandle, &fileSize)) {
-    throw std::runtime_error(u8"GetFileSizeEx failed");
+    throw std::runtime_error("GetFileSizeEx failed");
   }
   mFileSize = fileSize.QuadPart;
 }
@@ -32,13 +32,13 @@ FileSource::FileSource(LPCWSTR filepath) {
   mNeedClose = true;
   mFileHandle = CreateFileW(filepath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
   if (!util::IsValidHandle(mFileHandle)) {
-    throw std::runtime_error(u8"CreateFileW failed");
+    throw std::runtime_error("CreateFileW failed");
   }
   LARGE_INTEGER fileSize;
   if (!GetFileSizeEx(mFileHandle, &fileSize)) {
     CloseHandle(mFileHandle);
     mFileHandle = NULL;
-    throw std::runtime_error(u8"GetFileSizeEx failed");
+    throw std::runtime_error("GetFileSizeEx failed");
   }
   assert(fileSize.QuadPart >= 0);
   mFileSize = fileSize.QuadPart;

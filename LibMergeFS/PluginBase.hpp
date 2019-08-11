@@ -38,7 +38,7 @@ class PluginBase {
 
       const auto address = GetProcAddress(hModule, ProcName);
       if (!address) {
-        throw std::runtime_error(u8"failed to get procedure address of "s + ProcName);
+        throw std::runtime_error("failed to get procedure address of "s + ProcName);
       }
       return reinterpret_cast<T>(address);
     }

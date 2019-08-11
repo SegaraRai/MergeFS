@@ -16,7 +16,7 @@ namespace {
     T data;
     std::size_t readSize = 0;
     if (source.Read(offset, reinterpret_cast<std::byte*>(&data), sizeof(data), &readSize) != STATUS_SUCCESS || readSize != sizeof(data)) {
-      throw std::runtime_error(u8"read failed");
+      throw std::runtime_error("read failed");
     }
     return data;
   }
@@ -31,19 +31,19 @@ SourceToAudioSourceWAV::SourceToAudioSourceWAV(std::shared_ptr<Source> source) {
 
   const auto sourceSize = source->GetSize();
   if (sourceSize < 12) {
-    throw std::runtime_error(u8"invalid wav file");
+    throw std::runtime_error("invalid wav file");
   }
   
   if (ReadData<std::uint32_t>(*source, 0) != SignatureRIFF) {
-    throw std::runtime_error(u8"invalid wav file");
+    throw std::runtime_error("invalid wav file");
   }
 
   if (ReadData<std::uint32_t>(*source, 4) != sourceSize - 8) {
-    throw std::runtime_error(u8"invalid wav file");
+    throw std::runtime_error("invalid wav file");
   }
 
   if (ReadData<std::uint32_t>(*source, 8) != SignatureWAVE) {
-    throw std::runtime_error(u8"invalid wav file");
+    throw std::runtime_error("invalid wav file");
   }
 
   SourceOffset audioDataOffset = 0;
@@ -61,11 +61,11 @@ SourceToAudioSourceWAV::SourceToAudioSourceWAV(std::shared_ptr<Source> source) {
       case Signaturefmt:
       {
         if (!mChannelInfo.empty()) {
-          throw std::runtime_error(u8"too many fmt chunk");
+          throw std::runtime_error("too many fmt chunk");
         }
 
         if (currentChunkSize != 16) {
-          throw std::runtime_error(u8"unsupported format");
+          throw std::runtime_error("unsupported format");
         }
         auto tempOffset = offset;
         const auto formatId = ReadData<std::uint16_t>(*source, tempOffset);
@@ -81,7 +81,7 @@ SourceToAudioSourceWAV::SourceToAudioSourceWAV(std::shared_ptr<Source> source) {
         const auto bitsPerSample = ReadData<std::uint16_t>(*source, tempOffset);
         tempOffset += sizeof(bitsPerSample);
         if (formatId != 1) {
-          throw std::runtime_error(u8"unsupported format");
+          throw std::runtime_error("unsupported format");
         }
         mSamplingRate = samplingRate;
         mDataType = bitsPerSample == 16 ? DataType::Int16 : DataType::Other;
@@ -99,7 +99,7 @@ SourceToAudioSourceWAV::SourceToAudioSourceWAV(std::shared_ptr<Source> source) {
 
       case Signaturedata:
         if (audioDataOffset) {
-          throw std::runtime_error(u8"too many data chunk");
+          throw std::runtime_error("too many data chunk");
         }
         audioDataOffset = offset;
         audioDataSize = currentChunkSize;
@@ -107,16 +107,16 @@ SourceToAudioSourceWAV::SourceToAudioSourceWAV(std::shared_ptr<Source> source) {
     }
     offset += currentChunkSize;
     if (offset > sourceSize) {
-      throw std::runtime_error(u8"invalid wav file");
+      throw std::runtime_error("invalid wav file");
     }
   } while (offset != sourceSize);
 
   if (mChannelInfo.empty()) {
-    throw std::runtime_error(u8"no fmt chunk");
+    throw std::runtime_error("no fmt chunk");
   }
 
   if (!audioDataOffset) {
-    throw std::runtime_error(u8"no data chunk");
+    throw std::runtime_error("no data chunk");
   }
 
   mAudioSource = std::make_shared<PartialSource>(source, audioDataOffset, audioDataSize);

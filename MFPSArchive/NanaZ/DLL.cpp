@@ -13,7 +13,7 @@ DLL::DLL(LPCWSTR FileName) :
   hModule(LoadLibraryW(FileName))
 {
   if (!hModule) {
-    throw std::runtime_error(u8"failed to load library");
+    throw std::runtime_error("failed to load library");
   }
 }
 
@@ -26,7 +26,7 @@ DLL::~DLL() {
 FARPROC DLL::GetProc(LPCSTR ProcName) const {
   const auto address = GetProcAddress(hModule, ProcName);
   if (!address) {
-    throw std::runtime_error(u8"failed to get procedure address of "s + ProcName);
+    throw std::runtime_error("failed to get procedure address of "s + ProcName);
   }
   return address;
 }

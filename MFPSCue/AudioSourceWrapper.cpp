@@ -19,7 +19,7 @@ AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, bool comp
   mDataType(dataType)
 {
   if (mSize % mChannelInfo.size()) {
-    throw std::runtime_error(u8"invalid source size");
+    throw std::runtime_error("invalid source size");
   }
 }
 
@@ -36,7 +36,7 @@ AudioSourceWrapper::AudioSourceWrapper(std::shared_ptr<Source> source, const Aud
     mChannelInfo[channelIndex] = audioSource.GetChannelInfo(channelIndex);
   }
   if (mSize % mChannelInfo.size()) {
-    throw std::runtime_error(u8"invalid source size");
+    throw std::runtime_error("invalid source size");
   }
 }
 

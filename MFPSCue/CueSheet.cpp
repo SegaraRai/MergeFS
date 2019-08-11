@@ -56,7 +56,7 @@ namespace {
     const auto seconds = std::stoul(std::wstring(time.substr(firstColon + 1, lastColon - firstColon - 1)));
     const auto frames = std::stoul(std::wstring(time.substr(lastColon + 1)));
     if (seconds >= 60 || frames >= 75) {
-      throw std::runtime_error(u8"invalid time format");
+      throw std::runtime_error("invalid time format");
     }
     return (minutes * 60 + seconds) * 75 + frames;
   }
@@ -95,24 +95,24 @@ CueSheet CueSheet::ParseCueSheet(const std::wstring& data) {
     }},
     {L"FILE"s, [&](std::wstring_view args) {
       if (args.size() < 1) {
-        throw std::runtime_error(u8"invalid FILE arguments");
+        throw std::runtime_error("invalid FILE arguments");
       }
       std::wstring filename;
       std::wstring type;
       if (args[0] == L'"') {
         const auto lastDoubleQuotePos = args.find_last_of(L'"');
         if (lastDoubleQuotePos == 0 || lastDoubleQuotePos == std::wstring_view::npos) {
-          throw std::runtime_error(u8"invalid FILE arguments");
+          throw std::runtime_error("invalid FILE arguments");
         }
         if (lastDoubleQuotePos + 2 > args.size()) {
-          throw std::runtime_error(u8"invalid FILE arguments");
+          throw std::runtime_error("invalid FILE arguments");
         }
         filename = args.substr(1, lastDoubleQuotePos - 1);
         type = args.substr(lastDoubleQuotePos + 2);
       } else {
         const auto firstSpacePos = args.find_first_of(L' ');
         if (firstSpacePos == std::wstring_view::npos) {
-          throw std::runtime_error(u8"invalid FILE arguments");
+          throw std::runtime_error("invalid FILE arguments");
         }
         filename = args.substr(0, firstSpacePos);
         type = args.substr(firstSpacePos + 1);
@@ -126,17 +126,17 @@ CueSheet CueSheet::ParseCueSheet(const std::wstring& data) {
     }},
     {L"FLAGS"s, [&](std::wstring_view args) {
       if (!lastTrack) {
-        throw std::runtime_error(u8"no current TRACK");
+        throw std::runtime_error("no current TRACK");
       }
       lastTrack->flags.emplace(TrimDoubleQuotes(args));
     }},
     {L"INDEX"s, [&](std::wstring_view args) {
       if (!lastTrack) {
-        throw std::runtime_error(u8"no current TRACK");
+        throw std::runtime_error("no current TRACK");
       }
       const auto firstSpacePos = args.find_first_of(L' ');
       if (firstSpacePos == std::wstring_view::npos) {
-        throw std::runtime_error(u8"invalid TRACK arguments");
+        throw std::runtime_error("invalid TRACK arguments");
       }
       const auto index = std::stoul(std::wstring(args.substr(0, firstSpacePos)));
       const auto offset = ParseTime(args.substr(firstSpacePos + 1));
@@ -144,7 +144,7 @@ CueSheet CueSheet::ParseCueSheet(const std::wstring& data) {
     }},
     {L"ISRC"s, [&](std::wstring_view args) {
       if (!lastTrack) {
-        throw std::runtime_error(u8"no current TRACK");
+        throw std::runtime_error("no current TRACK");
       }
       lastTrack->isrc.emplace(TrimDoubleQuotes(args));
     }},
@@ -157,13 +157,13 @@ CueSheet CueSheet::ParseCueSheet(const std::wstring& data) {
     }},
     {L"POSTGAP"s, [&](std::wstring_view args) {
       if (!lastTrack) {
-        throw std::runtime_error(u8"no current TRACK");
+        throw std::runtime_error("no current TRACK");
       }
       lastTrack->postGap.emplace(ParseTime(args));
     }},
     {L"PREGAP"s, [&](std::wstring_view args) {
       if (!lastTrack) {
-        throw std::runtime_error(u8"no current TRACK");
+        throw std::runtime_error("no current TRACK");
       }
       lastTrack->preGap.emplace(ParseTime(args));
     }},
@@ -190,11 +190,11 @@ CueSheet CueSheet::ParseCueSheet(const std::wstring& data) {
     }},
     {L"TRACK"s, [&](std::wstring_view args) {
       if (!lastFile) {
-        throw std::runtime_error(u8"no current FILE");
+        throw std::runtime_error("no current FILE");
       }
       const auto firstSpacePos = args.find_first_of(L' ');
       if (firstSpacePos == std::wstring_view::npos) {
-        throw std::runtime_error(u8"invalid TRACK arguments");
+        throw std::runtime_error("invalid TRACK arguments");
       }
       const auto index = std::stoul(std::wstring(args.substr(0, firstSpacePos)));
       const auto type = args.substr(firstSpacePos + 1);

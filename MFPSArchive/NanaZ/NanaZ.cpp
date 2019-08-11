@@ -68,7 +68,7 @@ NanaZ::FormatStore::FormatStore(Func_GetIsArc GetIsArc, Func_GetNumberOfFormats 
     // retrieve format.clsid
     const auto clsidV = GetProperty<std::vector<std::byte>>(GetHandlerProperty2, formatIndex, NArchive::NHandlerPropID::kClassID);
     if (clsidV.size() != sizeof(CLSID)) {
-      throw std::invalid_argument(u8"invalid CLSID given");
+      throw std::invalid_argument("invalid CLSID given");
     }
     //clsid = *reinterpret_cast<const CLSID*>(clsidV.data());
     std::memcpy(&format.clsid, clsidV.data(), sizeof(CLSID));
@@ -114,7 +114,7 @@ NanaZ::FormatStore::FormatStore(Func_GetIsArc GetIsArc, Func_GetNumberOfFormats 
         for (std::size_t i = 0; i < multiSignatureSize;) {
           const std::size_t currentSignatureSize = static_cast<unsigned char>(multiSignature[i++]);
           if (i + currentSignatureSize > multiSignatureSize) {
-            throw std::invalid_argument(u8"invalid multiSignature given");
+            throw std::invalid_argument("invalid multiSignature given");
           }
           format.signatures.emplace_back(multiSignature.cbegin() + i, multiSignature.cbegin() + i + currentSignatureSize);
           i += currentSignatureSize;
@@ -221,10 +221,10 @@ std::vector<std::size_t> NanaZ::FormatStore::FindFormatByStream(winrt::com_ptr<I
 
 NanaZ::NanaZ(LPCWSTR dllFilepath) :
   nanaZDll(dllFilepath),
-  CreateObject(reinterpret_cast<Func_CreateObject>(nanaZDll.GetProc(u8"CreateObject"))),
-  GetIsArc(reinterpret_cast<Func_GetIsArc>(nanaZDll.GetProc(u8"GetIsArc"))),
-  GetNumberOfFormats(reinterpret_cast<Func_GetNumberOfFormats>(nanaZDll.GetProc(u8"GetNumberOfFormats"))),
-  GetHandlerProperty2(reinterpret_cast<Func_GetHandlerProperty2>(nanaZDll.GetProc(u8"GetHandlerProperty2"))),
+  CreateObject(reinterpret_cast<Func_CreateObject>(nanaZDll.GetProc("CreateObject"))),
+  GetIsArc(reinterpret_cast<Func_GetIsArc>(nanaZDll.GetProc("GetIsArc"))),
+  GetNumberOfFormats(reinterpret_cast<Func_GetNumberOfFormats>(nanaZDll.GetProc("GetNumberOfFormats"))),
+  GetHandlerProperty2(reinterpret_cast<Func_GetHandlerProperty2>(nanaZDll.GetProc("GetHandlerProperty2"))),
   formatStore(GetIsArc, GetNumberOfFormats, GetHandlerProperty2)
 {}
 

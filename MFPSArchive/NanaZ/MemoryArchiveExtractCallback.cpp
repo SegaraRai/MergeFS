@@ -31,7 +31,7 @@ std::size_t MemoryArchiveExtractCallback::CalcMemorySize(const std::vector<UInt6
   for (const auto& filesize : filesizes) {
     if constexpr (std::numeric_limits<UInt64>::max() >= std::numeric_limits<std::size_t>::max() - ExtraMemorySize) {
       if (filesize > std::numeric_limits<std::size_t>::max() - ExtraMemorySize) {
-        throw std::runtime_error(u8"too large file");
+        throw std::runtime_error("too large file");
       }
     }
 
@@ -41,7 +41,7 @@ std::size_t MemoryArchiveExtractCallback::CalcMemorySize(const std::vector<UInt6
     }
 
     if (totalMemorySize > std::numeric_limits<std::size_t>::max() - filesize) {
-      throw std::runtime_error(u8"no memory");
+      throw std::runtime_error("no memory");
     }
 
     totalMemorySize += memorySize;

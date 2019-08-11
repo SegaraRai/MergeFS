@@ -496,7 +496,7 @@ const DirectoryTree* DirectoryTree::Get(std::wstring_view filepath) const {
       return itrChild->second.Get(filepath.substr(firstDelimiterPos + 1));
     }
   }
-  throw std::logic_error(u8"invalid type");
+  throw std::logic_error("invalid type");
 }
 
 

@@ -10,13 +10,13 @@ using namespace std::literals;
 
 
 NsError::NsError(NTSTATUS status, const char* message) :
-  runtime_error(message),
+  std::runtime_error(message),
   status(status)
 {}
 
 
 NsError::NsError(NTSTATUS status) :
-  runtime_error(u8"NsError"),
+  std::runtime_error("NsError"),
   status(status)
 {}
 
@@ -33,7 +33,7 @@ NsError::operator NTSTATUS() const {
 
 
 W32Error::W32Error(DWORD error) :
-  NsError(DokanNtStatusFromWin32(error), u8"W32Error"),
+  NsError(DokanNtStatusFromWin32(error), "W32Error"),
   error(error)
 {}
 
