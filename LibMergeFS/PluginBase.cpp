@@ -40,8 +40,13 @@ namespace {
     }
 
 
-    BOOL WINAPI DokanGetMountPointList(PDOKAN_CONTROL list, ULONG length, BOOL uncOnly, PULONG nbRead) noexcept {
-      return ::DokanGetMountPointList(list, length, uncOnly, nbRead);
+    PDOKAN_CONTROL WINAPI DokanGetMountPointList(BOOL uncOnly, PULONG nbRead) noexcept {
+      return ::DokanGetMountPointList(uncOnly, nbRead);
+    }
+
+
+    void WINAPI DokanReleaseMountPointList(PDOKAN_CONTROL list) noexcept {
+      return ::DokanReleaseMountPointList(list);
     }
   }
 }
@@ -101,6 +106,7 @@ PluginBase::PluginBase(std::wstring_view pluginFilePath, PLUGIN_TYPE pluginType)
       DokanFuncs::DokanResetTimeout,
       DokanFuncs::DokanOpenRequestorToken,
       DokanFuncs::DokanGetMountPointList,
+      DokanFuncs::DokanReleaseMountPointList,
     },
   }),
   dll(this->pluginFilePath.c_str()),
