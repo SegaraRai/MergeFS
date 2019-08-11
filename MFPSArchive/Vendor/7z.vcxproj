@@ -101,6 +101,7 @@
       <PreprocessorDefinitions>_UNICODE;UNICODE;EXTERNAL_CODECS;_WINDLL;WIN32;_7ZIP_LARGE_PAGES;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CallingConvention>FastCall</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <DisableSpecificWarnings>5043</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <LargeAddressAware>true</LargeAddressAware>
@@ -119,6 +120,7 @@
       <PreprocessorDefinitions>_UNICODE;UNICODE;EXTERNAL_CODECS;_WINDLL;WIN32;_7ZIP_LARGE_PAGES;_LZMA_DEC_OPT;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CallingConvention>FastCall</CallingConvention>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <DisableSpecificWarnings>5043</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <LargeAddressAware>true</LargeAddressAware>
@@ -145,6 +147,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <DisableSpecificWarnings>5043</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -175,6 +178,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <DisableSpecificWarnings>5043</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
