@@ -102,8 +102,7 @@ NanaZ::FormatStore::FormatStore(Func_GetIsArc GetIsArc, Func_GetNumberOfFormats 
 
     // retrieve format.signatures
     std::size_t currentMaxSignatureSize = 0;
-    const auto singleSignatureN = GetPropertyN<std::vector<std::byte>>(GetHandlerProperty2, formatIndex, NArchive::NHandlerPropID::kSignature);
-    if (singleSignatureN && !singleSignatureN.value().empty()) {
+    if (auto singleSignatureN = GetPropertyN<std::vector<std::byte>>(GetHandlerProperty2, formatIndex, NArchive::NHandlerPropID::kSignature); singleSignatureN && !singleSignatureN.value().empty()) {
       currentMaxSignatureSize = singleSignatureN.value().size();
       format.signatures.emplace_back(std::move(singleSignatureN.value()));
     } else {

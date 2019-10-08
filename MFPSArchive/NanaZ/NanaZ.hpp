@@ -17,13 +17,13 @@
 class NanaZ {
 public:
   struct Format {
-    CLSID clsid;
-    std::wstring name;
-    std::vector<std::pair<std::wstring, std::wstring>> extensions;
-    UInt32 flags;
-    std::vector<std::vector<std::byte>> signatures;
-    std::optional<std::size_t> signatureOffset;
-    Func_IsArc IsArc;
+    CLSID clsid{};
+    std::wstring name{};
+    std::vector<std::pair<std::wstring, std::wstring>> extensions{};
+    UInt32 flags{};
+    std::vector<std::vector<std::byte>> signatures{};
+    std::optional<std::size_t> signatureOffset{};
+    Func_IsArc IsArc{};
   };
 
   class FormatStore {
