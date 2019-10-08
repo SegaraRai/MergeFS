@@ -713,6 +713,8 @@ void MetadataStore::AddRenameAppendix(std::wstring_view a, std::wstring_view b) 
   dataSize += alignedASize;
   dataSize += alignedBSize;
 
+  assert(dataSize % Alignment == 0);
+
   auto data = make_unique_aligned<std::byte, Alignment>(dataSize);
   std::memset(data.get(), 0, dataSize);
 
@@ -757,6 +759,8 @@ void MetadataStore::AddMetadataAppendix(std::wstring_view keyName, const Metadat
   dataSize += sizeof(MetadataEntryHeader);
   dataSize += alignedFilenameSize;
   dataSize += alignedSecuritySize;
+
+  assert(dataSize % Alignment == 0);
 
   auto data = make_unique_aligned<std::byte, Alignment>(dataSize);
   std::memset(data.get(), 0, dataSize);
