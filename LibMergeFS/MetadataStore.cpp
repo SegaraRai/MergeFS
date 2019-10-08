@@ -5,7 +5,14 @@
 
 #include "../Util/Common.hpp"
 
+#include <malloc.h>
+
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
 #include <memory>
+#include <new>
 #include <optional>
 #include <shared_mutex>
 #include <string>
@@ -21,11 +28,27 @@ using namespace std::literals;
 namespace {
   const std::wstring StrRemovedPrefix(MetadataStore::RemovedPrefix);
   const std::wstring StrRemovedPrefixB(StrRemovedPrefix + L"\\"s);
+
+
+  template<typename T, std::size_t Alignment>
+  auto make_unique_aligned(std::size_t size) {
+    struct aligned_deleter {
+      void operator()(T* ptr) const {
+        _aligned_free(ptr);
+      }
+    };
+
+    auto ptr = _aligned_malloc(sizeof(T) * size, Alignment);
+    if (!ptr) {
+      throw std::bad_alloc();
+    }
+    return std::unique_ptr<T[], aligned_deleter>(reinterpret_cast<T*>(ptr), aligned_deleter());
+  }
 }
 
 
-namespace MetadataFile {
-  constexpr DWORD Version = 0x000000001;
+namespace MetadataFileV1 {
+  constexpr std::uint32_t Signature = 0x00000001;
 
   /*
   EntryCount
@@ -61,6 +84,190 @@ namespace MetadataFile {
 }
 
 
+namespace MetadataFileV2 {
+  constexpr std::uint32_t Signature = 0x444D464D;   // "MFMD"
+  constexpr std::uint32_t Version   = 0x00020000;
+
+  constexpr unsigned int Alignment = 16;
+
+  constexpr std::uint64_t ReadFILETIME(const FILETIME& filetime) {
+    return static_cast<std::uint64_t>(filetime.dwLowDateTime) | (static_cast<std::uint64_t>(filetime.dwHighDateTime) << 32);
+  }
+
+  constexpr FILETIME ToFILETIME(std::uint64_t filetime) {
+    return FILETIME{
+      filetime & 0xFFFFFFFF,
+      (filetime >> 32) & 0xFFFFFFFF,
+    };
+  }
+
+  template<typename T>
+  constexpr T Align(T size) {
+    return (size + (Alignment - 1)) & ~static_cast<T>(Alignment - 1);
+  }
+
+  struct Header {
+    std::uint32_t signature;
+    std::uint32_t version;
+    std::uint64_t dataSize;
+    std::uint64_t renameSectionOffset;
+    std::uint64_t renameSectionSize;
+    std::uint64_t renameSectionCount;
+    std::uint64_t reserved1;
+    std::uint64_t metadataSectionOffset;
+    std::uint64_t metadataSectionSize;
+    std::uint64_t metadataSectionCount;
+    std::uint64_t reserved2;
+  };
+  static_assert(sizeof(Header) == 16 * 5);
+
+  struct RenameEntryHeader {
+    std::uint32_t blockSize;
+    std::uint32_t reserved1;
+    std::uint32_t aSize;
+    std::uint32_t bSize;
+  };
+  static_assert(sizeof(RenameEntryHeader) == 16 * 1);
+
+  struct RenameEntry : RenameEntryHeader {
+    std::wstring a;
+    std::wstring b;
+
+    RenameEntry(const RenameEntryHeader& header, const std::wstring& a, const std::wstring& b) :
+      RenameEntryHeader(header),
+      a(a),
+      b(b)
+    {}
+
+    static RenameEntry Parse(const std::byte* data, std::function<void(const std::byte* ptr)> checkPtr, std::size_t& size) {
+      auto ptr = data;
+
+      checkPtr(ptr + sizeof(RenameEntryHeader));
+      const auto& header = *reinterpret_cast<const RenameEntryHeader*>(ptr);
+      const auto nextPtr = ptr + header.blockSize;
+      checkPtr(nextPtr);
+      ptr += sizeof(RenameEntryHeader);
+
+      static_assert(sizeof(wchar_t) == sizeof(char16_t));
+
+      const auto alignedASize = Align(header.aSize * sizeof(char16_t));
+      auto aStrPtr = reinterpret_cast<const wchar_t*>(ptr);
+      const std::wstring a(aStrPtr, aStrPtr + header.aSize);
+      ptr += alignedASize;
+
+      const auto alignedBSize = Align(header.bSize * sizeof(char16_t));
+      auto bStrPtr = reinterpret_cast<const wchar_t*>(ptr);
+      const std::wstring b(bStrPtr, bStrPtr + header.bSize);
+      ptr += alignedBSize;
+
+      assert(ptr == nextPtr);
+
+      size = nextPtr - data;
+
+      return RenameEntry(header, a, b);
+    }
+  };
+
+  namespace EntryFlags {
+    // 1 << 0 is reserved
+    constexpr std::uint32_t HasAttributes = 1 << 1;
+    constexpr std::uint32_t HasCreationTime = 1 << 2;
+    constexpr std::uint32_t HasLastAccessTime = 1 << 3;
+    constexpr std::uint32_t HasLastWriteTime = 1 << 4;
+    constexpr std::uint32_t HasSecurity = 1 << 5;
+  }
+
+  struct MetadataEntryHeader {
+    std::uint32_t blockSize;
+    std::uint32_t reserved1;
+    std::uint32_t filenameSize;
+    std::uint32_t securitySize;
+    std::uint32_t flags;
+    std::uint32_t attributes;
+    std::uint64_t creationTime;
+    std::uint64_t lastAccessTime;
+    std::uint64_t lastWriteTime;
+  };
+  static_assert(sizeof(MetadataEntryHeader) == 16 * 3);
+
+  struct MetadataEntry : MetadataEntryHeader {
+    std::wstring filename;
+    std::string security;
+
+    MetadataEntry(const MetadataEntryHeader& header, const std::wstring& filename, const std::string& security) :
+      MetadataEntryHeader(header),
+      filename(filename),
+      security(security)
+    {}
+
+    operator Metadata() const {
+      using namespace MetadataFileV2;
+
+      Metadata metadata;
+
+      if (flags & EntryFlags::HasAttributes) {
+        metadata.fileAttributes.emplace(attributes);
+      }
+      if (flags & EntryFlags::HasCreationTime) {
+        metadata.creationTime.emplace(ToFILETIME(creationTime));
+      }
+      if (flags & EntryFlags::HasLastAccessTime) {
+        metadata.lastAccessTime.emplace(ToFILETIME(lastAccessTime));
+      }
+      if (flags & EntryFlags::HasLastWriteTime) {
+        metadata.lastWriteTime.emplace(ToFILETIME(lastWriteTime));
+      }
+      if (flags & EntryFlags::HasSecurity) {
+        metadata.security.emplace(security);
+      }
+
+      return metadata;
+    }
+
+    static MetadataEntry Parse(const std::byte* data, std::function<void(const std::byte * ptr)> checkPtr, std::size_t& size) {
+      auto ptr = data;
+
+      checkPtr(ptr + sizeof(MetadataEntryHeader));
+      const auto& header = *reinterpret_cast<const MetadataEntryHeader*>(ptr);
+      const auto nextPtr = ptr + header.blockSize;
+      checkPtr(nextPtr);
+      ptr += sizeof(MetadataEntryHeader);
+
+      static_assert(sizeof(wchar_t) == sizeof(char16_t));
+
+      const auto alignedFilenameSize = Align(header.filenameSize * sizeof(char16_t));
+      auto filenameStrPtr = reinterpret_cast<const wchar_t*>(ptr);
+      const std::wstring filename(filenameStrPtr, filenameStrPtr + header.filenameSize);
+      ptr += alignedFilenameSize;
+
+      const auto alignedSecuritySize = Align(header.securitySize);
+      auto securityStrPtr = reinterpret_cast<const char*>(ptr);
+      const std::string security(securityStrPtr, securityStrPtr + header.securitySize);
+      ptr += alignedSecuritySize;
+
+      assert(ptr == nextPtr);
+
+      size = nextPtr - data;
+
+      return MetadataEntry(header, filename, security);
+    }
+  };
+
+  enum class AppendixDataType : std::uint32_t {
+    Rename   = 0x00000001,
+    Metadata = 0x00000002,
+  };
+
+  struct AppendixEntryHeader {
+    std::uint32_t blockSize;
+    std::uint32_t reserved1;
+    AppendixDataType dataType;
+    std::uint32_t reserved2;
+  };
+  static_assert(sizeof(AppendixEntryHeader) == 16 * 1);
+}
+
+
 static_assert(sizeof(DWORD) == 4);
 static_assert(sizeof(FILETIME) == sizeof(DWORD) * 2);
 
@@ -70,36 +277,13 @@ std::wstring MetadataStore::FilenameToKey(std::wstring_view filename) const {
 }
 
 
-void MetadataStore::LoadFromFile() {
-  using namespace MetadataFile;
-
-  if (!util::IsValidHandle(mHFile)) {
-    throw W32Error(ERROR_INVALID_HANDLE);
-  }
-
-  mMetadataMap.clear();
-  if (SetFilePointer(mHFile, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
-    throw W32Error();
-  }
-
-  LARGE_INTEGER fileSize;
-  if (!GetFileSizeEx(mHFile, &fileSize)) {
-    throw W32Error();
-  }
-  if (fileSize.QuadPart == 0) {
-    // the first time
-    return;
-  }
+void MetadataStore::LoadFromFileV1() {
+  using namespace MetadataFileV1;
 
   DWORD read = 0;
 
-  DWORD version = 0;
-  if (!ReadFile(mHFile, &version, sizeof(version), &read, NULL) || read != sizeof(version)) {
+  if (SetFilePointer(mHFile, 4, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
     throw W32Error();
-  }
-
-  if (version != Version) {
-    throw W32Error(ERROR_INVALID_PARAMETER);
   }
 
   EntryCount count = 0;
@@ -207,11 +391,300 @@ void MetadataStore::LoadFromFile() {
 }
 
 
+bool MetadataStore::LoadFromFileV2() {
+  using namespace MetadataFileV2;
+
+  DWORD read = 0;
+
+  LARGE_INTEGER liFileSize;
+  if (!GetFileSizeEx(mHFile, &liFileSize)) {
+    throw W32Error();
+  }
+  const std::uint_fast64_t fileSize = liFileSize.QuadPart;
+
+  if (fileSize % Alignment != 0) {
+    throw W32Error(ERROR_INVALID_PARAMETER);
+  }
+
+  auto fileData = make_unique_aligned<std::byte, Alignment>(fileSize);
+  if (!ReadFile(mHFile, fileData.get(), fileSize, &read, NULL) || read != fileSize) {
+    throw W32Error();
+  }
+
+  // Read Header
+
+  const auto& header = *reinterpret_cast<const Header*>(fileData.get());
+
+  if (header.dataSize % Alignment != 0) {
+    throw W32Error(ERROR_INVALID_PARAMETER);
+  }
+
+  // Read Rename Entries
+  {
+    const auto endPtr = const_cast<const std::byte*>(fileData.get()) + header.renameSectionOffset + header.renameSectionSize;
+    auto checkPtr = [endPtr] (const std::byte* ptr) {
+      if (ptr > endPtr) {
+        throw W32Error(ERROR_BUFFER_OVERFLOW);
+      }
+    };
+
+    auto ptr = const_cast<const std::byte*>(fileData.get()) + header.renameSectionOffset;
+    for (std::uint_fast32_t i = 0; i < header.renameSectionCount; i++) {
+      std::size_t size = 0;
+      const auto renameEntry = RenameEntry::Parse(ptr, checkPtr, size);
+      ptr += size;
+      if (renameEntry.bSize == 0 || renameEntry.a == renameEntry.b) {
+        continue;
+      }
+      mRenameStore.AddEntry(renameEntry.a, renameEntry.b);
+    }
+
+    assert(ptr == endPtr);
+  }
+
+  // Read Metadata Entries
+  {
+    const auto endPtr = const_cast<const std::byte*>(fileData.get()) + header.metadataSectionOffset + header.metadataSectionSize;
+    auto checkPtr = [endPtr] (const std::byte* ptr) {
+      if (ptr > endPtr) {
+        throw W32Error(ERROR_BUFFER_OVERFLOW);
+      }
+    };
+
+    auto ptr = const_cast<const std::byte*>(fileData.get()) + header.metadataSectionOffset;
+    for (std::uint_fast32_t i = 0; i < header.metadataSectionCount; i++) {
+      std::size_t size = 0;
+      const auto metadataEntry = MetadataEntry::Parse(ptr, checkPtr, size);
+      ptr += size;
+      if (metadataEntry.flags == 0) {
+        continue;
+      }
+      mMetadataMap.emplace(metadataEntry.filename, static_cast<Metadata>(metadataEntry));
+    }
+
+    assert(ptr == endPtr);
+  }
+
+  // Read Appendix Entries
+  const bool hasAppendix = header.dataSize != fileSize;
+  if (hasAppendix) {
+    const auto endPtr = const_cast<const std::byte*>(fileData.get()) + fileSize;
+    auto checkPtr = [endPtr] (const std::byte* ptr) {
+      if (ptr > endPtr) {
+        throw W32Error(ERROR_BUFFER_OVERFLOW);
+      }
+    };
+
+    auto ptr = const_cast<const std::byte*>(fileData.get()) + header.dataSize;
+    while (ptr != endPtr) {
+      checkPtr(ptr + sizeof(AppendixEntryHeader));
+      const auto& appendixEntry = *reinterpret_cast<const AppendixEntryHeader*>(ptr);
+      const auto nextPtr = ptr + appendixEntry.blockSize;
+      checkPtr(nextPtr);
+      ptr += sizeof(AppendixEntryHeader);
+
+      auto checkPtr2 = [nextPtr] (const std::byte* ptr) {
+        if (ptr > nextPtr) {
+          throw W32Error(ERROR_BUFFER_OVERFLOW);
+        }
+      };
+
+      std::size_t size = 0;
+
+      switch (appendixEntry.dataType) {
+        case AppendixDataType::Rename:
+        {
+          const auto renameEntry = RenameEntry::Parse(ptr, checkPtr, size);
+          if (renameEntry.bSize != 0) {
+            mRenameStore.Rename(renameEntry.a, renameEntry.b);
+          } else {
+            mRenameStore.RemoveEntry(renameEntry.a);
+          }
+          break;
+        }
+
+        case AppendixDataType::Metadata:
+        {
+          const auto metadataEntry = MetadataEntry::Parse(ptr, checkPtr, size);
+          if (metadataEntry.flags != 0) {
+            mMetadataMap.insert_or_assign(metadataEntry.filename, static_cast<Metadata>(metadataEntry));
+          } else {
+            mMetadataMap.erase(metadataEntry.filename);
+          }
+          break;
+        }
+
+        default:
+          throw W32Error(ERROR_INVALID_PARAMETER);
+      }
+
+      ptr += size;
+      assert(ptr == nextPtr);
+
+      ptr = nextPtr;
+    }
+
+    assert(ptr == endPtr);
+  }
+
+  return hasAppendix;
+}
+
+
+void MetadataStore::LoadFromFile() {
+  if (!util::IsValidHandle(mHFile)) {
+    throw W32Error(ERROR_INVALID_HANDLE);
+  }
+
+  mMetadataMap.clear();
+  if (SetFilePointer(mHFile, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
+    throw W32Error();
+  }
+
+  LARGE_INTEGER fileSize;
+  if (!GetFileSizeEx(mHFile, &fileSize)) {
+    throw W32Error();
+  }
+  if (fileSize.QuadPart == 0) {
+    // the first time
+    return;
+  }
+
+  DWORD read = 0;
+
+  std::uint32_t signature = 0;
+  if (!ReadFile(mHFile, &signature, sizeof(signature), &read, NULL) || read != sizeof(signature)) {
+    throw W32Error();
+  }
+
+  if (SetFilePointer(mHFile, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
+    throw W32Error();
+  }
+
+  switch (signature) {
+    case MetadataFileV1::Signature:
+      LoadFromFileV1();
+      // convert to V2 format
+      SaveToFile();
+      break;
+
+    case MetadataFileV2::Signature:
+      if (LoadFromFileV2()) {
+        // has appendix section; remove it
+        SaveToFile();
+      }
+      break;
+
+    default:
+      throw W32Error(ERROR_INVALID_PARAMETER);
+  }
+}
+
+
 void MetadataStore::SaveToFile() {
-  using namespace MetadataFile;
+  using namespace MetadataFileV2;
 
   if (!util::IsValidHandle(mHFile)) {
     throw W32Error(ERROR_INVALID_HANDLE);
+  }
+
+  const auto renameEntries = mRenameStore.GetEntries();
+
+  // calculate fileSize
+  std::size_t fileSize = 0;
+
+  fileSize += sizeof(Header);
+  const auto offsetToRenameSection = fileSize;
+  for (const auto& [b, a] : renameEntries) {
+    fileSize += sizeof(RenameEntryHeader);
+    fileSize += Align(a.size() * sizeof(char16_t));
+    fileSize += Align(b.size() * sizeof(char16_t));
+  }
+  const auto offsetToMetadataSection = fileSize;
+  for (const auto& [keyName, metadata] : mMetadataMap) {
+    fileSize += sizeof(MetadataEntryHeader);
+    fileSize += Align(keyName.size() * sizeof(char16_t));
+    fileSize += Align(metadata.security ? metadata.security.value().size() : 0);
+  }
+
+  assert(fileSize % Alignment == 0);
+
+  auto fileData = make_unique_aligned<std::byte, Alignment>(fileSize);
+  std::memset(fileData.get(), 0, fileSize);
+
+  auto ptr = fileData.get();
+
+  auto& header = *reinterpret_cast<Header*>(ptr);
+  ptr += sizeof(Header);
+  header = Header{
+    Signature,
+    Version,
+    static_cast<std::uint64_t>(fileSize),
+    static_cast<std::uint64_t>(offsetToRenameSection),
+    static_cast<std::uint64_t>(offsetToMetadataSection - offsetToRenameSection),
+    static_cast<std::uint64_t>(renameEntries.size()),
+    0,
+    static_cast<std::uint64_t>(offsetToMetadataSection),
+    static_cast<std::uint64_t>(fileSize - offsetToMetadataSection),
+    static_cast<std::uint64_t>(mMetadataMap.size()),
+    0,
+  };
+
+  for (const auto& [b, a] : renameEntries) {
+    const auto prevPtr = ptr;
+
+    auto& entryHeader = *reinterpret_cast<RenameEntryHeader*>(ptr);
+    ptr += sizeof(RenameEntryHeader);
+    entryHeader = RenameEntryHeader{
+      0,    // filled later
+      0,
+      static_cast<std::uint32_t>(a.size()),
+      static_cast<std::uint32_t>(b.size()),
+    };
+
+    std::memcpy(ptr, a.c_str(), a.size() * sizeof(char16_t));
+    ptr += Align(a.size() * sizeof(char16_t));
+
+    std::memcpy(ptr, b.c_str(), b.size() * sizeof(char16_t));
+    ptr += Align(b.size() * sizeof(char16_t));
+
+    entryHeader.blockSize = static_cast<std::uint32_t>(ptr - prevPtr);
+  }
+
+  for (const auto& [keyName, metadata] : mMetadataMap) {
+    const auto prevPtr = ptr;
+
+    std::uint32_t flags = 0;
+    if (metadata.fileAttributes) flags |= EntryFlags::HasAttributes;
+    if (metadata.creationTime)   flags |= EntryFlags::HasCreationTime;
+    if (metadata.lastAccessTime) flags |= EntryFlags::HasLastAccessTime;
+    if (metadata.lastWriteTime)  flags |= EntryFlags::HasLastWriteTime;
+    if (metadata.security)       flags |= EntryFlags::HasSecurity;
+
+    auto& entryHeader = *reinterpret_cast<MetadataEntryHeader*>(ptr);
+    ptr += sizeof(MetadataEntryHeader);
+    entryHeader = MetadataEntryHeader{
+      0,    // filled later
+      0,
+      static_cast<std::uint32_t>(keyName.size()),
+      metadata.security ? static_cast<std::uint32_t>(metadata.security.value().size()) : 0,
+      flags,
+      metadata.fileAttributes ? metadata.fileAttributes.value() : 0,
+      metadata.creationTime   ? ReadFILETIME(metadata.creationTime.value())   : 0,
+      metadata.lastAccessTime ? ReadFILETIME(metadata.lastAccessTime.value()) : 0,
+      metadata.lastWriteTime  ? ReadFILETIME(metadata.lastWriteTime.value())  : 0,
+    };
+
+    std::memcpy(ptr, keyName.c_str(), keyName.size() * sizeof(char16_t));
+    ptr += Align(keyName.size() * sizeof(char16_t));
+
+    if (metadata.security) {
+      const auto& security = metadata.security.value();
+      std::memcpy(ptr, security.c_str(), security.size() * sizeof(char16_t));
+      ptr += Align(security.size() * sizeof(char16_t));
+    }
+
+    entryHeader.blockSize = static_cast<std::uint32_t>(ptr - prevPtr);
   }
 
   if (SetFilePointer(mHFile, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
@@ -222,122 +695,123 @@ void MetadataStore::SaveToFile() {
   }
 
   DWORD written = 0;
-
-  const DWORD version = Version;
-  if (!WriteFile(mHFile, &version, sizeof(version), &written, NULL) || written != sizeof(version)) {
+  if (!WriteFile(mHFile, fileData.get(), fileSize, &written, NULL) || written != fileSize) {
     throw W32Error();
   }
+}
 
-  const EntryCount count = mMetadataMap.size();
-  if (!WriteFile(mHFile, &count, sizeof(count), &written, NULL) || written != sizeof(count)) {
+
+void MetadataStore::AddRenameAppendix(std::wstring_view a, std::wstring_view b) {
+  using namespace MetadataFileV2;
+
+  const auto alignedASize = Align(a.size() * sizeof(char16_t));
+  const auto alignedBSize = Align(b.size() * sizeof(char16_t));
+
+  std::size_t dataSize = 0;
+  dataSize += sizeof(AppendixEntryHeader);
+  dataSize += sizeof(RenameEntryHeader);
+  dataSize += alignedASize;
+  dataSize += alignedBSize;
+
+  auto data = make_unique_aligned<std::byte, Alignment>(dataSize);
+  std::memset(data.get(), 0, dataSize);
+
+  auto ptr = data.get();
+
+  auto& appendixHeader = *reinterpret_cast<AppendixEntryHeader*>(ptr);
+  ptr += sizeof(AppendixEntryHeader);
+  appendixHeader = AppendixEntryHeader{
+    static_cast<std::uint32_t>(dataSize),
+    0,
+    AppendixDataType::Rename,
+    0,
+  };
+
+  std::memcpy(ptr, a.data(), a.size() * sizeof(char16_t));
+  ptr += alignedASize;
+
+  std::memcpy(ptr, b.data(), b.size() * sizeof(char16_t));
+  ptr += alignedBSize;
+
+  DWORD written = 0;
+  if (!WriteFile(mHFile, data.get(), dataSize, &written, NULL) || written != dataSize) {
     throw W32Error();
   }
+}
 
-  for (const auto& [keyName, metadata] : mMetadataMap) {
-    const SecurityCount securityCount = metadata.security ? metadata.security.value().size() : 0;
-    const KeyNameCount keyNameCount = keyName.size();
 
-    const std::size_t maxBufferSize =
-      sizeof(EntrySize)
-      + sizeof(EntryFlag)
-      + sizeof(KeyNameCount)
-      + keyNameCount * sizeof(wchar_t)
-      + sizeof(DWORD)
-      + sizeof(FILETIME)
-      + sizeof(FILETIME)
-      + sizeof(FILETIME)
-      + sizeof(SecurityCount)
-      + securityCount * sizeof(char);
+void MetadataStore::AddRenameAppendix(std::wstring_view a) {
+  // on removed
+  AddRenameAppendix(a, L""sv);
+}
 
-    auto buffer = std::make_unique<char[]>(maxBufferSize);
 
-    char* ptr = buffer.get();
+void MetadataStore::AddMetadataAppendix(std::wstring_view keyName, const Metadata& metadata) {
+  using namespace MetadataFileV2;
 
-    ptr += sizeof(EntrySize);
-    ptr += sizeof(EntryFlag);
+  const auto alignedFilenameSize = Align(keyName.size() * sizeof(char16_t));
+  const auto alignedSecuritySize = Align(metadata.security ? metadata.security.value().size() : 0);
 
-    std::memcpy(ptr, &keyNameCount, sizeof(keyNameCount));
-    ptr += sizeof(keyNameCount);
-    std::memcpy(ptr, keyName.data(), keyNameCount * sizeof(wchar_t));
-    ptr += keyNameCount * sizeof(wchar_t);
+  std::size_t dataSize = 0;
+  dataSize += sizeof(AppendixEntryHeader);
+  dataSize += sizeof(MetadataEntryHeader);
+  dataSize += alignedFilenameSize;
+  dataSize += alignedSecuritySize;
 
-    EntryFlag entryFlag = 0;
+  auto data = make_unique_aligned<std::byte, Alignment>(dataSize);
+  std::memset(data.get(), 0, dataSize);
 
-    if (metadata.fileAttributes) {
-      entryFlag |= EntryFlags::HasAttributes;
-      const auto fileAttributes = metadata.fileAttributes.value();
-      std::memcpy(ptr, &fileAttributes, sizeof(fileAttributes));
-      ptr += sizeof(fileAttributes);
-    }
-    if (metadata.creationTime) {
-      entryFlag |= EntryFlags::HasCreationTime;
-      const auto creationTime = metadata.creationTime.value();
-      std::memcpy(ptr, &creationTime, sizeof(creationTime));
-      ptr += sizeof(creationTime);
-    }
-    if (metadata.lastAccessTime) {
-      entryFlag |= EntryFlags::HasLastAccessTime;
-      const auto lastAccessTime = metadata.lastAccessTime.value();
-      std::memcpy(ptr, &lastAccessTime, sizeof(lastAccessTime));
-      ptr += sizeof(lastAccessTime);
-    }
-    if (metadata.lastWriteTime) {
-      entryFlag |= EntryFlags::HasLastWriteTime;
-      const auto lastWriteTime = metadata.lastWriteTime.value();
-      std::memcpy(ptr, &lastWriteTime, sizeof(lastWriteTime));
-      ptr += sizeof(lastWriteTime);
-    }
-    if (metadata.security) {
-      std::memcpy(ptr, &securityCount, sizeof(securityCount));
-      ptr += sizeof(securityCount);
-      std::memcpy(ptr, metadata.security.value().data(), securityCount * sizeof(char));
-      ptr += securityCount * sizeof(char);
-    }
+  auto ptr = data.get();
 
-    // set EntrySize and EntryFlag
-    const EntrySize entrySize = static_cast<EntrySize>(ptr - buffer.get() - sizeof(EntrySize));
-    ptr = buffer.get();
-    std::memcpy(ptr, &entrySize, sizeof(entrySize));
-    ptr += sizeof(entrySize);
-    std::memcpy(ptr, &entryFlag, sizeof(entryFlag));
+  auto& appendixHeader = *reinterpret_cast<AppendixEntryHeader*>(ptr);
+  ptr += sizeof(AppendixEntryHeader);
+  appendixHeader = AppendixEntryHeader{
+    static_cast<std::uint32_t>(dataSize),
+    0,
+    AppendixDataType::Metadata,
+    0,
+  };
 
-    // write
-    const std::size_t bufferSize = entrySize + sizeof(entrySize);
-    if (!WriteFile(mHFile, buffer.get(), static_cast<DWORD>(bufferSize), &written, NULL) || written != bufferSize) {
-      throw W32Error();
-    }
+  std::uint32_t flags = 0;
+  if (metadata.fileAttributes) flags |= EntryFlags::HasAttributes;
+  if (metadata.creationTime)   flags |= EntryFlags::HasCreationTime;
+  if (metadata.lastAccessTime) flags |= EntryFlags::HasLastAccessTime;
+  if (metadata.lastWriteTime)  flags |= EntryFlags::HasLastWriteTime;
+  if (metadata.security)       flags |= EntryFlags::HasSecurity;
+
+  auto& entryHeader = *reinterpret_cast<MetadataEntryHeader*>(ptr);
+  ptr += sizeof(MetadataEntryHeader);
+  entryHeader = MetadataEntryHeader{
+    static_cast<std::uint32_t>(dataSize - sizeof(AppendixEntryHeader)),
+    0,
+    static_cast<std::uint32_t>(keyName.size()),
+    metadata.security ? static_cast<std::uint32_t>(metadata.security.value().size()) : 0,
+    flags,
+    metadata.fileAttributes ? metadata.fileAttributes.value() : 0,
+    metadata.creationTime ? ReadFILETIME(metadata.creationTime.value()) : 0,
+    metadata.lastAccessTime ? ReadFILETIME(metadata.lastAccessTime.value()) : 0,
+    metadata.lastWriteTime ? ReadFILETIME(metadata.lastWriteTime.value()) : 0,
+  };
+
+  std::memcpy(ptr, keyName.data(), keyName.size() * sizeof(char16_t));
+  ptr += alignedFilenameSize;
+
+  if (metadata.security) {
+    const auto& security = metadata.security.value();
+    std::memcpy(ptr, security.c_str(), security.size() * sizeof(char16_t));
+    ptr += alignedSecuritySize;
   }
 
-  const auto renameEntries = mRenameStore.GetEntries();
-
-  const std::uint64_t renameCount = renameEntries.size();
-  if (!WriteFile(mHFile, &renameCount, sizeof(renameCount), &written, NULL) || written != sizeof(renameCount)) {
+  DWORD written = 0;
+  if (!WriteFile(mHFile, data.get(), dataSize, &written, NULL) || written != dataSize) {
     throw W32Error();
   }
+}
 
-  for (auto& [renamed, original] : renameEntries) {
-    DWORD written = 0;
 
-    const std::uint32_t renamedSize = static_cast<std::uint32_t>(renamed.size());
-    if (!WriteFile(mHFile, &renamedSize, sizeof(renamedSize), &written, NULL) || written != sizeof(renamedSize)) {
-      throw W32Error();
-    }
-
-    const std::uint32_t originalSize = static_cast<std::uint32_t>(original.size());
-    if (!WriteFile(mHFile, &originalSize, sizeof(originalSize), &written, NULL) || written != sizeof(originalSize)) {
-      throw W32Error();
-    }
-
-    const std::size_t renamedStrSize = renamedSize * sizeof(wchar_t);
-    if (!WriteFile(mHFile, renamed.data(), static_cast<DWORD>(renamedStrSize), &written, NULL) || written != renamedStrSize) {
-      throw W32Error();
-    }
-
-    const std::size_t originalStrSize = originalSize * sizeof(wchar_t);
-    if (!WriteFile(mHFile, original.data(), static_cast<DWORD>(originalStrSize), &written, NULL) || written != originalStrSize) {
-      throw W32Error();
-    }
-  }
+void MetadataStore::AddMetadataAppendix(std::wstring_view keyName) {
+  static const Metadata emptyMetadata{};
+  AddMetadataAppendix(keyName, emptyMetadata);
 }
 
 
@@ -353,6 +827,7 @@ MetadataStore::MetadataStore(std::wstring_view storeFileName, bool caseSensitive
 
 MetadataStore::~MetadataStore() {
   if (util::IsValidHandle(mHFile)) {
+    SaveToFile();
     CloseHandle(mHFile);
     mHFile = NULL;
   }
@@ -444,8 +919,9 @@ void MetadataStore::SetMetadataR(std::wstring_view resolvedFilename, const Metad
   if (!util::IsValidHandle(mHFile)) {
     return;
   }
-  mMetadataMap.insert_or_assign(FilenameToKey(resolvedFilename), metadata);
-  SaveToFile();
+  const auto key = FilenameToKey(resolvedFilename);
+  mMetadataMap.insert_or_assign(key, metadata);
+  AddMetadataAppendix(key, metadata);
 }
 
 
@@ -462,8 +938,9 @@ bool MetadataStore::RemoveMetadataR(std::wstring_view resolvedFilename) {
   if (!util::IsValidHandle(mHFile)) {
     return false;
   }
-  const auto ret = mMetadataMap.erase(FilenameToKey(resolvedFilename));
-  SaveToFile();
+  const auto key = FilenameToKey(resolvedFilename);
+  const auto ret = mMetadataMap.erase(key);
+  AddMetadataAppendix(key);
   return ret;
 }
 
@@ -531,7 +1008,8 @@ void MetadataStore::Rename(std::wstring_view srcFilename, std::wstring_view dest
     default:
       throw W32Error(ERROR_GEN_FAILURE);
   }
-  SaveToFile();
+  
+  AddRenameAppendix(srcFilename, destFilename);
 }
 
 
@@ -552,6 +1030,6 @@ bool MetadataStore::RemoveRenameEntry(std::wstring_view filename) {
     return false;
   }
   const auto result = mRenameStore.RemoveEntry(filename);
-  SaveToFile();
+  AddRenameAppendix(filename);
   return result;
 }

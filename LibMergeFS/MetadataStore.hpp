@@ -26,7 +26,13 @@ private:
 
   std::wstring FilenameToKey(std::wstring_view filename) const;
   void LoadFromFile();
+  void LoadFromFileV1();
+  bool LoadFromFileV2();
   void SaveToFile();
+  void AddRenameAppendix(std::wstring_view a, std::wstring_view b);
+  void AddRenameAppendix(std::wstring_view a);
+  void AddMetadataAppendix(std::wstring_view keyName, const Metadata& metadata);
+  void AddMetadataAppendix(std::wstring_view keyName);
 
 public:
   MetadataStore(const MetadataStore&) = delete;
