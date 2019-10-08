@@ -19,12 +19,6 @@
     <Filter Include="Header Files\../SDK\Plugin">
       <UniqueIdentifier>{056d2e6b-27a9-4cbf-8639-3a7a5013887d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\SQLite3">
-      <UniqueIdentifier>{869b8b56-df30-4fbd-bc66-2e9c9b529583}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\SQLite3">
-      <UniqueIdentifier>{66563ffe-5486-4209-9b16-ad84ed652778}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\../SDK">
       <UniqueIdentifier>{e5cf9fdf-e40b-4da3-9e20-fa12738d995d}</UniqueIdentifier>
     </Filter>
