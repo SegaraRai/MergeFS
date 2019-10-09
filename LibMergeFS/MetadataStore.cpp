@@ -744,6 +744,8 @@ void MetadataStore::AddRenameAppendix(std::wstring_view a, std::wstring_view b) 
   std::memcpy(ptr, b.data(), b.size() * sizeof(char16_t));
   ptr += alignedBSize;
 
+  assert(ptr == data.get() + dataSize);
+
   DWORD written = 0;
   if (!WriteFile(mHFile, data.get(), dataSize, &written, NULL) || written != dataSize) {
     throw W32Error();
@@ -814,6 +816,8 @@ void MetadataStore::AddMetadataAppendix(std::wstring_view keyName, const Metadat
     std::memcpy(ptr, security.c_str(), security.size() * sizeof(char16_t));
     ptr += alignedSecuritySize;
   }
+
+  assert(ptr == data.get() + dataSize);
 
   DWORD written = 0;
   if (!WriteFile(mHFile, data.get(), dataSize, &written, NULL) || written != dataSize) {
