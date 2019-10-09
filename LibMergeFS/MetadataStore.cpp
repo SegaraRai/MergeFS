@@ -729,6 +729,15 @@ void MetadataStore::AddRenameAppendix(std::wstring_view a, std::wstring_view b) 
     0,
   };
 
+  auto& entryHeader = *reinterpret_cast<RenameEntryHeader*>(ptr);
+  ptr += sizeof(RenameEntryHeader);
+  entryHeader = RenameEntryHeader{
+    static_cast<std::uint32_t>(dataSize - sizeof(AppendixEntryHeader)),
+    0,
+    static_cast<std::uint32_t>(a.size()),
+    static_cast<std::uint32_t>(b.size()),
+  };
+
   std::memcpy(ptr, a.data(), a.size() * sizeof(char16_t));
   ptr += alignedASize;
 
