@@ -547,6 +547,7 @@ void MetadataStore::LoadFromFile() {
   }
   if (fileSize.QuadPart == 0) {
     // the first time
+    SaveToFile();
     return;
   }
 
