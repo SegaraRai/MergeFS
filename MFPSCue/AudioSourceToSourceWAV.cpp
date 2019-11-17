@@ -87,12 +87,12 @@ AudioSourceToSourceWAV::AudioSourceToSourceWAV(std::shared_ptr<AudioSource> audi
   auto ptr = mergedPreambleData.get();
   std::memcpy(ptr, preambleDataRiffWave, sizeof(preambleDataRiffWave));
   ptr += sizeof(preambleDataRiffWave);
-  std::memcpy(ptr, preambleDataFmt, sizeof(preambleDataFmt));
-  ptr += sizeof(preambleDataFmt);
   std::memcpy(ptr, preambleDataRiffTag.data(), preambleDataRiffTag.size());
   ptr += preambleDataRiffTag.size();
   std::memcpy(ptr, preambleDataId3Tag.data(), preambleDataId3Tag.size());
   ptr += preambleDataId3Tag.size();
+  std::memcpy(ptr, preambleDataFmt, sizeof(preambleDataFmt));
+  ptr += sizeof(preambleDataFmt);
   std::memcpy(ptr, preambleDataData, sizeof(preambleDataData));
   ptr += sizeof(preambleDataData);
 
