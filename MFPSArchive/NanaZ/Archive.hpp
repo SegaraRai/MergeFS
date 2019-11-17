@@ -20,19 +20,19 @@
 
 
 struct DirectoryTree {
-  enum class ExtractToMemory : unsigned char {
+  enum class ExtractToMemory {
     Never,
     Auto,
     Always,
   };
 
-  enum class OnExisting : unsigned char {
+  enum class OnExisting {
     Skip,
     Replace,
     RenameNewOne,
   };
 
-  enum class Type : unsigned char {
+  enum class Type {
     File,
     Directory,
     Archive,
