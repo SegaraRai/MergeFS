@@ -67,7 +67,7 @@ class RenameStore {
   PathTrieTree mReverseLookupTree;
 
 public:
-  enum class Result : unsigned int {
+  enum class Result {
     Success,
     Invalid,
     NotExists,
