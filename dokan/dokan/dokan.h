@@ -56,7 +56,7 @@ extern "C" {
 /** @{ */
 
 /** The current Dokan version (ver 1.2.0). \ref DOKAN_OPTIONS.Version */
-#define DOKAN_VERSION 130
+#define DOKAN_VERSION 131
 /** Minimum Dokan version (ver 1.1.0) accepted. */
 #define DOKAN_MINIMUM_COMPATIBLE_VERSION 110
 /** Driver file name including the DOKAN_MAJOR_API_VERSION */
@@ -137,7 +137,11 @@ typedef struct _DOKAN_OPTIONS {
    * \see <a href="https://msdn.microsoft.com/en-us/library/windows/hardware/ff556761(v=vs.85).aspx">Support for UNC Naming</a>
    */
   LPCWSTR UNCName;
-  /** Max timeout in milliseconds of each request before Dokan gives up to wait events to complete. */
+  /**
+   * Max timeout in milliseconds of each request before Dokan gives up to wait events to complete.
+   * A timeout request is a sign that the userland implementation is no longer able to properly manage requests in time.
+   * The driver will therefore unmount the device when a timeout trigger in order to keep the system stable.
+   */
   ULONG Timeout;
   /** Allocation Unit Size of the volume. This will affect the file size. */
   ULONG AllocationUnitSize;
@@ -854,14 +858,18 @@ HANDLE DOKANAPI DokanOpenRequestorToken(PDOKAN_FILE_INFO DokanFileInfo);
  *
  * \param uncOnly Get only instances that have UNC Name.
  * \param nbRead Number of instances successfully retrieved.
- * \return Allocate array of \ref DOKAN_CONTROL.
+ * \return Allocate array of DOKAN_CONTROL.
  */
 PDOKAN_CONTROL DOKANAPI DokanGetMountPointList(BOOL uncOnly, PULONG nbRead);
 
 /**
  * \brief Release Mount point list resources from \ref DokanGetMountPointList.
  *
- * \param Allocate array of \ref DOKAN_CONTROL from \ref DokanGetMountPointList.
+ * After \ref DokanGetMountPointList call you will receive a dynamically allocated array of DOKAN_CONTROL.
+ * This array needs to be released when no longer needed by calling this function.
+ *
+ * \param list Allocated array of DOKAN_CONTROL from \ref DokanGetMountPointList.
+ * \return Nothing.
  */
 VOID DOKANAPI DokanReleaseMountPointList(PDOKAN_CONTROL list);
 
@@ -888,18 +896,28 @@ void DOKANAPI DokanMapKernelToUserCreateFileFlags(
 
 /**
  * \defgroup DokanNotify Dokan Notify
- * \brief Dokan User FS file changes notification
+ * \brief Dokan User FS file-change notification
  *
- * User FileSystem can notify Dokan of outside file changes with those functions.
- * Note that all of the file paths passed in to the Notify methods below must
- * include the drive letter, for example "G:<path>".
+ * The application implementing the user file system can notify
+ * the Dokan kernel driver of external file- and directory-changes.
+ *
+ * For example, the mirror application can notify the driver about
+ * changes made in the mirrored directory so that those changes will
+ * be automatically reflected in the implemented mirror file system.
+ *
+ * This requires the FilePath passed to the respective DokanNotify*-functions
+ * to include the absolute path of the changed file including the drive-letter
+ * and the path to the mount point, e.g. "C:\Dokan\ChangedFile.txt".
+ *
+ * These functions SHOULD NOT be called from within the implemented
+ * file system and thus be independent of any Dokan file system operation.
  * @{
  */
 
 /**
  * \brief Notify dokan that a file or a directory has been created.
  *
- * \param FilePath Full path to the file or directory, including mount point.
+ * \param FilePath Absolute path to the file or directory, including the mount-point of the file system.
  * \param IsDirectory Indicates if the path is a directory.
  * \return \c TRUE if notification succeeded.
  */
@@ -908,8 +926,8 @@ BOOL DOKANAPI DokanNotifyCreate(LPCWSTR FilePath, BOOL IsDirectory);
 /**
  * \brief Notify dokan that a file or a directory has been deleted.
  *
- * \param FilePath Full path to the file or directory, including mount point.
- * \param IsDirectory Indicates if the path is a directory.
+ * \param FilePath Absolute path to the file or directory, including the mount-point of the file system.
+ * \param IsDirectory Indicates if the path was a directory.
  * \return \c TRUE if notification succeeded.
  */
 BOOL DOKANAPI DokanNotifyDelete(LPCWSTR FilePath, BOOL IsDirectory);
@@ -917,7 +935,7 @@ BOOL DOKANAPI DokanNotifyDelete(LPCWSTR FilePath, BOOL IsDirectory);
 /**
  * \brief Notify dokan that file or directory attributes have changed.
  *
- * \param FilePath Full path to the file or directory, including mount point.
+ * \param FilePath Absolute path to the file or directory, including the mount-point of the file system.
  * \return \c TRUE if notification succeeded.
  */
 BOOL DOKANAPI DokanNotifyUpdate(LPCWSTR FilePath);
@@ -925,7 +943,7 @@ BOOL DOKANAPI DokanNotifyUpdate(LPCWSTR FilePath);
 /**
  * \brief Notify dokan that file or directory extended attributes have changed.
  *
- * \param FilePath Full path to the file or directory, including mount point.
+ * \param FilePath Absolute path to the file or directory, including the mount-point of the file system.
  * \return \c TRUE if notification succeeded.
  */
 BOOL DOKANAPI DokanNotifyXAttrUpdate(LPCWSTR FilePath);
@@ -934,10 +952,10 @@ BOOL DOKANAPI DokanNotifyXAttrUpdate(LPCWSTR FilePath);
  * \brief Notify dokan that a file or a directory has been renamed. This method
  *  supports in-place rename for file/directory within the same parent.
  *
- * \param OldPath Old path to the file or directory, including mount point.
- * \param NewPath New path to the file or directory, including mount point.
+ * \param OldPath Old, absolute path to the file or directory, including the mount-point of the file system.
+ * \param NewPath New, absolute path to the file or directory, including the mount-point of the file system.
  * \param IsDirectory Indicates if the path is a directory.
- * \param IsInSameFolder Indicates if the file or directory have same parent.
+ * \param IsInSameDirectory Indicates if the file or directory have the same parent directory.
  * \return \c TRUE if notification succeeded.
  */
 BOOL DOKANAPI DokanNotifyRename(LPCWSTR OldPath, LPCWSTR NewPath,
