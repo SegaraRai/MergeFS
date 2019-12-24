@@ -26,6 +26,12 @@ namespace {
   constexpr bool UseUtf8 = true;
 
 
+  template<typename T>
+  constexpr T AlignRIFFChunkSize(T size) {
+    const auto mask = ~static_cast<T>(1);
+    return (size + 1) & mask;
+  }
+
 
   // ID3 is big endian
   constexpr std::uint_fast32_t ToSynchsafe(std::uint_fast32_t value) {
@@ -394,7 +400,7 @@ std::vector<std::byte> GenerateTagID3(const CueSheet& cueSheet, CueSheet::File::
 
   //
 
-  std::size_t size = ((id3Tag.GetSize() + 1) & ~static_cast<std::size_t>(1)) + 8;
+  std::size_t size = AlignRIFFChunkSize(id3Tag.GetSize()) + 8;
   std::vector<std::byte> data(size);
   data[size - 1] = std::byte{0x00};
   *reinterpret_cast<std::uint32_t*>(data.data() + 0) = RIFFChunkName;
