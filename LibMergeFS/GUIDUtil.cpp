@@ -1,7 +1,9 @@
 #include "GUIDUtil.hpp"
 
 #include <cstdint>
-#include <cstring>
+#include <climits>
+
+#include <guiddef.h>
 
 
 
@@ -10,7 +12,12 @@ static_assert(sizeof(std::uint64_t) == 8);
 static_assert(sizeof(GUID) == 16);
 
 
+std::uint64_t GUIDHash::CalcGUIDHash(const GUID& guid) noexcept {
+  const auto ptrUi64 = reinterpret_cast<const std::uint64_t*>(&guid);
+  return ptrUi64[0] ^ ptrUi64[1];
+}
+
+
 std::uint64_t GUIDHash::operator()(const GUID& guid) const noexcept {
-  const auto ptrUi6 = reinterpret_cast<const std::uint64_t*>(&guid);
-  return ptrUi6[0] ^ ptrUi6[1];
+  return CalcGUIDHash(guid);
 }
