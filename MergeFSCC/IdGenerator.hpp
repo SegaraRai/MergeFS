@@ -14,6 +14,7 @@ public:
 
   Key allocate() {
     const Key id = minimumUnusedId;
+    usedIdSet.emplace(id);
     do {
       minimumUnusedId++;
     } while (usedIdSet.count(minimumUnusedId));
