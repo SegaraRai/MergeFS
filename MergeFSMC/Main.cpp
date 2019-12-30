@@ -1,7 +1,7 @@
 #include "../dokan/dokan/dokan.h"
 
-#include <yaml-cpp/yaml.h>
 #include <nlohmann/json.hpp>
+#include <yaml-cpp/yaml.h>
 
 #include <array>
 #include <atomic>
@@ -144,11 +144,26 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
               false,
             });
           } catch (const std::exception& exception) {
+            std::wstring errorString;
+            if (const auto ptrMessage = exception.what()) {
+              try {
+                errorString = UTF8toWString(ptrMessage);
+              } catch (...) {
+                try {
+                  errorString = LocaleStringtoWString(ptrMessage);
+                } catch (...) {
+                  errorString = L"(failed to retrieve the error message)"s;
+                }
+              }
+            } else {
+              errorString = L"(no error message was provided)"s;
+            }
+
             std::lock_guard lock(gMutex);
             gMountErrorQueue.emplace_back(MountError{
               arg,
               L""s,
-              LocaleStringtoWString(exception.what()),
+              errorString,
               false,
             });
           } catch (...) {
