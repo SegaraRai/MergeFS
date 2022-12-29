@@ -12,7 +12,7 @@
 #include <winrt/base.h>
 
 
-class InMemoryStream final : public winrt::implements<InMemoryStream, IInStream, ISequentialInStream, IStreamGetSize> {
+class InMemoryStream : public winrt::implements<InMemoryStream, IInStream, ISequentialInStream, IStreamGetSize> {
   std::mutex mutex;
   std::byte* data;
   std::size_t dataSize;
@@ -30,7 +30,7 @@ public:
 };
 
 
-class OutFixedMemoryStream final : public winrt::implements<OutFixedMemoryStream, IOutStream, ISequentialOutStream, IStreamGetSize> {
+class OutFixedMemoryStream : public winrt::implements<OutFixedMemoryStream, IOutStream, ISequentialOutStream, IStreamGetSize> {
   std::mutex mutex;
   std::byte* data;
   std::size_t maxDataSize;

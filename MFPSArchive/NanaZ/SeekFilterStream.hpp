@@ -21,7 +21,7 @@ namespace InSeekFilterStreamInternal {
 // InSeekFilterStream is a wrapper class for IInStream which uses another (shared) IInStream
 // this class restores seek position of the base IInStream before calling operations of target IInStream
 // typical usage: wrap IInStream retrieved from IInArchiveGetStream (in this case, use IInStream used for IInArchive for baseInStream)
-class InSeekFilterStream final : public winrt::implements<InSeekFilterStream, InSeekFilterStreamInternal::IInSeekFilterStream, IInStream, ISequentialInStream> {
+class InSeekFilterStream : public winrt::implements<InSeekFilterStream, InSeekFilterStreamInternal::IInSeekFilterStream, IInStream, ISequentialInStream> {
   std::mutex mutex;
   winrt::com_ptr<IInStream> inStream;
   winrt::com_ptr<IInStream> baseInStream;

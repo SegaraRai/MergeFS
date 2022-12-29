@@ -11,7 +11,7 @@
 #include <winrt/base.h>
 
 
-class InNullStream final : public winrt::implements<InNullStream, IInStream, ISequentialInStream, IStreamGetSize> {
+class InNullStream : public winrt::implements<InNullStream, IInStream, ISequentialInStream, IStreamGetSize> {
   std::mutex mutex;
   UInt64 dataSize;
   UInt64 seekOffset;
