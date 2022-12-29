@@ -104,7 +104,7 @@ MemoryArchiveExtractCallback::MemoryArchiveExtractCallback(std::byte* storageBuf
     const std::size_t availableMemorySize = alignedMemorySize / MemoryAlignment * MemoryAlignment;
     assert(availableMemorySize >= filesize + ExtraMemorySize);
 
-    auto outFixedMemoryStream = CreateCOMPtr(new OutFixedMemoryStream(static_cast<std::byte*>(alignedFileDataBuffer), availableMemorySize));
+    auto outFixedMemoryStream = winrt::make<OutFixedMemoryStream>(static_cast<std::byte*>(alignedFileDataBuffer), availableMemorySize);
 
     indexToInfoMap.emplace(index, ObjectInfo{
       currentFileDataBuffer,

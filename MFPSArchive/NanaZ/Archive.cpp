@@ -159,7 +159,7 @@ namespace {
       winrt::com_ptr<IInArchive> inArchive;
       COMError::CheckHRESULT(nanaZ.CreateObject(&formatClsid, &IID_IInArchive, inArchive.put_void()));
 
-      auto archiveOpenCallback = CreateCOMPtr(new ArchiveOpenCallback(passwordCallback));
+      auto archiveOpenCallback = winrt::make<ArchiveOpenCallback>(passwordCallback);
 
       if (FAILED(inArchive->Open(inStream.get(), &maxCheckStartPosition, archiveOpenCallback.get()))) {
         continue;
@@ -299,7 +299,7 @@ namespace {
           } while (false);
 
           if (contentInStream) {
-            contentDirectoryTree.inStream = CreateCOMPtr(new InSeekFilterStream(contentInStream, directoryTree.inStream));
+            contentDirectoryTree.inStream = winrt::make<InSeekFilterStream>(contentInStream, directoryTree.inStream);
           } else {
             if (extractToMemory == DirectoryTree::ExtractToMemory::Never) {
               throw COMError(E_FAIL);
@@ -328,7 +328,7 @@ namespace {
         if (extractCurrentFileToMemory) {
           if (!insertedDirectoryTree.contentAvailable) {
             assert(!insertedDirectoryTree.inStream);
-            insertedDirectoryTree.inStream = CreateCOMPtr(new InMemoryStream(nullptr, 0));
+            insertedDirectoryTree.inStream = winrt::make<InMemoryStream>(nullptr, 0);
           } else {
             insertedDirectoryTree.onMemory = true;
             extractToMemoryIndices.emplace_back(index);
@@ -368,7 +368,7 @@ namespace {
       const auto totalExtractionMemorySize = MemoryArchiveExtractCallback::CalcMemorySize(filesizes);
       directoryTree.extractionMemory = std::make_unique<std::byte[]>(totalExtractionMemorySize);
 
-      memoryArchiveExtractCallback.attach(new MemoryArchiveExtractCallback(directoryTree.extractionMemory.get(), totalExtractionMemorySize, indexAndFilesizes, contentPasswordCallback));
+      memoryArchiveExtractCallback = winrt::make<MemoryArchiveExtractCallback>(directoryTree.extractionMemory.get(), totalExtractionMemorySize, indexAndFilesizes, contentPasswordCallback);
 
       COMError::CheckHRESULT(directoryTree.inArchive->Extract(extractToMemoryIndices.data(), static_cast<UInt32>(extractToMemoryIndices.size()), FALSE, memoryArchiveExtractCallback.get()));
 
@@ -376,7 +376,7 @@ namespace {
         if (!memoryArchiveExtractCallback->Succeeded(index)) {
           contentDirectoryTree.contentAvailable = false;
           contentDirectoryTree.fileSize = 0;
-          contentDirectoryTree.inStream = CreateCOMPtr(new InMemoryStream(nullptr, 0));
+          contentDirectoryTree.inStream = winrt::make<InMemoryStream>(nullptr, 0);
           contentDirectoryTree.streamMutex = std::make_shared<std::mutex>();
           continue;
         }
@@ -385,7 +385,7 @@ namespace {
         assert(fileSize == contentDirectoryTree.fileSize);
 
         contentDirectoryTree.fileSize = fileSize;
-        contentDirectoryTree.inStream = CreateCOMPtr(new InMemoryStream(memoryArchiveExtractCallback->GetData(index), fileSize));
+        contentDirectoryTree.inStream = winrt::make<InMemoryStream>(memoryArchiveExtractCallback->GetData(index), fileSize);
         contentDirectoryTree.streamMutex = std::make_shared<std::mutex>();
       }
     }
@@ -418,7 +418,7 @@ namespace {
 
 
       auto originalContentInStream = contentDirectoryTree.inStream;
-      auto cloneContentInStream = CreateCOMPtr(new InSeekFilterStream(originalContentInStream));
+      auto cloneContentInStream = winrt::make<InSeekFilterStream>(originalContentInStream);
 
       auto contentInArchive = CreateInArchiveFromInStream(nanaZ, cloneContentInStream, maxCheckStartPosition, contentPasswordCallback);
       if (!contentInArchive) {
@@ -449,7 +449,7 @@ namespace {
       };
 
       // modify source inStream in order to completely separate seek positions
-      contentDirectoryTree.inStream = CreateCOMPtr(new InSeekFilterStream(originalContentInStream));
+      contentDirectoryTree.inStream = winrt::make<InSeekFilterStream>(originalContentInStream);
 
       // filename collision will not occur
       auto ptrInsertedCloneContentDirectoryTree = Insert(directoryTree, asArchiveFilepath, std::move(cloneContentDirectoryTree), fileIndexCount, DirectoryTree::OnExisting::Replace, extractToMemory);

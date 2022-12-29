@@ -98,7 +98,7 @@ BOOL SIsSupportedImpl(const PLUGIN_INITIALIZE_MOUNT_INFO* InitializeMountInfo) n
     if (!archiveFilepathN) {
       return FALSE;
     }
-    return !NanaZ.FindFormatByStream(CreateCOMPtr(new InFileStream(archiveFilepathN.value().c_str()))).empty() ? TRUE : FALSE;
+    return !NanaZ.FindFormatByStream(winrt::make<InFileStream>(archiveFilepathN.value().c_str())).empty() ? TRUE : FALSE;
   } catch (...) {
     return FALSE;
   }
