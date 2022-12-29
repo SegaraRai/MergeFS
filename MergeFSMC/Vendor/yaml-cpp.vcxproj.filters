@@ -15,6 +15,39 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="yaml-cpp\src\depthguard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yaml-cpp\src\directives.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yaml-cpp\src\emit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yaml-cpp\src\emitfromevents.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yaml-cpp\src\emitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yaml-cpp\src\emitterstate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yaml-cpp\src\emitterutils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yaml-cpp\src\exceptions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yaml-cpp\src\exp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yaml-cpp\src\memory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="yaml-cpp\src\node.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="yaml-cpp\src\node_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -69,38 +102,35 @@
     <ClCompile Include="yaml-cpp\src\convert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="yaml-cpp\src\directives.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="yaml-cpp\src\emit.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="yaml-cpp\src\emitfromevents.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="yaml-cpp\src\emitter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="yaml-cpp\src\emitterstate.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="yaml-cpp\src\emitterutils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="yaml-cpp\src\exceptions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="yaml-cpp\src\exp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="yaml-cpp\src\memory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="yaml-cpp\src\node.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="yaml-cpp\src\emitterstate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="yaml-cpp\src\emitterutils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="yaml-cpp\src\exp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="yaml-cpp\src\indentation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="yaml-cpp\src\nodebuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="yaml-cpp\src\nodeevents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="yaml-cpp\src\ptr_vector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="yaml-cpp\src\regex_yaml.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="yaml-cpp\src\regeximpl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="yaml-cpp\src\scanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -135,33 +165,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="yaml-cpp\src\directives.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="yaml-cpp\src\emitterstate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="yaml-cpp\src\emitterutils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="yaml-cpp\src\exp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="yaml-cpp\src\indentation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="yaml-cpp\src\nodebuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="yaml-cpp\src\nodeevents.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="yaml-cpp\src\ptr_vector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="yaml-cpp\src\regex_yaml.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="yaml-cpp\src\regeximpl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

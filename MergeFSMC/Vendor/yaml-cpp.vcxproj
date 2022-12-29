@@ -93,7 +93,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>yaml-cpp\src;yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;YAML_CPP_NO_CONTRIB;WIN32;_WINDOWS;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;YAML_CPP_NO_CONTRIB;YAML_CPP_STATIC_DEFINE;WIN32;_WINDOWS;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -107,7 +107,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>yaml-cpp\src;yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;YAML_CPP_NO_CONTRIB;WIN32;_WINDOWS;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;YAML_CPP_NO_CONTRIB;YAML_CPP_STATIC_DEFINE;WIN32;_WINDOWS;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -127,7 +127,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;YAML_CPP_NO_CONTRIB;WIN32;_LIB;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;YAML_CPP_NO_CONTRIB;YAML_CPP_STATIC_DEFINE;WIN32;_LIB;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -152,7 +152,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;YAML_CPP_NO_CONTRIB;WIN32;_LIB;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;YAML_CPP_NO_CONTRIB;YAML_CPP_STATIC_DEFINE;WIN32;_LIB;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -166,6 +166,7 @@
   <ItemGroup>
     <ClCompile Include="yaml-cpp\src\binary.cpp" />
     <ClCompile Include="yaml-cpp\src\convert.cpp" />
+    <ClCompile Include="yaml-cpp\src\depthguard.cpp" />
     <ClCompile Include="yaml-cpp\src\directives.cpp" />
     <ClCompile Include="yaml-cpp\src\emit.cpp" />
     <ClCompile Include="yaml-cpp\src\emitfromevents.cpp" />

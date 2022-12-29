@@ -89,7 +89,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>Vendor\yaml-cpp\include;..\Vendor\nlohmann-json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;_CONSOLE;WIN32;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;_CONSOLE;WIN32;YAML_CPP_STATIC_DEFINE;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -109,7 +109,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>Vendor\yaml-cpp\include;..\Vendor\nlohmann-json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;_CONSOLE;WIN32;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;_CONSOLE;WIN32;YAML_CPP_STATIC_DEFINE;_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -136,7 +136,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;_CONSOLE;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;_CONSOLE;WIN32;YAML_CPP_STATIC_DEFINE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -166,7 +166,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;_CONSOLE;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;_CONSOLE;WIN32;YAML_CPP_STATIC_DEFINE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
