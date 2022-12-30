@@ -11,9 +11,14 @@
 #include <Propidl.h>
 
 
+// https://stackoverflow.com/a/6947828
+template<typename T>
+struct dependent_false { enum { value = false }; };
+
+
 template<typename T>
 inline std::optional<T> FromPropVariantN(const PROPVARIANT& propVariant) {
-  static_assert(false, "no suitable specialized template function");
+  static_assert(dependent_false<T>::value, "no suitable specialized template function");
 }
 
 
