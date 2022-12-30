@@ -33,7 +33,7 @@ SourceToAudioSourceWAV::SourceToAudioSourceWAV(std::shared_ptr<Source> source) {
   if (sourceSize < 12) {
     throw std::runtime_error("invalid wav file");
   }
-  
+
   if (ReadData<std::uint32_t>(*source, 0) != SignatureRIFF) {
     throw std::runtime_error("invalid wav file");
   }

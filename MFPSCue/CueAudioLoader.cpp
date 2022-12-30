@@ -64,19 +64,19 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory
 #endif
 
   mCueSheet = CueSheet::ParseCueSheet(wCueSheetData);
-  
+
   const std::wstring directoryPrefix = std::wstring(baseDirectoryPath) + L"\\"s;
 
   for (std::size_t fileIndex = 0; fileIndex < mCueSheet.files.size(); fileIndex++) {
     const auto& file = mCueSheet.files[fileIndex];
 
     auto audioFilepath = PathIsRelativeW(file.filename.c_str()) ? directoryPrefix + file.filename : file.filename;
-    
+
     auto audioFileSource = std::make_shared<FileSource>(audioFilepath.c_str());
 
     // TODO: check extension for bin file
     auto audioSource = TransformToAudioSource(audioFileSource, file.type == L"BINARY"sv);
-    
+
     if (!audioSource) {
       throw std::runtime_error("cannot load audio");
     }
@@ -145,7 +145,7 @@ CueAudioLoader::CueAudioLoader(LPCWSTR filepath, ExtractToMemory extractToMemory
 
   for (TrackNumber trackNumber = mFirstTrackNumber; trackNumber <= mLastTrackNumber; trackNumber++) {
     auto& additionalTrackInfo = mTrackNumberToAdditionalTrackInfoMap.at(trackNumber);
-    
+
     for (const auto& offsetNumber : mOffsetNumberSet) {
       Source::SourceOffset currentTrackOffset;
       if (additionalTrackInfo.offsetMap.count(offsetNumber)) {

@@ -36,7 +36,7 @@ namespace CaseSensitivity {
   }
 
 
-  
+
   std::size_t CiHash::CaseSensitiveHash(const std::wstring& x) {
     static std::hash<std::wstring> hashFunctor;
     return hashFunctor(x);

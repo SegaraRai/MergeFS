@@ -46,7 +46,7 @@ NTSTATUS MergedSource::Read(SourceOffset offset, std::byte* buffer, std::size_t 
     }
     return STATUS_SUCCESS;
   }
-  
+
   // linear search but does not matter in most cases
   std::size_t firstSourceIndex = 0;
   while (mSourceOffsets[firstSourceIndex + 1] <= offset) {

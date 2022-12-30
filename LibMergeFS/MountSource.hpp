@@ -18,7 +18,7 @@ public:
 
   using ListFilesCallback = std::function<void(PWIN32_FIND_DATAW)>;
   using ListStreamsCallback = std::function<void(PWIN32_FIND_STREAM_DATA)>;
-  
+
   enum class FileType {
     Inexistent,
     Directory,

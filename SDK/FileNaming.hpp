@@ -62,7 +62,7 @@ namespace FileNaming {
     }
     return ret;
   })();
-  
+
 
   template<typename T, std::size_t Size>
   constexpr std::array<T, Size> GenerateReplaceInvalidCharacterTable(T replacement) {

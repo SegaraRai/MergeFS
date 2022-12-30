@@ -327,7 +327,7 @@ RenameStore::PathTrieTree* RenameStore::PathTrieTree::MoveNode(std::wstring_view
 
   // remove unnecessary nodes
   CleanupUnusedNodes(source);
-  
+
   return ptrDestinationTargetNode;
 }
 

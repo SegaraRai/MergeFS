@@ -1026,7 +1026,7 @@ void MetadataStore::Rename(std::wstring_view srcFilename, std::wstring_view dest
     default:
       throw W32Error(ERROR_GEN_FAILURE);
   }
-  
+
   AddRenameAppendix(srcFilename, destFilename);
 }
 

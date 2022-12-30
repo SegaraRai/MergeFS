@@ -34,7 +34,7 @@ STDMETHODIMP InMemoryStream::Read(void* data, UInt32 size, UInt32* processedSize
         *processedSize = 0;
       }
       return S_OK;
-    }  
+    }
     oldSeekOffset = seekOffset;
     static_assert(sizeof(std::size_t) >= sizeof(UInt32));
     readSize = static_cast<UInt32>(std::min<std::size_t>(std::min<std::size_t>(size, dataSize - seekOffset), std::numeric_limits<UInt32>::max()));

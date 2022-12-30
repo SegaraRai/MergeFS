@@ -666,7 +666,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     return 1;
   }
 
-     
+
   SetLastError(ERROR_SUCCESS);
   const auto hMutex = CreateMutexW(NULL, TRUE, MutexName);
   if (GetLastError() != ERROR_SUCCESS) {
@@ -780,7 +780,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   }
 
 
-  
+
   const bool waitForSound = gMountManager.CountMounts();
 
   // remove notify icon

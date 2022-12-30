@@ -80,7 +80,7 @@ namespace nlohmann {
 
           // try string
           j = y.as<std::string>();
-          
+
           break;
 
         case YAML::NodeType::Sequence:
