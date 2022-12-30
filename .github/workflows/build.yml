@@ -28,11 +28,13 @@ jobs:
       - run: |
           msbuild MergeFS.sln -t:Build -property:Configuration=Release -property:Platform=x86
           msbuild MergeFS.sln -t:Build -property:Configuration=Release -property:Platform=x64
+        shell: cmd
 
       - run: >
           "C:\Program Files\7-Zip\7z.exe" a -tzip -r
           ${{ env.RELEASE_FILENAME }}
           .\Release\*.dll .\Release\*.exe Example
+        shell: cmd
 
       - uses: actions/upload-artifact@v3
         with:
