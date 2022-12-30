@@ -12,7 +12,6 @@
 #include <winrt/base.h>
 
 #include "MemoryArchiveExtractCallback.hpp"
-#include "COMPtr.hpp"
 
 using namespace std::literals;
 

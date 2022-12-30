@@ -23,7 +23,6 @@
 #include "Archive.hpp"
 #include "ArchiveOpenCallback.hpp"
 #include "COMError.hpp"
-#include "COMPtr.hpp"
 #include "MemoryArchiveExtractCallback.hpp"
 #include "MemoryStream.hpp"
 #include "PropVariantUtil.hpp"

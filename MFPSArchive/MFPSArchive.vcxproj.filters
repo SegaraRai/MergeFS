@@ -93,9 +93,6 @@
     <ClInclude Include="NanaZ\SeekFilterStream.hpp">
       <Filter>Header Files\NanaZ</Filter>
     </ClInclude>
-    <ClInclude Include="NanaZ\COMPtr.hpp">
-      <Filter>Header Files\NanaZ</Filter>
-    </ClInclude>
     <ClInclude Include="NanaZ\NullStream.hpp">
       <Filter>Header Files\NanaZ</Filter>
     </ClInclude>
