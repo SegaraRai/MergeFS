@@ -846,6 +846,48 @@
     <ClCompile Include="7z\C\AesOpt.c">
       <Filter>Source Files\C</Filter>
     </ClCompile>
+    <ClCompile Include="7z\C\LzFindOpt.c">
+      <Filter>Source Files\C</Filter>
+    </ClCompile>
+    <ClCompile Include="7z\C\Ppmd7aDec.c">
+      <Filter>Source Files\C</Filter>
+    </ClCompile>
+    <ClCompile Include="7z\C\Sha1Opt.c">
+      <Filter>Source Files\C</Filter>
+    </ClCompile>
+    <ClCompile Include="7z\C\Sha256Opt.c">
+      <Filter>Source Files\C</Filter>
+    </ClCompile>
+    <ClCompile Include="7z\CPP\Common\Sha1Prepare.cpp">
+      <Filter>Source Files\CPP\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="7z\CPP\Common\Sha256Prepare.cpp">
+      <Filter>Source Files\CPP\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="7z\CPP\Common\LzFindPrepare.cpp">
+      <Filter>Source Files\CPP\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="7z\CPP\Common\CksumReg.cpp">
+      <Filter>Source Files\CPP\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="7z\CPP\7zip\Archive\ApfsHandler.cpp">
+      <Filter>Source Files\CPP\7zip\Archive</Filter>
+    </ClCompile>
+    <ClCompile Include="7z\CPP\7zip\Archive\Base64Handler.cpp">
+      <Filter>Source Files\CPP\7zip\Archive</Filter>
+    </ClCompile>
+    <ClCompile Include="7z\CPP\7zip\Archive\LpHandler.cpp">
+      <Filter>Source Files\CPP\7zip\Archive</Filter>
+    </ClCompile>
+    <ClCompile Include="7z\CPP\7zip\Archive\SparseHandler.cpp">
+      <Filter>Source Files\CPP\7zip\Archive</Filter>
+    </ClCompile>
+    <ClCompile Include="7z\CPP\7zip\Archive\VhdxHandler.cpp">
+      <Filter>Source Files\CPP\7zip\Archive</Filter>
+    </ClCompile>
+    <ClCompile Include="7z\CPP\Windows\PropVariantConv.cpp">
+      <Filter>Source Files\CPP\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="7z\Asm\x86\7zCrcOpt.asm">
