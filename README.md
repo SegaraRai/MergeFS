@@ -2,6 +2,12 @@
 
 This project is no longer actively developed.
 
+## How to use
+
+1. Install [dokany](https://github.com/dokan-dev/dokany) version 2
+2. Download the [latest release](https://github.com/SegaraRai/MergeFS/releases)
+3. Pass `.mfcfg` file to `MergeFSMC.exe` (see Example directory in the downloaded archive)
+
 ## How to build
 
 You have to install Visual Studio 2022 with C++ Desktop Development and UWP Development.
