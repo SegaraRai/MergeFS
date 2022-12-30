@@ -1,5 +1,20 @@
 # MergeFS
 
+This project is no longer actively developed.
+
+## How to build
+
+You have to install Visual Studio 2022 with C++ Desktop Development and UWP Development.
+
+1. Clone this repository recursively (include submodules)  
+   `git clone --recursive https://github.com/SegaraRai/MergeFS.git`
+2. Open `MergeFS.sln` in the root directory with Visual Studio 2022
+3. Build the solution
+
+## License
+
+This project is licensed under the MIT License.
+
 ## これは？
 
 主に複数のディレクトリを単一のディレクトリとしてマウントするWindows用ソフトウェアです。  
@@ -171,16 +186,6 @@ DLLの形式で、コア機能に様々な機能を追加します。
 - **MFPSMemory** （予定）  
   メモリ上に書き込み可能なソースをマウントするものとして作成予定です。  
   C++で書く予定です。
-
-## ビルド方法
-
-Windows環境とC++17に対応したコンパイラが必要です。
-Microsoft Visual Studio 2017 (15.9.7) でのコンパイルを確認しています。
-
-1. このリポジトリをクローンします。
-   このとき、再帰的にクローンする（このリポジトリに含まれているsubmoduleを含めてクローンする）必要があることに注意してください。
-
-2. /MergeFS.slnを開き、ビルドします。
 
 ## 未対応・未完成なもの
 
