@@ -1,0 +1,45 @@
+name: MSBuild
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - run: |
+          $suffix = $env:GITHUB_SHA.Substring(0, 7)
+          if ($env:GITHUB_REF.StartsWith('refs/tags/v')) {
+            $suffix = $env:GITHUB_REF_NAME
+          }
+          "RELEASE_FILENAME=MergeFS-$suffix.zip" >> $env:GITHUB_ENV
+        shell: pwsh
+
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - uses: microsoft/setup-msbuild@v1.1
+
+      - run: |
+          msbuild MergeFS.sln -t:Build -property:Configuration=Release;Platform=x86
+          msbuild MergeFS.sln -t:Build -property:Configuration=Release;Platform=x64
+
+      - run: >
+          "C:\Program Files\7-Zip\7z.exe" a -tzip -r
+          ${{ env.RELEASE_FILENAME }}
+          .\Release\*.dll .\Release\*.exe Example
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: ${{ env.RELEASE_FILENAME }}
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ env.RELEASE_FILENAME }}
+        if: startsWith(github.ref, 'refs/tags/v')
