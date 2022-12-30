@@ -204,7 +204,7 @@ ArchiveSourceMount::ArchiveSourceMount(NanaZ& nanaZ, const PLUGIN_INITIALIZE_MOU
     fileSystemName = L"ARCHIVE"s;
 
     // open archive
-    archiveN.emplace(nanaZ, winrt::make<InFileStream>(archiveFileHandle), archiveFileInfo, optDefaultFilepath, pathPrefixWb, caseSensitive, optMaxCheckStartPosition, optOnExisting, optExtractToMemory, [optRecursive](const std::wstring& originalFilepath, std::size_t count) -> std::optional<std::pair<std::wstring, bool>> {
+    archiveN.emplace(nanaZ, winrt::make_self<InFileStream>(archiveFileHandle), archiveFileInfo, optDefaultFilepath, pathPrefixWb, caseSensitive, optMaxCheckStartPosition, optOnExisting, optExtractToMemory, [optRecursive](const std::wstring& originalFilepath, std::size_t count) -> std::optional<std::pair<std::wstring, bool>> {
       if (!optRecursive) {
         return std::nullopt;
       }
