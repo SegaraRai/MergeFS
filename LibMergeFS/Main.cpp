@@ -1,5 +1,5 @@
-#pragma comment(lib, "dokan1.lib")
-#pragma comment(lib, "dokannp1.lib")
+#pragma comment(lib, "dokan2.lib")
+#pragma comment(lib, "dokannp2.lib")
 
 #define NOMINMAX
 
@@ -33,7 +33,7 @@ using MOUNT_ID = MountStore::MOUNT_ID;
 namespace {
   constexpr GUID EmptyGUID{};
 
-  
+
   std::optional<MountStore> gMountStoreN;
   std::shared_mutex gMutex;
   MERGEFS_ERROR_INFO gLastErrorInfo{

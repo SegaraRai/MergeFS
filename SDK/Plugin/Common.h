@@ -42,8 +42,6 @@ typedef NTSTATUS(WINAPI *PDokanNtStatusFromWin32)(DWORD Error) MFNOEXCEPT;
 typedef BOOL(WINAPI *PDokanIsNameInExpression)(LPCWSTR Expression, LPCWSTR Name, BOOL IgnoreCase) MFNOEXCEPT;
 typedef BOOL(WINAPI *PDokanResetTimeout)(ULONG Timeout, PDOKAN_FILE_INFO DokanFileInfo) MFNOEXCEPT;
 typedef HANDLE(WINAPI *PDokanOpenRequestorToken)(PDOKAN_FILE_INFO DokanFileInfo) MFNOEXCEPT;
-typedef PDOKAN_CONTROL(WINAPI *PDokanGetMountPointList)(BOOL uncOnly, PULONG nbRead) MFNOEXCEPT;
-typedef void(WINAPI *PDokanReleaseMountPointList)(PDOKAN_CONTROL list) MFNOEXCEPT;
 
 
 #pragma pack(push, 1)
@@ -55,8 +53,6 @@ typedef struct {
   PDokanIsNameInExpression DokanIsNameInExpression;
   PDokanResetTimeout DokanResetTimeout;
   PDokanOpenRequestorToken DokanOpenRequestorToken;
-  PDokanGetMountPointList DokanGetMountPointList;
-  PDokanReleaseMountPointList DokanReleaseMountPointList;
 } PLUGIN_DOKANFUNCS;
 
 
@@ -77,7 +73,7 @@ typedef struct {
 
 
 #ifdef FROMLIBMERGEFS
-static_assert(sizeof(PLUGIN_DOKANFUNCS) == 7 * sizeof(void*));
+static_assert(sizeof(PLUGIN_DOKANFUNCS) == 5 * sizeof(void*));
 static_assert(sizeof(PLUGIN_INITIALIZE_INFO) == 4 * 4 + sizeof(PLUGIN_DOKANFUNCS));
 static_assert(sizeof(PLUGIN_INITIALIZE_MOUNT_INFO) == 1 * 4 + 2 * sizeof(void*));
 #endif

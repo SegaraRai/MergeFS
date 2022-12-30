@@ -150,9 +150,9 @@ namespace {
   }
 
 
-  NTSTATUS DOKAN_CALLBACK DMounted(PDOKAN_FILE_INFO DokanFileInfo) {
+  NTSTATUS DOKAN_CALLBACK DMounted(LPCWSTR MountPoint, PDOKAN_FILE_INFO DokanFileInfo) {
     auto& mount = GetMountFromFileInfo(DokanFileInfo);
-    return mount.DMounted(DokanFileInfo);
+    return mount.DMounted(MountPoint, DokanFileInfo);
   }
 
 
@@ -174,9 +174,9 @@ namespace {
   }
 
 
-  NTSTATUS DOKAN_CALLBACK DFindStreams(LPCWSTR FileName, PFillFindStreamData FillFindStreamData, PDOKAN_FILE_INFO DokanFileInfo) {
+  NTSTATUS DOKAN_CALLBACK DFindStreams(LPCWSTR FileName, PFillFindStreamData FillFindStreamData, PVOID FindStreamContext, PDOKAN_FILE_INFO DokanFileInfo) {
     auto& mount = GetMountFromFileInfo(DokanFileInfo);
-    return mount.DFindStreams(FileName, FillFindStreamData, DokanFileInfo);
+    return mount.DFindStreams(FileName, FillFindStreamData, FindStreamContext, DokanFileInfo);
   }
 }
 

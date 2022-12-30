@@ -218,16 +218,19 @@ MountStore::MountStore() :
       m_mountMap.clear();
     }
   })
-{}
+{
+  DokanInit();
+}
 
 
 MountStore::~MountStore() {
   {
     std::lock_guard itLock(m_itMutex);
     m_itFinish = true;
+    m_itCv.notify_one();
   }
-  m_itCv.notify_one();
   m_unregisterThread.join();
+  DokanShutdown();
 }
 
 
@@ -264,15 +267,13 @@ MountStore::MOUNT_ID MountStore::Mount(std::wstring_view mountPoint, bool writab
 
     callback(mountId, &wrappedMountInfo.Get(), dokanMainResult);
 
-    {
-      std::lock_guard itLock(m_itMutex);
-      m_itUnregisterIds.emplace_back(mountId);
-    }
+    std::lock_guard itLock(m_itMutex);
+    m_itUnregisterIds.emplace_back(mountId);
     m_itCv.notify_one();
   });
 
   wrappedMountInfo.SetWritable(mount->IsWritable());
-  
+
   m_mountMap.emplace(mountId, MountData{
     std::move(mount),
     std::move(wrappedMountInfo),

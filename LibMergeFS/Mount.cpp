@@ -289,7 +289,7 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
     }
     DOKAN_OPTIONS config = {
       DokanConfig::Version,
-      DokanConfig::ThreadCount,
+      DokanConfig::SingleThread,
       options,
       GetGlobalContextFromMount(this),
       m_mountPoint.c_str(),
@@ -300,7 +300,7 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
     };
     DOKAN_OPERATIONS operations = gDokanOperations;
     const auto ret = DokanMain(&config, &operations);
-    
+
     bool callCallback = false;
     {
       std::lock_guard lock(m_imdMutex);
@@ -309,8 +309,8 @@ Mount::Mount(std::wstring_view mountPoint, bool writable, std::wstring_view meta
       }
       m_imdState = ImdState::Finished;
       m_imdResult = ret;
+      m_imdCv.notify_one();
     }
-    m_imdCv.notify_one();
 
     if (callCallback && callback) {
       // defer calling callback to avoid dead lock
@@ -370,11 +370,7 @@ bool Mount::Unmount() {
       return true;
     }
   }
-#if DOKAN_VERSION >= 200
-  if (!DokanRemoveMountPointEx(m_mountPoint.c_str(), FALSE)) {
-#else
   if (!DokanRemoveMountPoint(m_mountPoint.c_str())) {
-#endif
     return false;
   }
   return true;
@@ -485,7 +481,7 @@ void Mount::CopyFileToTopSourceR(std::wstring_view resolvedFilename, bool empty,
     }
   }
   //*/
-  
+
   std::size_t offset = 0;
   std::size_t firstCreation = 0;
   try {
@@ -823,7 +819,7 @@ NTSTATUS Mount::DZwCreateFile(LPCWSTR FileName, PDOKAN_IO_SECURITY_CONTEXT Secur
           if (m_deferCopyEnabled && !directory && !willBeReplaced && !(CreateOptions & FILE_DELETE_ON_CLOSE)) {
             deferCopy = true;
           }
-          
+
           if (!deferCopy) {
             CopyFileToTopSourceR(resolvedFilenameN.value(), willBeReplaced);
             targetSourceIndex = TopSourceIndex;
@@ -1057,7 +1053,7 @@ NTSTATUS Mount::DGetFileInformation(LPCWSTR FileName, LPBY_HANDLE_FILE_INFORMATI
     if (status != STATUS_SUCCESS || fileContext.writable) {
       return status;
     }
-  
+
     // modify fileIndex to avoid collision
     if (Buffer) {
       auto fileIndex = (static_cast<ULONGLONG>(Buffer->nFileIndexHigh) << 32) | Buffer->nFileIndexLow;
@@ -1094,7 +1090,10 @@ NTSTATUS Mount::DGetFileInformation(LPCWSTR FileName, LPBY_HANDLE_FILE_INFORMATI
 /*
 FindFiles Dokan API callback.
 
-List all files in the requested path DOKAN_OPERATIONS::FindFilesWithPattern is checked first. If it is not implemented or returns STATUS_NOT_IMPLEMENTED, then FindFiles is called, if implemented.
+List all files in the requested path.
+DOKAN_OPERATIONS::FindFilesWithPattern is checked first.
+If it is not implemented or returns STATUS_NOT_IMPLEMENTED, then FindFiles is called, if assigned.
+It is recommended to have this implemented for performance reason.
 */
 NTSTATUS Mount::DFindFiles(LPCWSTR FileName, PFillFindData FillFindData, PDOKAN_FILE_INFO DokanFileInfo) noexcept {
   return WrapException([=]() -> NTSTATUS {
@@ -1312,7 +1311,7 @@ NTSTATUS Mount::DSetFileAttributes(LPCWSTR FileName, DWORD FileAttributes, PDOKA
     if (fileContext.writable) {
       return fileContext.mountSource.get().DSetFileAttributes(resolvedFilename.c_str(), FileAttributes, DokanFileInfo, fileContext.id);
     }
-  
+
     // edit metadata
     {
       const auto filteredFileAttributes = (FileAttributes & FILE_ATTRIBUTE_NORMAL) && (FileAttributes != FILE_ATTRIBUTE_NORMAL)
@@ -1652,7 +1651,7 @@ NTSTATUS Mount::DGetDiskFreeSpace(PULONGLONG FreeBytesAvailable, PULONGLONG Tota
       TotalNumberOfFreeBytes = nullptr;
     }
 
-    
+
     if (!FreeBytesAvailable && !TotalNumberOfBytes && !TotalNumberOfFreeBytes) {
       return STATUS_SUCCESS;
     }
@@ -1742,15 +1741,13 @@ Mounted Dokan API callback.
 
 Called when Dokan successfully mounts the volume.
 */
-NTSTATUS Mount::DMounted(PDOKAN_FILE_INFO DokanFileInfo) noexcept {
+NTSTATUS Mount::DMounted(LPCWSTR MountPoint, PDOKAN_FILE_INFO DokanFileInfo) noexcept {
   return WrapException([=]() -> NTSTATUS {
     // notify mounted
-    {
-      std::lock_guard lock(m_imdMutex);
-      m_imdState = ImdState::Mounting;
-    }
+    std::lock_guard lock(m_imdMutex);
+    m_imdState = ImdState::Mounting;
     m_imdCv.notify_one();
-    
+
     return STATUS_SUCCESS;
   });
 }
@@ -1835,7 +1832,7 @@ Retrieve all NTFS Streams informations on the file. This is only called if DOKAN
 Since
 Supported since version 0.8.0. The version must be specified in DOKAN_OPTIONS::Version.
 */
-NTSTATUS Mount::DFindStreams(LPCWSTR FileName, PFillFindStreamData FillFindStreamData, PDOKAN_FILE_INFO DokanFileInfo) noexcept {
+NTSTATUS Mount::DFindStreams(LPCWSTR FileName, PFillFindStreamData FillFindStreamData, PVOID FindStreamContext, PDOKAN_FILE_INFO DokanFileInfo) noexcept {
   return WrapException([=]() -> NTSTATUS {
     if (!HasFileContext(DokanFileInfo)) {
       return STATUS_INVALID_HANDLE;
@@ -1844,7 +1841,7 @@ NTSTATUS Mount::DFindStreams(LPCWSTR FileName, PFillFindStreamData FillFindStrea
     auto& fileContext = *ptrFileContext;
     // とりあえずファイルが属するソースにおける代替ストリームのみを列挙する
     NTSTATUS statusFromCallback = STATUS_SUCCESS;
-    const auto status = fileContext.mountSource.get().ListStreams(fileContext.resolvedFilename.c_str(), [FillFindStreamData, DokanFileInfo, &statusFromCallback](WIN32_FIND_STREAM_DATA* findStreamData) noexcept {
+    const auto status = fileContext.mountSource.get().ListStreams(fileContext.resolvedFilename.c_str(), [FillFindStreamData, FindStreamContext, &statusFromCallback](WIN32_FIND_STREAM_DATA* findStreamData) noexcept {
       if (statusFromCallback != STATUS_SUCCESS) {
         return;
       }
@@ -1852,7 +1849,7 @@ NTSTATUS Mount::DFindStreams(LPCWSTR FileName, PFillFindStreamData FillFindStrea
         statusFromCallback = STATUS_ACCESS_VIOLATION;
         return;
       }
-      FillFindStreamData(findStreamData, DokanFileInfo);
+      FillFindStreamData(findStreamData, FindStreamContext);
     });
     if (status != STATUS_SUCCESS) {
       return status;

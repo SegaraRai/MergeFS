@@ -38,16 +38,6 @@ namespace {
     HANDLE WINAPI DokanOpenRequestorToken(PDOKAN_FILE_INFO DokanFileInfo) noexcept {
       return ::DokanOpenRequestorToken(DokanFileInfo);
     }
-
-
-    PDOKAN_CONTROL WINAPI DokanGetMountPointList(BOOL uncOnly, PULONG nbRead) noexcept {
-      return ::DokanGetMountPointList(uncOnly, nbRead);
-    }
-
-
-    void WINAPI DokanReleaseMountPointList(PDOKAN_CONTROL list) noexcept {
-      return ::DokanReleaseMountPointList(list);
-    }
   }
 }
 
@@ -105,8 +95,6 @@ PluginBase::PluginBase(std::wstring_view pluginFilePath, PLUGIN_TYPE pluginType)
       DokanFuncs::DokanIsNameInExpression,
       DokanFuncs::DokanResetTimeout,
       DokanFuncs::DokanOpenRequestorToken,
-      DokanFuncs::DokanGetMountPointList,
-      DokanFuncs::DokanReleaseMountPointList,
     },
   }),
   dll(this->pluginFilePath.c_str()),
