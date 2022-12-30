@@ -26,8 +26,8 @@ jobs:
       - uses: microsoft/setup-msbuild@v1.1
 
       - run: |
-          msbuild MergeFS.sln -t:Build -property:Configuration=Release;Platform=x86
-          msbuild MergeFS.sln -t:Build -property:Configuration=Release;Platform=x64
+          msbuild MergeFS.sln -t:Build -property:Configuration=Release -property:Platform=x86
+          msbuild MergeFS.sln -t:Build -property:Configuration=Release -property:Platform=x64
 
       - run: >
           "C:\Program Files\7-Zip\7z.exe" a -tzip -r
