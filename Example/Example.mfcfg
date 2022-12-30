@@ -1,25 +1,26 @@
 # pass this file as an argument to the MergeFSMC.exe
 
 # mount point (directory or drive letter)
-mountPoint: some_existing_empty_ntfs_dir
-#mountPoint: 'M:'
+# when using directory as a mount point, it must exist, be empty, and be on NTFS filesystem
+#mountPoint: MountPoint
+mountPoint: 'M:'
 
 # metadata file
 metadata: metadata.db
 
 # volume information (optional)
 volumeInfo:
-  volumeName: volume name
+  volumeName: Volume Name
 
 sources:
   # the first (topmost) layer source (existing filesystem directory, archive file, etc.)
   # files in this source will always be visible
   # if this layer is a read-only source(e.g. an archive), the entire mount point will be read-only
   # to make the mount point writable, use filesystem source here
-  - source: some_existing_dir
+  - source: Source1
   # second layer source
   # if a file of the same name exists in a higher layer, the one in this source will be shadowed
   # If a directory with the same name exists in a higher layer, the directory contents will be merged
-  - source: some_existing_dir_2
+  - source: Source2
   # third layer source
-  - source: some_archive.tar
+  - source: Source3.tar
